@@ -1,0 +1,35 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: doe.ca_smi_state_counties_cities_2018
+Metadata:
+  DESCRIPTION=ca_smi_state_counties_cities_2018
+Geometry: None
+Feature Count: 1218925
+Layer SRS WKT:
+(unknown)
+FID Column = ogc_fid
+location: String (0.0)
+fip: String (0.0)
+ten: String (0.0)
+ybl6: String (0.0)
+bld: String (0.0)
+hfl: String (0.0)
+smi68: String (0.0)
+units: String (0.0)
+hincp*units: String (0.0)
+elep*units: String (0.0)
+gasp*units: String (0.0)
+fulp*units: String (0.0)
+hincp units: String (0.0)
+elep units: String (0.0)
+gasp units: String (0.0)
+fulp units: String (0.0)
+hcount: String (0.0)
+ecount: String (0.0)
+gcount: String (0.0)
+fcount: String (0.0)
+hincp: String (0.0)
+elep: String (0.0)
+gasp: String (0.0)
+fulp: String (0.0)

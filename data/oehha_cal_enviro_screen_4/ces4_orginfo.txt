@@ -1,0 +1,121 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: oehha.ces4
+Metadata:
+  DESCRIPTION=ces4
+Geometry: Multi Surface
+Feature Count: 8035
+Extent: (-373976.129295, -604512.649477) - (539719.617303, 450022.491310)
+Layer SRS WKT:
+PROJCRS["NAD83 / California Albers",
+    BASEGEOGCRS["NAD83",
+        DATUM["North American Datum 1983",
+            ELLIPSOID["GRS 1980",6378137,298.257222101,
+                LENGTHUNIT["metre",1]]],
+        PRIMEM["Greenwich",0,
+            ANGLEUNIT["degree",0.0174532925199433]],
+        ID["EPSG",4269]],
+    CONVERSION["California Albers",
+        METHOD["Albers Equal Area",
+            ID["EPSG",9822]],
+        PARAMETER["Latitude of false origin",0,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8821]],
+        PARAMETER["Longitude of false origin",-120,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8822]],
+        PARAMETER["Latitude of 1st standard parallel",34,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8823]],
+        PARAMETER["Latitude of 2nd standard parallel",40.5,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8824]],
+        PARAMETER["Easting at false origin",0,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8826]],
+        PARAMETER["Northing at false origin",-4000000,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8827]]],
+    CS[Cartesian,2],
+        AXIS["easting (X)",east,
+            ORDER[1],
+            LENGTHUNIT["metre",1]],
+        AXIS["northing (Y)",north,
+            ORDER[2],
+            LENGTHUNIT["metre",1]],
+    USAGE[
+        SCOPE["State-wide spatial data management."],
+        AREA["United States (USA) - California."],
+        BBOX[32.53,-124.45,42.01,-114.12]],
+    ID["EPSG",3310]]
+Data axis to CRS axis mapping: 1,2
+FID Column = objectid
+Geometry Column = geom
+tract: Real (0.0)
+zip: String (255.0)
+population: Integer (0.0)
+ciscore: Real (0.0)
+ciscorep: Real (0.0)
+ozone: Real (0.0)
+ozone_pctl: Real (0.0)
+pm2_5: Real (0.0)
+pm2_5_pctl: Real (0.0)
+diesel_pm: Real (0.0)
+diesel_pm_pctl: Real (0.0)
+pesticides: Real (0.0)
+pesticides_pctl: Real (0.0)
+tox_releases: Real (0.0)
+tox_releases_pctl: Real (0.0)
+traffic: Real (0.0)
+traffic_pctl: Real (0.0)
+drinking_water: Real (0.0)
+drinkingwaterpctl: Real (0.0)
+lead: Real (0.0)
+lead_pctl: Real (0.0)
+cleanups: Real (0.0)
+cleanups_pctl: Real (0.0)
+groundwaterthreats: Real (0.0)
+gw_threats_pctl: Real (0.0)
+haz_waste: Real (0.0)
+haz_waste_pctl: Real (0.0)
+imp_water_bodies: Integer (0.0)
+impwaterbodpctl: Real (0.0)
+solid_waste: Real (0.0)
+solid_waste_pctl: Real (0.0)
+pollution: Real (0.0)
+pollutionscore: Real (0.0)
+pollution_pctl: Real (0.0)
+asthma: Real (0.0)
+asthma_pctl: Real (0.0)
+low_birth_weight: Real (0.0)
+lowbirthw_pctl: Real (0.0)
+cardiovascular: Real (0.0)
+cardiovasc_pctl: Real (0.0)
+education: Real (0.0)
+education_pctl: Real (0.0)
+ling_isol: Real (0.0)
+ling_isol_pctl: Real (0.0)
+poverty: Real (0.0)
+poverty_pctl: Real (0.0)
+unemployment: Real (0.0)
+unemploy_pctl: Real (0.0)
+housburd: Real (0.0)
+housburd_pctl: Real (0.0)
+popchar: Real (0.0)
+popcharscore: Real (0.0)
+popcharp: Real (0.0)
+child_10: Real (0.0)
+pop_10_64: Real (0.0)
+elderly_65: Real (0.0)
+hispanic: Real (0.0)
+white: Real (0.0)
+african_american: Real (0.0)
+native_american: Real (0.0)
+asian_american: Real (0.0)
+pacific_islander: Real (0.0)
+other_multiple: Real (0.0)
+shape_length: Real (0.0)
+shape_area: Real (0.0)
+county: String (255.0)
+approxloc: String (255.0)

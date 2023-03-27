@@ -1,0 +1,11 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: census.acs_ca_2019_tr_metadata
+Geometry: None
+Feature Count: 924
+Layer SRS WKT:
+(unknown)
+variable: String (0.0)
+table: String (0.0)
+label: String (0.0)

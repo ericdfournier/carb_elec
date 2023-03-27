@@ -1,0 +1,30 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: census.acs_ca_2019_tr_fuel
+Geometry: None
+Feature Count: 8057
+Layer SRS WKT:
+(unknown)
+GEOID: String (0.0)
+DP04_0062E: Integer64 (0.0)
+DP04_0062PE: Integer64 (0.0)
+DP04_0063E: Integer64 (0.0)
+DP04_0063PE: Real (0.0)
+DP04_0064E: Integer64 (0.0)
+DP04_0064PE: Real (0.0)
+DP04_0065E: Integer64 (0.0)
+DP04_0065PE: Real (0.0)
+DP04_0066E: Integer64 (0.0)
+DP04_0066PE: Real (0.0)
+DP04_0067E: Integer64 (0.0)
+DP04_0067PE: Real (0.0)
+DP04_0068E: Integer64 (0.0)
+DP04_0068PE: Real (0.0)
+DP04_0069E: Integer64 (0.0)
+DP04_0069PE: Real (0.0)
+DP04_0070E: Integer64 (0.0)
+DP04_0070PE: Real (0.0)
+DP04_0071E: Integer64 (0.0)
+DP04_0071PE: Real (0.0)
+NAME: String (0.0)

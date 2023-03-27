@@ -1,0 +1,19 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: cpuc.2020_electric_aac_tract
+Metadata:
+  DESCRIPTION=2020_electric_aac_tract
+Geometry: None
+Feature Count: 55
+Layer SRS WKT:
+(unknown)
+FID Column = ogc_fid
+objectid_1: Integer (0.0)
+cz_e: String (0.0)
+regulated: String (0.0)
+shape_area: Real (0.0)
+puma: Integer (0.0)
+county_cit: String (0.0)
+ar20: Real (0.0)
+ar50: Real (0.0)
