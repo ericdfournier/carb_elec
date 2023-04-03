@@ -1,0 +1,15 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: pge.ica_feeder_load_profile
+Metadata:
+  DESCRIPTION=ica_feeder_load_profile
+Geometry: None
+Feature Count: 584760
+Layer SRS WKT:
+(unknown)
+FID Column = objectid
+feederid: Integer (0.0)
+monthhour: String (5.0)
+light: Integer (0.0)
+high: Integer (0.0)

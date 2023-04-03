@@ -1,0 +1,16 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: pge.ica_substation_load_profile
+Metadata:
+  DESCRIPTION=ica_substation_load_profile
+Geometry: None
+Feature Count: 26520
+Layer SRS WKT:
+(unknown)
+FID Column = objectid
+subname: String (40.0)
+subid: Integer (0.0)
+monthhour: String (5.0)
+light: Integer (0.0)
+high: Integer (0.0)
