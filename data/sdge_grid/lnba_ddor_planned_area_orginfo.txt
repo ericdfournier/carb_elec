@@ -1,0 +1,78 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: sdge.lnba_ddor_planned_area
+Metadata:
+  DESCRIPTION=lnba_ddor_planned_area
+Geometry: Multi Surface
+Feature Count: 13178
+Extent: (258012.746829, -591779.074355) - (350238.442126, -522483.484893)
+Layer SRS WKT:
+PROJCRS["NAD83 / California Albers",
+    BASEGEOGCRS["NAD83",
+        DATUM["North American Datum 1983",
+            ELLIPSOID["GRS 1980",6378137,298.257222101,
+                LENGTHUNIT["metre",1]]],
+        PRIMEM["Greenwich",0,
+            ANGLEUNIT["degree",0.0174532925199433]],
+        ID["EPSG",4269]],
+    CONVERSION["California Albers",
+        METHOD["Albers Equal Area",
+            ID["EPSG",9822]],
+        PARAMETER["Latitude of false origin",0,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8821]],
+        PARAMETER["Longitude of false origin",-120,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8822]],
+        PARAMETER["Latitude of 1st standard parallel",34,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8823]],
+        PARAMETER["Latitude of 2nd standard parallel",40.5,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8824]],
+        PARAMETER["Easting at false origin",0,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8826]],
+        PARAMETER["Northing at false origin",-4000000,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8827]]],
+    CS[Cartesian,2],
+        AXIS["easting (X)",east,
+            ORDER[1],
+            LENGTHUNIT["metre",1]],
+        AXIS["northing (Y)",north,
+            ORDER[2],
+            LENGTHUNIT["metre",1]],
+    USAGE[
+        SCOPE["State-wide spatial data management."],
+        AREA["United States (USA) - California."],
+        BBOX[32.53,-124.45,42.01,-114.12]],
+    ID["EPSG",3310]]
+Data axis to CRS axis mapping: 1,2
+FID Column = ogc_fid
+Geometry Column = geom
+join_count: Integer64 (10.0)
+target_fid: Integer64 (10.0)
+join_fid: Integer64 (10.0)
+shape_leng: Real (19.11)
+substation: String (20.0)
+bank_circu: String (20.0)
+descriptio: String (254.0)
+circuit_id: String (20.0)
+line_segme: Integer64 (10.0)
+ohug: String (5.0)
+lnba_range: String (20.0)
+equip_invo: String (100.0)
+additional: String (254.0)
+in_service: String (15.0)
+deficiency: String (10.0)
+deficien_1: String (10.0)
+equip_unit: String (10.0)
+dist_servi: String (50.0)
+der_serv_e: String (50.0)
+gna_id: String (20.0)
+restricted: String (3.0)
+ddor_id: String (20.0)
+facility_i: String (20.0)
+lnba_units: String (10.0)
