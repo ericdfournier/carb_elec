@@ -3,12 +3,12 @@ INFO: Open of `postgresql://edf@127.0.0.1/carb'
 
 Layer name: usepa.ggl_2021
 Geometry: None
-Feature Count: 7
+Feature Count: 6
 Layer SRS WKT:
 (unknown)
-Data Year: String (0.0)
-One of the three interconnect power grids in the U.S. (plus Ala: String (0.0)
-Estimated losses (MWh): String (0.0)
-Total disposition (MWh) without exports: String (0.0)
-Direct use (MWh): String (0.0)
-Grid gross loss [Estimated losses/(Total disposition without ex: String (0.0)
+YEAR: Integer64 (0.0)
+REGION: String (0.0)
+ESTLOSS: Real (0.0)
+TOTDISP: Real (0.0)
+DIRCTUSE: Real (0.0)
+GGRSLOSS: Real (0.0)

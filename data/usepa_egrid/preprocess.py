@@ -12,16 +12,16 @@ os.chdir(root)
 
 #%% Read Egrid Excel Sheets as Dataframes
 
-unt21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'UNT21', skiprows=0, header=1, index_col = 'SEQUNT')
-gen21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'GEN21', skiprows=0, header=1, index_col = 'SEQGEN')
-plnt21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'PLNT21', skiprows=0, header=1, index_col = 'SEQPLT')
-st21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'ST21', skiprows=0)
-ba21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'BA21', skiprows=0)
-srl21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'SRL21', skiprows=0)
-nrl21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'NRL21', skiprows=0)
-us21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'US21', skiprows=0)
-ggl21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'GGL21', skiprows=0)
-demo21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'SRL21', skiprows=0)
+unt21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'UNT21', skiprows=1, header=0, index_col = 'SEQUNT')
+gen21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'GEN21', skiprows=1, header=0, index_col = 'SEQGEN')
+plnt21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'PLNT21', skiprows=1, header=0, index_col = 'SEQPLT')
+st21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'ST21', skiprows=1, header = 0)
+ba21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'BA21', skiprows=1, header = 0)
+srl21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'SRL21', skiprows=1, header = 0)
+nrl21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'NRL21', skiprows=1, header = 0)
+us21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'US21', skiprows=1, header = 0)
+ggl21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'GGL21', skiprows=1, header = 0)
+demo21 = pd.read_excel('eGRID2021_data.xlsx', sheet_name = 'SRL21', skiprows=1, header = 0)
 
 #%% Get Database Connection Parameters
 
