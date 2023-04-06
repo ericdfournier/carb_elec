@@ -1,0 +1,39 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: usepa.unt_2021
+Geometry: None
+Feature Count: 24597
+Layer SRS WKT:
+(unknown)
+YEAR: Integer64 (0.0)
+PSTATABB: String (0.0)
+PNAME: String (0.0)
+ORISPL: Integer64 (0.0)
+UNITID: String (0.0)
+PRMVR: String (0.0)
+UNTOPST: String (0.0)
+CAMDFLAG: String (0.0)
+PRGCODE: String (0.0)
+BOTFIRTY: String (0.0)
+NUMGEN: Real (0.0)
+FUELU1: String (0.0)
+HRSOP: Real (0.0)
+HTIAN: Real (0.0)
+HTIOZ: Real (0.0)
+NOXAN: Real (0.0)
+NOXOZ: Real (0.0)
+SO2AN: Real (0.0)
+CO2AN: Real (0.0)
+HGAN: Real (0.0)
+HTIANSRC: String (0.0)
+HTIOZSRC: String (0.0)
+NOXANSRC: String (0.0)
+NOXOZSRC: String (0.0)
+SO2SRC: String (0.0)
+CO2SRC: String (0.0)
+HGSRC: String (0.0)
+SO2CTLDV: String (0.0)
+NOXCTLDV: String (0.0)
+HGCTLDV: String (0.0)
+UNTYRONL: Real (0.0)
