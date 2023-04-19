@@ -27,6 +27,7 @@ tables=('acs_ca_2019_tr_population'
     'acs_ca_2019_tr_fuel'
     'acs_ca_2019_tr_metadata'
     'acs_ca_2019_tr_geom'
+    'acs_ca_2019_place_geom'
     'acs_ca_2019_puma_geom'
     'acs_ca_2019_county_geom' )
 

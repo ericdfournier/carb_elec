@@ -130,6 +130,12 @@ tract_url = "https://www2.census.gov/geo/tiger/TIGER2019/TRACT/tl_2019_06_tract.
 tract_geom_data = gpd.read_file(tract_url)
 tract_geom_data = tract_geom_data.to_crs(3310)
 
+#%% Read Place Geometry Data
+
+place_url = "https://www2.census.gov/geo/tiger/TIGER2019/PLACE/tl_2019_06_place.zip"
+place_geom_data = gpd.read_file(place_url)
+place_geom_data = place_geom_data.to_crs(3310)
+
 #%% Read PUMA Geometry Data
 
 puma_url = "https://www2.census.gov/geo/tiger/TIGER2019/PUMA/tl_2019_06_puma10.zip"
@@ -194,6 +200,12 @@ meta_data.to_sql('acs_ca_2019_tr_metadata',
     con = engine)
 
 tract_geom_data.to_postgis('acs_ca_2019_tr_geom',
+    if_exists = 'replace',
+    index = False,
+    schema = 'census',
+    con = engine)
+
+place_geom_data.to_postgis('acs_ca_2019_place_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',
