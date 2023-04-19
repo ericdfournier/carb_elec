@@ -13,6 +13,8 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 # - census.acs_ca_2019_tr_geom
 # - census.acs_ca_2019_puma_geom
 # - census.acs_ca_2019_county_geom
+# - census.acs_ca_2019_unincorporated_geom (Note: Computed as symmetric
+#   difference of the county and place geometry layers)
 #
 # Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
@@ -37,3 +39,24 @@ for table in "${tables[@]}"
 do
     ogrinfo -so -ro $dst $schema.$table > $src$table'_ogrinfo.txt'
 done
+
+format='PostgreSQL'
+dst="postgresql://$PGUSER@$PGHOST/carb"
+schema='census'
+src='/Users/edf/repos/carb_elec/data/census_american_community_survey/raw/'
+out='/Users/edf/repos/carb_elec/data/census_american_community_survey/'
+file='acs_ca_2019_unincorporated_geom.geojson'
+table='acs_ca_2019_unincorporated_geom'
+
+ogr2ogr -f $format $dst \
+    $src$file \
+    -lco SCHEMA=$schema \
+    -nln $table  \
+    -nlt MULTISURFACE \
+    -t_srs EPSG:3310 \
+    -lco GEOMETRY_NAME=geom \
+    -emptyStrAsNull \
+    -lco DESCRIPTION=$table \
+    --debug ON
+
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
