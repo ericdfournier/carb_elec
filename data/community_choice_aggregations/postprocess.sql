@@ -2,7 +2,7 @@
 SELECT A.city_name AS geog_name,
        A.cca_name AS cca_name,
        'city' AS geo_type,
-       B.GEOID AS geoid,
+       B."GEOID" AS geoid,
        B.geometry AS geometry
 INTO cca.places_geom
 FROM cca.places AS A
@@ -13,7 +13,7 @@ ON A."city_name" = B."NAME";
 SELECT A.unincorporated_name AS geog_name,
        A.cca_name AS cca_name,
        'unincorporated_area' AS geo_type,
-       B.GEOID AS geoid,
+       B.geoid AS geoid,
        B.geom AS geometry
 INTO cca.unincorporated_areas_geom
 FROM cca.unincorporated_areas AS A
@@ -24,7 +24,7 @@ ON A."unincorporated_name" = B."name";
 SELECT A.county_name AS geog_name,
        A.cca_name AS cca_name,
        'county' AS geo_type,
-       B.GEOID AS geoid,
+       B."GEOID" AS geoid,
        B.geometry AS geometry
 INTO cca.counties_geom
 FROM cca.counties AS A
@@ -32,7 +32,6 @@ LEFT JOIN census.acs_ca_2019_county_geom AS B
 ON A."county_name" = B."NAME";
 
 -- Union Subselected Areas
-
 CREATE TABLE cca.all_merged AS (
 SELECT * FROM cca.places_geom
 UNION

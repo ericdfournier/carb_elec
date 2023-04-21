@@ -18,6 +18,7 @@ dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='cca'
 src='/Users/edf/repos/carb_elec/data/community_choice_aggregations/raw/'
 out='/Users/edf/repos/carb_elec/data/community_choice_aggregations/'
+
 file='cca_places.csv'
 table='places'
 
