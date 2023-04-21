@@ -2,23 +2,23 @@
 set -ue  # Set nounset and errexit Bash shell attributes.
 
 ################################################################################
-# California Community Choice Aggregations
+# California Regional Energy Networks
 #
 # Creates tables:
-# - cca.places
-# - cca.unincorporated_areas
-# - cca.counties
-# - cca.all_merged
+# - ren.places
+# - ren.unincorporated_areas
+# - ren.counties
+# - ren.all_merged
 #
 ################################################################################
 
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
-schema='cca'
-src='/Users/edf/repos/carb_elec/data/community_choice_aggregations/raw/'
-out='/Users/edf/repos/carb_elec/data/community_choice_aggregations/'
+schema='ren'
+src='/Users/edf/repos/carb_elec/data/regional_energy_networks/raw/'
+out='/Users/edf/repos/carb_elec/data/regional_energy_networks/'
 
-file='cca_places.csv'
+file='ren_places.csv'
 table='places'
 
 ogr2ogr -f $format $dst \
@@ -31,7 +31,7 @@ ogr2ogr -f $format $dst \
 
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
-file='cca_unincorporated.csv'
+file='ren_unincorporated.csv'
 table='unincorporated_areas'
 
 ogr2ogr -f $format $dst \
@@ -44,7 +44,7 @@ ogr2ogr -f $format $dst \
 
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
-file='cca_counties.csv'
+file='ren_counties.csv'
 table='counties'
 
 ogr2ogr -f $format $dst \
@@ -61,6 +61,6 @@ ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 table='all_merged'
 
-psql -d carb -a -f '/Users/edf/repos/carb_elec/data/community_choice_aggregations/postprocess.sql'
+psql -d carb -a -f '/Users/edf/repos/carb_elec/data/regional_energy_networks/postprocess.sql'
 
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

@@ -1,0 +1,13 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: ren.places
+Metadata:
+  DESCRIPTION=places
+Geometry: None
+Feature Count: 18
+Layer SRS WKT:
+(unknown)
+FID Column = ogc_fid
+city_name: String (0.0)
+ren_name: String (0.0)
