@@ -1,4 +1,4 @@
-# README: PriorityPopulations2022CES4.gdb
+# README.md
 
 # Data Source
 
@@ -6,7 +6,6 @@ https://oehha.ca.gov/calenviroscreen/report/calenviroscreen-40
 
 # Data Overview
 
-## Revised 5/26/2022
 
 The PriorityPopulations2022CES4.gdb file contains spatial data identifying disadvantaged communities and low-income communities for the purposes of California Climate Investments, consistent with the release of CalEnviroScreen 4.0 and CalEPA Disadvantaged Communities designations.  This update contains new and categorical changes and uses a new dataset to update the existing methodology.
 
