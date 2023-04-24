@@ -34,7 +34,6 @@ ogr2ogr -f $format $dst \
 
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
-
 file='CaAirDistrict.shp'
 table='ca_air_districts'
 
