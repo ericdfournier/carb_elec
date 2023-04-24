@@ -52,9 +52,6 @@ PROJCRS["NAD83 / California Albers",
 Data axis to CRS axis mapping: 1,2
 FID Column = ogc_fid
 Geometry Column = geom
-objectid: Integer (0.0)
-area: Real (0.0)
-perimeter: Real (0.0)
 caada_: Real (0.0)
 caada_id: Real (0.0)
 name: String (0.0)

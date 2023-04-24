@@ -6,7 +6,9 @@ https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficienc
 
 # Data Overview
 
-## Description
+This data layer for Building Climate Zones is hosted by the California Energy Commission. These climate zones are specifically referenced within the context of the California Energy Code.
+
+## Data Description
 Building Climates Zones of California Climate Zone Descriptions for New Buildings - California is divided into 16 climatic boundaries or climate zones, which is incorporated into the Energy Efficiency Standards (Energy Code). Each Climate zone has a unique climatic condition that dictates which minimum efficiency requirements are needed for that specific climate zone.
 
 The numbers used in the climate zone map don't have a title or legend. The California climate zones shown in this map are not the same as what we commonly call climate areas such as "desert" or "alpine" climates. The climate zones are based on energy use, temperature, weather and other factors.
