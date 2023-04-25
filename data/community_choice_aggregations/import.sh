@@ -12,12 +12,14 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 #
 ################################################################################
 
+# Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='cca'
 src='/Users/edf/repos/carb_elec/data/community_choice_aggregations/raw/'
 out='/Users/edf/repos/carb_elec/data/community_choice_aggregations/'
 
+# Import cca places list
 file='cca_places.csv'
 table='places'
 
@@ -29,8 +31,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import cca unincorporate area list
 file='cca_unincorporated.csv'
 table='unincorporated_areas'
 
@@ -42,8 +43,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import cca counties list
 file='cca_counties.csv'
 table='counties'
 
@@ -55,12 +55,18 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
 # Postprocess tables
-
-table='all_merged'
-
 psql -d carb -a -f '/Users/edf/repos/carb_elec/data/community_choice_aggregations/postprocess.sql'
 
+# Output Metadata
+table='places'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='unincorporated_areas'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='counties'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='all_merged'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
