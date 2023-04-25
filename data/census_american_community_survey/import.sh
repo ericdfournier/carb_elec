@@ -19,6 +19,7 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 # Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
 
+# Set environment parameters
 src='/Users/edf/repos/carb_elec/data/census_american_community_survey/'
 file='download.py'
 dst="postgresql://$PGUSER@$PGHOST/carb"
@@ -33,18 +34,24 @@ tables=('acs_ca_2019_tr_population'
     'acs_ca_2019_puma_geom'
     'acs_ca_2019_county_geom' )
 
+
+# Download data via python Census API
 /opt/anaconda3/envs/geo/bin/python $src$file
 
+# Output Metadata
 for table in "${tables[@]}"
 do
     ogrinfo -so -ro $dst $schema.$table > $src$table'_ogrinfo.txt'
 done
 
+# Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='census'
 src='/Users/edf/repos/carb_elec/data/census_american_community_survey/raw/'
 out='/Users/edf/repos/carb_elec/data/census_american_community_survey/'
+
+# Import to unincorporated geometry table
 file='acs_ca_2019_unincorporated_geom.geojson'
 table='acs_ca_2019_unincorporated_geom'
 
@@ -59,4 +66,8 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
+# Postprocess tables
+psql -d carb -a -f '/Users/edf/repos/carb_elec/data/american_community_survey/postprocess.sql'
+
+# Output Metadata
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
