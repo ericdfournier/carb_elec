@@ -2,7 +2,20 @@
 
 # Data Source
 
+US Census Bureau API
+
+# Data Overview
+
 American Community Survey (ACS) data are accessed programmatically via the Census Developer API using methods documented in the associated "download.py" script located within this same directory. ACS tables are constructed on the basis of keyword search matches. These data are provided for the 2019 census year to retain geographic consistency with the boundaries used for the CalEnviroScreen and CARB Priority Population designations.
+
+# Data Description
+
+The tables which have been populated in the "census" data schema reflect two types of information. 1) Reference boundaries that are relevant to other data sources in this database and 2) Census tract level attributes from the American Community Survey for the following thematic areas that are relevant to the project's focus on electrification measures, incentives, barriers, and progress:
+
+1) Income
+2) Housing
+3) Population
+4) Fuel Use
 
 # Data Dictionary
 
