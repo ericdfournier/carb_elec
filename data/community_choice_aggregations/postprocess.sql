@@ -1,48 +1,48 @@
--- Select REN Cities
+-- Select cca Cities
 SELECT A.city_name AS geog_name,
-       A.ren_name AS ren_name,
+       A.cca_name AS cca_name,
        'city' AS geo_type,
        B."GEOID" AS geoid,
        B.geometry AS geometry
-INTO ren.places_geom
-FROM ren.places AS A
+INTO cca.places_geom
+FROM cca.places AS A
 LEFT JOIN census.acs_ca_2019_place_geom AS B
 ON A."city_name" = B."NAME";
 
--- Select REN Unincorporated Areas
+-- Select cca Unincorporated Areas
 SELECT A.unincorporated_name AS geog_name,
-       A.ren_name AS ren_name,
+       A.cca_name AS cca_name,
        'unincorporated_area' AS geo_type,
        B.geoid AS geoid,
        B.geom AS geometry
-INTO ren.unincorporated_areas_geom
-FROM ren.unincorporated_areas AS A
+INTO cca.unincorporated_areas_geom
+FROM cca.unincorporated_areas AS A
 LEFT JOIN census.acs_ca_2019_unincorporated_geom AS B
 ON A."unincorporated_name" = B."name";
 
--- Select REN Unincorporated Areas and Cities within Counties
+-- Select cca Unincorporated Areas and Cities within Counties
 SELECT A.county_name AS geog_name,
-       A.ren_name AS ren_name,
+       A.cca_name AS cca_name,
        'county' AS geom_type,
        B."GEOID" AS geoid,
        B.geometry AS geometry
-INTO ren.counties_geom
-FROM ren.counties AS A
+INTO cca.counties_geom
+FROM cca.counties AS A
 LEFT JOIN census.acs_ca_2019_county_geom AS B
 ON A."county_name" = B."NAME";
 
 -- Union Subselected Areas
-CREATE TABLE ren.all_merged AS (
-SELECT * FROM ren.places_geom
+CREATE TABLE cca.all_merged AS (
+SELECT * FROM cca.places_geom
 UNION
-SELECT * FROM ren.counties_geom
+SELECT * FROM cca.counties_geom
 UNION
-SELECT * FROM ren.unincorporated_areas_geom);
+SELECT * FROM cca.unincorporated_areas_geom);
 
 -- Add table description
-COMMENT ON TABLE ren.all_merged IS 'all geometries merged';
+COMMENT ON TABLE cca.all_merged IS 'all geometries merged';
 
 -- Drop intermediate tables
-DROP TABLE ren.places_geom,
-       ren.counties_geom,
-       ren.unincorporated_areas_geom;
+DROP TABLE cca.places_geom,
+       cca.counties_geom,
+       cca.unincorporated_areas_geom;
