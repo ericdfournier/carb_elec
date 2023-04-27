@@ -2,8 +2,9 @@
 
 # Data Source
 
-N/A
+https://cal-cca.org/powered/
 
+![image info](./img/cal_cca.png "Cal-CCA Resource Page")
 # Data Overview
 
 There is currently no definitive source of geospatial data for the coverage areas of the various Community Choice Aggregations which are active throughout the state of California. Consequently, we have endeavored  to create such a dataset here using a combination of publicly available data the Cal-CCA trade organization as well as individual CCA's themselves. These data sets are assembled from underlying city, county, and unincorporated area reference geometries previously obtained from the Census as part of the overall workflow.

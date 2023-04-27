@@ -1,7 +1,9 @@
 # README.md
 
 # Data Source
-https://data.ca.gov/dataset/california-air-resources-board-gis-datasets
+https://ww2.arb.ca.gov/geographical-information-system-gis-library
+
+![image info](./img/air_districts.png "CARB Air District Boundaries")
 
 # Data Overview
 

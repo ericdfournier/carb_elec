@@ -4,6 +4,8 @@
 
 https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficiency-standards/climate-zone-tool-maps-and
 
+![image info](./img/climate_zones.png "CEC Building Energy Climate Zones")
+
 # Data Overview
 
 This data layer for Building Climate Zones is hosted by the California Energy Commission. These climate zones are specifically referenced within the context of the California Energy Code.

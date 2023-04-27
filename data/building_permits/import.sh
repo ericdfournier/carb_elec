@@ -22,7 +22,7 @@ out='./'
 
 # Import raw permit data table
 file='raw_permit_data.csv'
-table='raw'
+table='raw_permit_data_merged'
 
 ogr2ogr -f $format $dst \
     $src$file\
