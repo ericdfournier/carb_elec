@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import CPUC Utility Affordability Metrics
 #
@@ -15,11 +19,14 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 # Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
 
+# Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='cpuc'
-src='/Users/edf/repos/carb_elec/data/cpuc_utility_affordability_ratios/raw/'
-out='/Users/edf/repos/carb_elec/data/cpuc_utility_affordability_ratios/'
+src='./raw/'
+out='./'
+
+# Import tract level aac shapefile
 file='Tract_AAC_2020_20220718.shp'
 table='2020_aac_tract'
 
@@ -36,8 +43,7 @@ ogr2ogr -f $format $dst \
     -oo AUTODETECT_SIZE_LIMIT=0 \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import tract level electric aac results data table
 file='2020_Electric_AAC_Results.csv'
 table='2020_electric_aac_tract'
 
@@ -51,8 +57,7 @@ ogr2ogr -f $format $dst \
     -oo AUTODETECT_SIZE_LIMIT=0 \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import tract level gas aac results data table
 file='2020_Gas_AAC_Results.csv'
 table='2020_gas_aac_tract'
 
@@ -66,8 +71,7 @@ ogr2ogr -f $format $dst \
     -oo AUTODETECT_SIZE_LIMIT=0 \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import puma level ar shapefile
 file='PUMA_AR.shp'
 table='2020_ar_puma'
 
@@ -84,8 +88,7 @@ ogr2ogr -f $format $dst \
     -oo AUTODETECT_SIZE_LIMIT=0 \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import puma level eletric ar shapefile
 file='Electric_PUMA_AR2020.shp'
 table='2020_electric_ar_puma'
 
@@ -102,8 +105,7 @@ ogr2ogr -f $format $dst \
     -oo AUTODETECT_SIZE_LIMIT=0 \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import puma level gas ar shapefile
 file='Gas_PUMA_AR2020.shp'
 table='2020_gas_ar_puma'
 
@@ -120,4 +122,21 @@ ogr2ogr -f $format $dst \
     -oo AUTODETECT_SIZE_LIMIT=0 \
     --debug ON
 
+# Write table metadata outputs
+table='2020_aac_tract'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='2020_electric_aac_tract'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='2020_gas_aac_tract'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='2020_ar_puma'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='2020_electric_ar_puma'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='2020_gas_ar_puma'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

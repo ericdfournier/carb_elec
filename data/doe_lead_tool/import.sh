@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import DOE Lead Tool Data
 #
@@ -14,12 +18,14 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 #
 ################################################################################
 
+# Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='doe'
-src='/Users/edf/repos/carb_elec/data/doe_lead_tool/raw/'
-out='/Users/edf/repos/carb_elec/data/doe_lead_tool/'
+src='./raw/'
+out='./'
 
+# Import CA census tract level ami data table
 file='CA_AMI_Census_Tracts_2018.csv'
 table='ca_ami_census_tracts_2018'
 
@@ -31,8 +37,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import CA county and city level ami data table
 file='CA_AMI_State_Counties_Cities_2018.csv'
 table='ca_ami_state_counties_cities_2018'
 
@@ -44,8 +49,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import census tract level fpl data table
 file='CA_FPL_Census_Tracts_2018.csv'
 table='ca_fpl_census_tracts_2018'
 
@@ -57,8 +61,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import county and city level fpl data table
 file='CA_FPL_State_Counties_Cities_2018.csv'
 table='ca_fpl_state_counties_cities_2018'
 
@@ -70,8 +73,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import census tract level smi data table
 file='CA_SMI_Census_Tracts_2018.csv'
 table='ca_smi_census_tracts_2018'
 
@@ -83,8 +85,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import county and city level smi data table
 file='CA_SMI_State_Counties_Cities_2018.csv'
 table='ca_smi_state_counties_cities_2018'
 
@@ -96,4 +97,21 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
+# Write table metadata outputs
+table='ca_ami_census_tracts_2018'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='ca_ami_state_counties_cities_2018'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='ca_fpl_census_tracts_2018'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='ca_fpl_state_counties_cities_2018'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='ca_smi_census_tracts_2018'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='ca_smi_state_counties_cities_2018'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

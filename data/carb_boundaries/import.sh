@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import CARB Air Quality Management Boundaries
 #
@@ -15,8 +19,8 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='carb'
-src='/Users/edf/repos/carb_elec/data/carb_boundaries/raw/'
-out='/Users/edf/repos/carb_elec/data/carb_boundaries/'
+src='./raw/'
+out='./'
 
 # Import air basins table
 file='CaAirBasin.shp'
@@ -51,9 +55,9 @@ ogr2ogr -f $format $dst \
     --debug ON
 
 # Postprocess tables
-psql -d carb -a -f '/Users/edf/repos/carb_elec/data/carb_boundaries/postprocess.sql'
+psql -d carb -a -f 'postprocess.sql'
 
-# Write metadata
+# Write table metadata output
 table='ca_air_districts'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 

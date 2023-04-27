@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import USEPA eGRID Attributes
 #
@@ -18,10 +22,16 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 #
 ################################################################################
 
+# Set environment parameters
 src='/Users/edf/repos/carb_elec/data/usepa_egrid/'
 file='preprocess.py'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='usepa'
+
+# Run preprocessing/import python script
+/opt/anaconda3/envs/geo/bin/python $src$file
+
+# Write table metadata outputs
 tables=('ba_2021'
     'demo_2021'
     'gen_2021'
@@ -32,8 +42,6 @@ tables=('ba_2021'
     'st_2021'
     'unt_2021'
     'us_2021' )
-
-/opt/anaconda3/envs/geo/bin/python $src$file
 
 for table in "${tables[@]}"
 do

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # California Community Choice Aggregations
 #
@@ -16,8 +20,8 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='cca'
-src='/Users/edf/repos/carb_elec/data/community_choice_aggregations/raw/'
-out='/Users/edf/repos/carb_elec/data/community_choice_aggregations/'
+src='./raw/'
+out='./'
 
 # Import cca places list
 file='cca_places.csv'
@@ -56,9 +60,9 @@ ogr2ogr -f $format $dst \
     --debug ON
 
 # Postprocess tables
-psql -d carb -a -f '/Users/edf/repos/carb_elec/data/community_choice_aggregations/postprocess.sql'
+psql -d carb -a -f 'postprocess.sql'
 
-# Output Metadata
+# Write table metadata outputs
 table='places'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 

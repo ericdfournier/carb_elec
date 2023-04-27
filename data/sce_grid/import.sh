@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import SCE Grid Data
 #
@@ -15,11 +19,14 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 # Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
 
+# Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='sce'
-src='/Users/edf/repos/carb_elec/data/sce_grid/raw/'
-out='/Users/edf/repos/carb_elec/data/sce_grid/'
+src='./raw/'
+out='./'
+
+# Import ICA 3Phase circuit segments from SCE Geodatabase
 file='ica_circuit_segments_3phase.shp'
 table='ica_circuit_segments_3phase'
 
@@ -34,8 +41,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import ICA non-3Phase circuit segmenets from SCE Geodatabase
 file='ica_circuit_segments_non3phase.shp'
 table='ica_circuit_segments_non3phase'
 
@@ -50,8 +56,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import RAM Circuits from SCE Geodatabase
 file='ram_circuits.shp'
 table='ram_circuits'
 
@@ -66,8 +71,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import Service Territory from SCE Geodatabase
 file='service_territory.shp'
 table='service_territory'
 
@@ -83,8 +87,7 @@ ogr2ogr -f $format $dst \
     -lco precision=NO \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import Substations from SCE Geodatabase
 file='substations.shp'
 table='substations'
 
@@ -99,8 +102,7 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
-
+# Import Transmission Circuits from SCE Geodatabase
 file='transmission_circuits.shp'
 table='transmission_circuits'
 
@@ -115,8 +117,24 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
+# Postprocess tables
+psql -d carb -a -f 'postprocess.sql'
+
+# Write table metadata outputs
+table='ica_circuit_segments_3phase'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
-# Postprocess tables
+table='ica_circuit_segments_non3phase'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
-psql -d carb -a -f '/Users/edf/repos/carb_elec/data/sce_grid/postprocess.sql'
+table='ram_circuits'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='service_territory'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='substations'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='transmission_circuits'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

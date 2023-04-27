@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import Census Attributes and Geometries
 #
@@ -20,7 +24,7 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 ################################################################################
 
 # Set environment parameters
-src='/Users/edf/repos/carb_elec/data/census_american_community_survey/'
+src='./'
 file='download.py'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='census'
@@ -38,7 +42,7 @@ tables=('acs_ca_2019_tr_population'
 # Download data via python Census API
 /opt/anaconda3/envs/geo/bin/python $src$file
 
-# Output Metadata
+# Write table metadata outputs
 for table in "${tables[@]}"
 do
     ogrinfo -so -ro $dst $schema.$table > $src$table'_ogrinfo.txt'
@@ -48,8 +52,8 @@ done
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='census'
-src='/Users/edf/repos/carb_elec/data/census_american_community_survey/raw/'
-out='/Users/edf/repos/carb_elec/data/census_american_community_survey/'
+src='./raw/'
+out='./'
 
 # Import to unincorporated geometry table
 file='acs_ca_2019_unincorporated_geom.geojson'
@@ -67,7 +71,8 @@ ogr2ogr -f $format $dst \
     --debug ON
 
 # Postprocess tables
-psql -d carb -a -f '/Users/edf/repos/carb_elec/data/american_community_survey/postprocess.sql'
+psql -d carb -a -f 'postprocess.sql'
 
 # Output Metadata
+table='acs_ca_2019_unincorporated_geom'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import CARB Priority Populations
 #
@@ -14,11 +18,11 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='carb'
-src='/Users/edf/repos/carb_elec/data/carb_priority_populations/raw/'
-out='/Users/edf/repos/carb_elec/data/carb_priority_populations/'
+src='./raw/'
+out='./'
+gdb='PriorityPopulationsCES4.gdb'
 
 # Read priority populations table
-gdb='PriorityPopulationsCES4.gdb'
 feature='PriorityPopulationsCES4'
 table='priority_populations_ces4'
 
@@ -34,5 +38,5 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
-# Generate table metadata
+# Write table metadata outputs
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

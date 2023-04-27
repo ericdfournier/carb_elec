@@ -6,7 +6,7 @@ dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd $dir
 
 ################################################################################
-# Orchestrate Import Routines
+# Orchestrate Import Sub-Routines
 ################################################################################
 
 # Import Census American Community Survey

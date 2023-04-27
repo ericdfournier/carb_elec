@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import CARB Priority Populations
 #
@@ -10,12 +14,15 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 # Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
 
+# Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='oehha'
-src='/Users/edf/repos/carb_elec/data/oehha_cal_enviro_screen_4/raw/'
-out='/Users/edf/repos/carb_elec/data/oehha_cal_enviro_screen_4/'
+src='./raw/'
+out='./'
 gdb='calenviroscreen40gdb_F_2021.gdb'
+
+# Import CES Geodatabase
 feature='CES4_final'
 table='ces4'
 
@@ -31,4 +38,6 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
+# Write table metadata outputs
+table='ces4'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

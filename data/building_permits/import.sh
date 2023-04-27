@@ -6,36 +6,32 @@ dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd $dir
 
 ################################################################################
-# Import CEC Building Climate Zones
+# Import DOE Lead Tool Data
 #
 # Creates tables:
-# - cec.building_climate_zones_2021
+# - permits.raw
 #
-# Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
 
 # Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
-schema='cec'
+schema='permits'
 src='./raw/'
 out='./'
 
-# Import climate zone table
-file='ca_building_climate_zones.geojson'
-table='ca_building_climate_zones_2021'
+# Import raw permit data table
+file='raw_permit_data.csv'
+table='raw'
 
 ogr2ogr -f $format $dst \
-    $src$file \
+    $src$file\
     -lco SCHEMA=$schema \
     -nln $table  \
-    -nlt PROMOTE_TO_MULTI \
-    -t_srs EPSG:3310 \
-    -lco GEOMETRY_NAME=geom \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
     --debug ON
 
-# Write table metadata outputs
-table='ca_building_climate_zones_2021'
+# Write table metadata output
+table='raw'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
