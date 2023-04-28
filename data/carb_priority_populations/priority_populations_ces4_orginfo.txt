@@ -4,7 +4,7 @@ INFO: Open of `postgresql://edf@127.0.0.1/carb'
 Layer name: carb.priority_populations_ces4
 Metadata:
   DESCRIPTION=priority_populations_ces4
-Geometry: Multi Surface
+Geometry: Multi Polygon
 Feature Count: 10295
 Extent: (-380102.214160, -605326.557052) - (540036.457218, 450447.328962)
 Layer SRS WKT:

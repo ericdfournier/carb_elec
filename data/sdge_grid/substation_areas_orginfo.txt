@@ -4,7 +4,7 @@ INFO: Open of `postgresql://edf@127.0.0.1/carb'
 Layer name: sdge.substation_areas
 Metadata:
   DESCRIPTION=substation_areas
-Geometry: Multi Surface
+Geometry: Multi Polygon
 Feature Count: 109
 Extent: (208735.061307, -604304.112447) - (365810.958127, -487450.548130)
 Layer SRS WKT:

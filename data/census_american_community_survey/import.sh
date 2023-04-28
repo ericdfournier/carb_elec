@@ -38,7 +38,6 @@ tables=('acs_ca_2019_tr_population'
     'acs_ca_2019_puma_geom'
     'acs_ca_2019_county_geom' )
 
-
 # Download data via python Census API
 /opt/anaconda3/envs/geo/bin/python $src$file
 
@@ -57,13 +56,13 @@ out='./'
 
 # Import to unincorporated geometry table
 file='acs_ca_2019_unincorporated_geom.geojson'
-table='acs_ca_2019_unincorporated_geom'
+table='acs_ca_2019_tr_unincorporated_geom'
 
 ogr2ogr -f $format $dst \
     $src$file \
     -lco SCHEMA=$schema \
     -nln $table  \
-    -nlt MULTISURFACE \
+    -nlt MULTIPOLYGON \
     -t_srs EPSG:3310 \
     -lco GEOMETRY_NAME=geom \
     -emptyStrAsNull \
@@ -74,5 +73,5 @@ ogr2ogr -f $format $dst \
 psql -d carb -a -f 'postprocess.sql'
 
 # Output Metadata
-table='acs_ca_2019_unincorporated_geom'
+table='acs_ca_2019_tr_unincorporated_geom'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

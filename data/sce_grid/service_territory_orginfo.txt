@@ -4,7 +4,7 @@ INFO: Open of `postgresql://edf@127.0.0.1/carb'
 Layer name: sce.service_territory
 Metadata:
   DESCRIPTION=service_territory
-Geometry: Multi Surface
+Geometry: Multi Polygon
 Feature Count: 1
 Extent: (-48550.620848, -522823.966779) - (540013.465840, 43501.953309)
 Layer SRS WKT:
@@ -53,11 +53,11 @@ Data axis to CRS axis mapping: 1,2
 FID Column = ogc_fid
 Geometry Column = geom
 id: Integer (0.0)
-existing_g: Real (0.0)
-queued_gen: Real (0.0)
-total_gen: Real (0.0)
-projected_: Integer (0.0)
-penetratio: Real (0.0)
+existing_generation: Real (0.0)
+queued_generation: Real (0.0)
+total_generation: Real (0.0)
+projected_load: Integer (0.0)
+penetration: Real (0.0)
 objectid: Integer (0.0)
 shape__are: Real (0.0)
 shape__len: Real (0.0)

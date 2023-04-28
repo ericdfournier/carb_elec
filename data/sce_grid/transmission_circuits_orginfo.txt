@@ -53,8 +53,8 @@ Data axis to CRS axis mapping: 1,2
 FID Column = ogc_fid
 Geometry Column = geom
 circuit_id: Integer (9.0)
-circuit_no: String (80.0)
-circuit_ty: String (80.0)
-circuit_vo: String (80.0)
+circuit_number: String (80.0)
+circuit_type: String (80.0)
+circuit_voltage: String (80.0)
 objectid: Integer (9.0)
 shape__len: Real (24.15)

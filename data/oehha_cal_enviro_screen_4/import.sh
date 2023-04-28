@@ -31,7 +31,7 @@ ogr2ogr -f $format $dst \
     $feature \
     -lco SCHEMA=$schema \
     -nln $table  \
-    -nlt MULTISURFACE \
+    -nlt MULTIPOLYGON \
     -t_srs EPSG:3310 \
     -lco GEOMETRY_NAME=geom \
     -emptyStrAsNull \

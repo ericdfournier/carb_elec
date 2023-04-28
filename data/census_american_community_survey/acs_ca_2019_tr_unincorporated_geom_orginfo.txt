@@ -1,10 +1,10 @@
 INFO: Open of `postgresql://edf@127.0.0.1/carb'
       using driver `PostgreSQL' successful.
 
-Layer name: census.acs_ca_2019_unincorporated_geom
+Layer name: census.acs_ca_2019_tr_unincorporated_geom
 Metadata:
-  DESCRIPTION=acs_ca_2019_unincorporated_geom
-Geometry: Multi Surface
+  DESCRIPTION=acs_ca_2019_tr_unincorporated_geom
+Geometry: Multi Polygon
 Feature Count: 57
 Extent: (-380101.065661, -605327.048168) - (540037.546850, 450446.711598)
 Layer SRS WKT:
@@ -50,8 +50,7 @@ PROJCRS["NAD83 / California Albers",
         BBOX[32.53,-124.45,42.01,-114.12]],
     ID["EPSG",3310]]
 Data axis to CRS axis mapping: 1,2
-FID Column = ogc_fid
-Geometry Column = geom
+Geometry Column = geometry
 statefp: String (0.0)
 countyfp: String (0.0)
 countyns: String (0.0)
@@ -69,19 +68,3 @@ aland: Integer64 (0.0)
 awater: Integer64 (0.0)
 intptlat: String (0.0)
 intptlon: String (0.0)
-statefp_2: String (0.0)
-placefp: String (0.0)
-placens: String (0.0)
-geoid_2: String (0.0)
-name_2: String (0.0)
-namelsad_2: String (0.0)
-lsad_2: String (0.0)
-classfp_2: String (0.0)
-pcicbsa: String (0.0)
-pcinecta: String (0.0)
-mtfcc_2: String (0.0)
-funcstat_2: String (0.0)
-aland_2: String (0.0)
-awater_2: String (0.0)
-intptlat_2: String (0.0)
-intptlon_2: String (0.0)

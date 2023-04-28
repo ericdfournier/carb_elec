@@ -34,7 +34,7 @@ ogr2ogr -f $format $dst \
     $src$file \
     -lco SCHEMA=$schema \
     -nln $table  \
-    -nlt MULTISURFACE \
+    -nlt MULTIPOLYGON \
     -t_srs EPSG:3310 \
     -lco GEOMETRY_NAME=geom \
     -emptyStrAsNull \
@@ -49,7 +49,7 @@ ogr2ogr -f $format $dst \
     $src$file \
     -lco SCHEMA=$schema \
     -nln $table  \
-    -nlt MULTISURFACE \
+    -nlt MULTIPOLYGON \
     -t_srs EPSG:3310 \
     -lco GEOMETRY_NAME=geom \
     -emptyStrAsNull \
@@ -124,7 +124,7 @@ ogr2ogr -f $format $dst \
     $src$file \
     -lco SCHEMA=$schema \
     -nln $table  \
-    -nlt MULTISURFACE \
+    -nlt MULTIPOLYGON \
     -t_srs EPSG:3310 \
     -lco GEOMETRY_NAME=geom \
     -emptyStrAsNull \

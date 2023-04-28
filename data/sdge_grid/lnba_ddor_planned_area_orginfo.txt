@@ -4,7 +4,7 @@ INFO: Open of `postgresql://edf@127.0.0.1/carb'
 Layer name: sdge.lnba_ddor_planned_area
 Metadata:
   DESCRIPTION=lnba_ddor_planned_area
-Geometry: Multi Surface
+Geometry: Multi Polygon
 Feature Count: 13178
 Extent: (258012.746829, -591779.074355) - (350238.442126, -522483.484893)
 Layer SRS WKT:

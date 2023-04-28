@@ -4,7 +4,7 @@ INFO: Open of `postgresql://edf@127.0.0.1/carb'
 Layer name: carb.ca_air_basins
 Metadata:
   DESCRIPTION=ca_air_basins
-Geometry: Multi Surface
+Geometry: Multi Polygon
 Feature Count: 15
 Extent: (-373976.781443, -604526.124733) - (540015.401168, 450070.871321)
 Layer SRS WKT:

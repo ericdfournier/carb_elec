@@ -4,7 +4,7 @@ INFO: Open of `postgresql://edf@127.0.0.1/carb'
 Layer name: carb.ca_air_districts
 Metadata:
   DESCRIPTION=ca_air_districts
-Geometry: Multi Surface
+Geometry: Multi Polygon
 Feature Count: 35
 Extent: (-373976.581604, -604526.124143) - (540015.400303, 450070.871911)
 Layer SRS WKT:
