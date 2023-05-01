@@ -76,3 +76,6 @@ ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 table='all_merged'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Export CSV table versions
+psql -d carb -a -f 'export.sql'

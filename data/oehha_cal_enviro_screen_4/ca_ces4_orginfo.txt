@@ -1,9 +1,9 @@
 INFO: Open of `postgresql://edf@127.0.0.1/carb'
       using driver `PostgreSQL' successful.
 
-Layer name: oehha.ces4
+Layer name: oehha.ca_ces4
 Metadata:
-  DESCRIPTION=ces4
+  DESCRIPTION=ca_ces4
 Geometry: Multi Polygon
 Feature Count: 8035
 Extent: (-373976.129295, -604512.649477) - (539719.617303, 450022.491310)

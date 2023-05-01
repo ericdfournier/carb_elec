@@ -24,7 +24,7 @@ gdb='calenviroscreen40gdb_F_2021.gdb'
 
 # Import CES Geodatabase
 feature='CES4_final'
-table='ces4'
+table='ca_ces4'
 
 ogr2ogr -f $format $dst \
     $src$gdb \
@@ -39,5 +39,8 @@ ogr2ogr -f $format $dst \
     --debug ON
 
 # Write table metadata outputs
-table='ces4'
+table='ca_ces4'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Export CSV table versions
+psql -d carb -a -f 'export.sql'

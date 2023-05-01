@@ -43,6 +43,9 @@ SELECT * FROM cca.unincorporated_areas_geom);
 COMMENT ON TABLE cca.all_merged IS 'all geometries merged';
 
 -- Drop intermediate tables
-DROP TABLE cca.places_geom,
+DROP TABLE cca.places,
+       cca.places_geom,
+       cca.counties,
        cca.counties_geom,
+       cca.unincorporated_areas,
        cca.unincorporated_areas_geom;

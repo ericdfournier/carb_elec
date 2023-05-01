@@ -13,12 +13,12 @@ ON A."city_name" = B."NAME";
 SELECT A.unincorporated_name AS geog_name,
        A.ren_name AS ren_name,
        'unincorporated_area' AS geo_type,
-       B.geoid AS geoid,
-       B.geom AS geometry
+       B."GEOID" AS geoid,
+       B.geometry AS geometry
 INTO ren.unincorporated_areas_geom
 FROM ren.unincorporated_areas AS A
 LEFT JOIN census.acs_ca_2019_unincorporated_geom AS B
-ON A."unincorporated_name" = B."name";
+ON A."unincorporated_name" = B."NAME";
 
 -- Select REN Unincorporated Areas and Cities within Counties
 SELECT A.county_name AS geog_name,
@@ -43,6 +43,9 @@ SELECT * FROM ren.unincorporated_areas_geom);
 COMMENT ON TABLE ren.all_merged IS 'all geometries merged';
 
 -- Drop intermediate tables
-DROP TABLE ren.places_geom,
+DROP TABLE ren.places,
+       ren.places_geom,
+       ren.counties,
        ren.counties_geom,
+       ren.unincorporated_areas,
        ren.unincorporated_areas_geom;
