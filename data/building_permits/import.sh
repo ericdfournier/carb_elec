@@ -16,7 +16,7 @@ schema='permits'
 
 src='./raw'
 
-table=permit_processing_combined
+table=combined_raw
 
 # For a directory to be recognized as a CSV datasource at least half the files in the directory need to have a .csv extension.
 # Use -nln $schema.$table to specify the destination table/layer since it does not seem possible
@@ -67,3 +67,6 @@ psql -d $pgdatabase <<-EOF
 	-- Create spatial index on centroid.
 	create index on $schema.$table using gist (centroid);
 EOF
+
+# Export CSV Formatted Tables
+psql -d carb -a -f 'export.sql'

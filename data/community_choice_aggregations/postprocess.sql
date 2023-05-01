@@ -13,12 +13,12 @@ ON A."city_name" = B."NAME";
 SELECT A.unincorporated_name AS geog_name,
        A.cca_name AS cca_name,
        'unincorporated_area' AS geo_type,
-       B.geoid AS geoid,
-       B.geom AS geometry
+       B."GEOID" AS geoid,
+       B.geometry AS geometry
 INTO cca.unincorporated_areas_geom
 FROM cca.unincorporated_areas AS A
 LEFT JOIN census.acs_ca_2019_unincorporated_geom AS B
-ON A."unincorporated_name" = B."name";
+ON A."unincorporated_name" = B."NAME";
 
 -- Select cca Unincorporated Areas and Cities within Counties
 SELECT A.county_name AS geog_name,

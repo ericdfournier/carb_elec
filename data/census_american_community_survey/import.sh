@@ -56,7 +56,7 @@ out='./'
 
 # Import to unincorporated geometry table
 file='acs_ca_2019_unincorporated_geom.geojson'
-table='acs_ca_2019_tr_unincorporated_geom'
+table='acs_ca_2019_unincorporated_geom'
 
 ogr2ogr -f $format $dst \
     $src$file \
@@ -73,5 +73,8 @@ ogr2ogr -f $format $dst \
 psql -d carb -a -f 'postprocess.sql'
 
 # Output Metadata
-table='acs_ca_2019_tr_unincorporated_geom'
+table='acs_ca_2019_unincorporated_geom'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Export CSV versions of tables
+psql -d carb -a -f 'export.sql'

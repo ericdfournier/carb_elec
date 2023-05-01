@@ -1,4 +1,4 @@
-INFO: Open of `postgresql://edf@127.0.0.1/edf'
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
       using driver `PostgreSQL' successful.
 
 Layer name: cca.places

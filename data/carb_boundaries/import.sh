@@ -63,3 +63,6 @@ ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 table='ca_air_basins'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Export CSV Outputs to File
+psql -d carb -a -f 'export.sql'
