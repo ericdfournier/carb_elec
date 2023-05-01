@@ -1,9 +1,9 @@
 INFO: Open of `postgresql://edf@127.0.0.1/carb'
       using driver `PostgreSQL' successful.
 
-Layer name: cpuc.2020_electric_aac_tract
+Layer name: cpuc.ca_2020_electric_aac_tract
 Metadata:
-  DESCRIPTION=2020_electric_aac_tract
+  DESCRIPTION=ca_2020_electric_aac_tract
 Geometry: None
 Feature Count: 55
 Layer SRS WKT:

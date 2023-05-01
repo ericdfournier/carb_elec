@@ -32,6 +32,7 @@ table='ca_ami_census_tracts_2018'
 ogr2ogr -f $format $dst \
     $src$file\
     -lco SCHEMA=$schema \
+    -lco COLUMN_TYPES='units=float,hincp*units=float,elep*units=float,gasp*units=float,fulp*units=float,hincp units=float,elep units=float,gasp units=float,fulp units=float,hcount=float,ecount=float,gcount=float,fcount=float,hincp=float,elep=float,gasp=float,fulp=float' \
     -nln $table  \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
@@ -44,6 +45,7 @@ table='ca_ami_state_counties_cities_2018'
 ogr2ogr -f $format $dst \
     $src$file\
     -lco SCHEMA=$schema \
+    -lco COLUMN_TYPES='units=float,hincp*units=float,elep*units=float,gasp*units=float,fulp*units=float,hincp units=float,elep units=float,gasp units=float,fulp units=float,hcount=float,ecount=float,gcount=float,fcount=float,hincp=float,elep=float,gasp=float,fulp=float' \
     -nln $table  \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
@@ -56,6 +58,7 @@ table='ca_fpl_census_tracts_2018'
 ogr2ogr -f $format $dst \
     $src$file\
     -lco SCHEMA=$schema \
+    -lco COLUMN_TYPES='units=float,hincp*units=float,elep*units=float,gasp*units=float,fulp*units=float,hincp units=float,elep units=float,gasp units=float,fulp units=float,hcount=float,ecount=float,gcount=float,fcount=float,hincp=float,elep=float,gasp=float,fulp=float' \
     -nln $table  \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
@@ -68,6 +71,7 @@ table='ca_fpl_state_counties_cities_2018'
 ogr2ogr -f $format $dst \
     $src$file\
     -lco SCHEMA=$schema \
+    -lco COLUMN_TYPES='units=float,hincp*units=float,elep*units=float,gasp*units=float,fulp*units=float,hincp units=float,elep units=float,gasp units=float,fulp units=float,hcount=float,ecount=float,gcount=float,fcount=float,hincp=float,elep=float,gasp=float,fulp=float' \
     -nln $table  \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
@@ -80,6 +84,7 @@ table='ca_smi_census_tracts_2018'
 ogr2ogr -f $format $dst \
     $src$file\
     -lco SCHEMA=$schema \
+    -lco COLUMN_TYPES='units=float,hincp*units=float,elep*units=float,gasp*units=float,fulp*units=float,hincp units=float,elep units=float,gasp units=float,fulp units=float,hcount=float,ecount=float,gcount=float,fcount=float,hincp=float,elep=float,gasp=float,fulp=float' \
     -nln $table  \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
@@ -92,6 +97,7 @@ table='ca_smi_state_counties_cities_2018'
 ogr2ogr -f $format $dst \
     $src$file\
     -lco SCHEMA=$schema \
+    -lco COLUMN_TYPES='units=float,hincp*units=float,elep*units=float,gasp*units=float,fulp*units=float,hincp units=float,elep units=float,gasp units=float,fulp units=float,hcount=float,ecount=float,gcount=float,fcount=float,hincp=float,elep=float,gasp=float,fulp=float' \
     -nln $table  \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
@@ -115,3 +121,6 @@ ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 table='ca_smi_state_counties_cities_2018'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Export CSV table versions
+psql -d carb -a -f 'export.sql'

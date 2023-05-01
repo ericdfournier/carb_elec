@@ -1,12 +1,12 @@
 INFO: Open of `postgresql://edf@127.0.0.1/carb'
       using driver `PostgreSQL' successful.
 
-Layer name: cpuc.2020_electric_ar_puma
+Layer name: cpuc.ca_2020_ar_puma
 Metadata:
-  DESCRIPTION=2020_electric_ar_puma
+  DESCRIPTION=ca_2020_ar_puma
 Geometry: Multi Polygon
-Feature Count: 1124
-Extent: (-374779.119342, -604614.396566) - (540036.457183, 450021.274365)
+Feature Count: 265
+Extent: (-380101.065661, -605327.048168) - (540037.546850, 450446.711598)
 Layer SRS WKT:
 PROJCRS["NAD83 / California Albers",
     BASEGEOGCRS["NAD83",
@@ -52,14 +52,9 @@ PROJCRS["NAD83 / California Albers",
 Data axis to CRS axis mapping: 1,2
 FID Column = ogc_fid
 Geometry Column = geom
-objectid_1: Integer64 (10.0)
-cz_e: String (50.0)
-regulated: String (50.0)
 pumace10: String (5.0)
 geoid10: String (7.0)
-shape_area: Real (19.11)
 puma: String (254.0)
-puma_name: String (254.0)
-puma_cz: String (254.0)
+name: String (254.0)
 ar20: Real (16.6)
 ar50: Real (16.6)
