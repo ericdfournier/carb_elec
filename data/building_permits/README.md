@@ -1,28 +1,30 @@
-# Import Building Permit Data
+# Data Source
 
-These scripts import building permit data prepared by Nicole Matteson for a CARB project.
+Various, See below.
 
-Data for many cities and counties, standardized to CSV format with a common set of fields, is currently located in `V:\PIER_Data\Nicole_Matteson\Building_Permit_Data\3_permit-processing`.
+# Data Overview
 
-The files should first be copied to the database server (e.g. using WinSCP) for import.
+This building permit dataset was prepared by Nicole Matteson for a CARB project. The methods by which these records where acquired will documented in detail in a separate reporting deliverable. The data acquisition process involved manually visiting city and county permitting department websites and data hosting platforms. Detailed records were assembled for each available geography and then later programmatically filtered and assembled into a unified dataset.
 
-## Columns
+# Data Dictionary
 
-* permit_number
-* project_description
-* permit_class
-* permit_type
-* estimated_cost [money]
-* applied_date [date]
-* issued_date [date]
-* finaled_date [date]
-* address
-* parcel_number
-* latitude [float8] -- Used to construct centroid then dropped.
-* longitude [float8] -- Used to construct centroid then dropped.
-* file_name
-* centroid_4326 [geometry(POINT, 4326)] -- Constructed from latitude and longitude columns.
-* centroid [geometry(POINT, 3310)] -- Transformed from latitude and longitude columns.
+Table: permits.combined_raw
+
+| Data Field | Definition |
+|------------|------------|
+| permit_number | Permit identification number (unique within the scope of each reporting entity) |
+| project_description | Free form, applicant generated, description of the permitted work project |
+| permit_class | Permit classification |
+| permit_type | Permit type |
+| estimated_cost | Estimated total project cost |
+| applied_date | Permit application date |
+| issued_date | Permit issue date |
+| finaled_date | Permit final date |
+| address | Address string |
+| parcel_number | Assessor parcel identification number (unique within the scope of each reporting entity) |
+| file_name | Source file name for import |
+| centroid_4326 [geometry(POINT, 4326)] | Geographic coordinate system point location (Constructed from latitude and longitude columns) |
+| centroid [geometry(POINT, 3310)] | Projected coordinate system point location (Transformed from latitude and longitude columns) |
 
 ## Import Notes
 

@@ -15,7 +15,6 @@ dst="postgresql://$PGUSER@$PGHOST/$pgdatabase"
 schema='permits'
 
 src='./raw'
-
 table=combined_raw
 
 # For a directory to be recognized as a CSV datasource at least half the files in the directory need to have a .csv extension.
@@ -67,6 +66,9 @@ psql -d $pgdatabase <<-EOF
 	-- Create spatial index on centroid.
 	create index on $schema.$table using gist (centroid);
 EOF
+
+# Write table metadata output
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 # Export CSV Formatted Tables
 psql -d carb -a -f 'export.sql'
