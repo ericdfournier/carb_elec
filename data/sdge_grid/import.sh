@@ -9,6 +9,7 @@ cd $dir
 # Import SDGE Grid Data
 #
 # Creates tables:
+# - sdge.gna_area
 # - sdge.lnba_ddor_planned_area
 # - sdge.ica_circuit_segments_non3phase
 # - sdge.ica_circuit_segments_3phase_generation_capacity
@@ -152,3 +153,6 @@ ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 table='substation_areas'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Export CSV table versions
+psql -d carb -a -f 'export.sql'

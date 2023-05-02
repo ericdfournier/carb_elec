@@ -47,3 +47,6 @@ for table in "${tables[@]}"
 do
     ogrinfo -so -ro $dst $schema.$table > $src$table'_ogrinfo.txt'
 done
+
+# Export CSV table versions
+psql -d carb -a -f 'export.sql'

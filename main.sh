@@ -64,3 +64,8 @@ echo "Importing SDGE Grid Data..."
 # Import USEPA eGRID Data
 echo "Importing USEPA eGRID Data..."
 ./usepa_egrid/import.sh
+
+#%% Create Master Dump File
+pg_dump carb > ./dump/sql/carb_dump.sql;
+zip ./dump/sql/carb_dump.zip ./dump/sql/carb_dump.sql;
+rm ./dump/sql/carb_dump.sql;
