@@ -63,7 +63,7 @@ engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
 cols = cedars_minor.columns.to_list()
 cols.remove('Unnamed: 0')
 
-cedars_minor.loc[:,cols].to_sql('fuel_switching_program_participants',
+cedars_minor.loc[:,cols].to_sql('fuel_switching_program_claims',
     if_exists = 'replace',
     index = False,
     schema = 'cedars',
