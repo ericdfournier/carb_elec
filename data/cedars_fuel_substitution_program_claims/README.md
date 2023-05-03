@@ -21,4 +21,39 @@ https://cedars.sound-data.com/
 
 # Data Dictionary
 
-- TBA
+Table: ca_building_climate_zones_2021
+
+| Data Field	    | Definition |
+|-------------------|------------|
+| Claim ID | Claim Identification Number |
+| Year | Claim Year |
+| PA | Program Administrator |
+| Program ID | Program Identification Number |
+| Program Name | Program Name |
+| Program Group | Program Group |
+| Program Sector | Program Sector |
+| Financing | Financing Mechanism |
+| Program Implementer | Program Implementer |
+| Claim Year Quarter | Claim Year Quarter |
+| Building Type | Building Type |
+| Climate Zone | CEC Building Climate Zone |
+| Measure Application Type | Measure Application Type |
+| Measure Code | Measure Code |
+| Measure Description | Measure Description |
+| Measure Impact Type | Measure Impact Type |
+| Measure ID | Measure Identification Code |
+| Measure Qualifier | Measure Qualifier |
+| Measure Technology ID | Measure Technology Identification Code |
+| Technology Group | Measure Technology Group Name |
+| Use Category | Use Category |
+| Use Subcategory | Use Subcategory |
+| Number of Units | Number of Units at Measure Implementation Premise |
+| Unit Direct Install Labor | Unit Direct Install Labor Cost |
+| Unit Direct Install Materials | Unit Direct Install Materials Cost |
+| Unit End User Rebate | Unit End User Rebate Value |
+| Unit Incentive to Others | Unit Incentive Value to Others |
+| Gross Measure Cost | Gross Measure Cost |
+| End User Rebate | End User Rebate Value |
+| Budget | Budget Value |
+| Gross Participant Cost | Gross Participant Cost |
+| Net Participant Cost | Net Participant Cost |
