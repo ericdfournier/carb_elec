@@ -21,3 +21,9 @@ This repository contains workflows for injesting a collection of public and priv
     * [US Environmental Protection Agency (USEPA) eGRID Database](./data/usepa_egrid/)
 * Privately Accessible Data Layers
     * TBA
+
+## Important Notes
+
+* Metadata files are automatically generated for each imported layer using the "ogrinfo" command line utility. These files are located within each data provider sub-directory and have the filename suffix "_ogrinfo.txt"
+* All geospatial attributes have been projected into the same reference coordinate system: [EPSG:3310 - NAD83 / California Albers](https://epsg.io/3310). This coordinate system allows for accurate area and distance calculations for layers whose spatial boundaries are confied within the bounds of California, but not beyond.
+* The raw data files that are used for the import workflows are not stored in the repository as this is not considered best practice. These files are available upon request - although they should be unchanged from the resources that are directly available from the provided data source resource links.
