@@ -29,6 +29,10 @@ echo "Importing CDPH Hazard Vulnerability Index Data..."
 echo "Importing CEC Climate Zone Data..."
 ./cec_climate_zones/import.sh
 
+# Import CEDARS Fuel Substitution Program Claims Data
+echo "Importing CEDARS Fuel Substitution Program Claims Data..."
+./cedars_fuel_substitution_program_claims/import.sh
+
 # Import Community Choice Aggregations Data
 echo "Importing Community Choice Aggregations Data..."
 ./community_choice_aggregations/import.sh
