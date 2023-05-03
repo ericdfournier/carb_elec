@@ -39,3 +39,6 @@ ogr2ogr -f $format $dst \
 # Write table metadata outputs
 table='ca_building_climate_zones_2021'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Export CSV formatted tables
+psql -d carb -a -f 'export.sql'
