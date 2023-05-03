@@ -1,0 +1,40 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: cedars.fuel_substitution_program_claims
+Geometry: None
+Feature Count: 31216
+Layer SRS WKT:
+(unknown)
+Claim ID: String (0.0)
+Year: Integer64 (0.0)
+PA: String (0.0)
+Program ID: String (0.0)
+Program Name: String (0.0)
+Program Group: String (0.0)
+Program Sector: String (0.0)
+Financing: String (0.0)
+Program Implementer: String (0.0)
+Claim Year Quarter: String (0.0)
+Building Type: String (0.0)
+Climate Zone: String (0.0)
+Measure Application Type: String (0.0)
+Measure Code: String (0.0)
+Measure Description: String (0.0)
+Measure Impact Type: String (0.0)
+Measure ID: String (0.0)
+Measure Qualifier: String (0.0)
+Measure Technology ID: String (0.0)
+Technology Group: String (0.0)
+Use Category: String (0.0)
+Use Subcategory: String (0.0)
+Number of Units: Real (0.0)
+Unit Direct Install Labor: Real (0.0)
+Unit Direct Install Materials: Real (0.0)
+Unit End User Rebate: Real (0.0)
+Unit Incentive to Others: Real (0.0)
+Gross Measure Cost: Real (0.0)
+End User Rebate: Real (0.0)
+Budget: Real (0.0)
+Gross Participant Cost: Real (0.0)
+Net Participant Cost: Real (0.0)

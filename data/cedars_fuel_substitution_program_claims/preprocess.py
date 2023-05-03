@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 
 #%% Read Raw Data
 
-root = '/Users/edf/repos/carb_elec/data/cedars_programs/'
+root = '/Users/edf/repos/carb_elec/data/cedars_fuel_substitution_program_claims/'
 cedars = pd.read_csv(root+'raw/cedars_cleaned.csv')
 
 #%% Plot Hist to Establish Measure Cost Threshold
@@ -29,7 +29,6 @@ xticklabels = ['$10^0$','$10^1$', '$10^2$', '$10^3$', '$10^4$', '$10^5$', '$10^6
 ax.set_xticks(xticks, xticklabels)
 ax.set_ylabel('Participant Frequency\n[Counts]')
 ax.set_xlabel('Gross Measure Cost\n[$]')
-ax.set_ylim((0, 10000))
 fig.savefig(root+'img/major_minor_threshold_hist_plot.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Split Dataset
@@ -63,7 +62,7 @@ engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
 cols = cedars_minor.columns.to_list()
 cols.remove('Unnamed: 0')
 
-cedars_minor.loc[:,cols].to_sql('fuel_switching_program_claims',
+cedars_minor.loc[:,cols].to_sql('fuel_substitution_program_claims',
     if_exists = 'replace',
     index = False,
     schema = 'cedars',

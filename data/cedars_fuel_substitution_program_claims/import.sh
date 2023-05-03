@@ -15,6 +15,7 @@ cd $dir
 
 # Set environment parameters
 src='./'
+out='./'
 file='preprocess.py'
 dst="postgresql://$PGUSER@$PGHOST/carb"
 schema='cedars'
