@@ -1,0 +1,53 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: hud.ca_2022_county_income_limits
+Metadata:
+  DESCRIPTION=ca_2022_county_income_limits
+Geometry: None
+Feature Count: 58
+Layer SRS WKT:
+(unknown)
+FID Column = ogc_fid
+county: String (0.0)
+ami: Integer (0.0)
+ali_1: Integer (0.0)
+ali_2: Integer (0.0)
+ali_3: Integer (0.0)
+ali_4: Integer (0.0)
+ali_5: Integer (0.0)
+ali_6: Integer (0.0)
+ali_7: Integer (0.0)
+ali_8: Integer (0.0)
+eli_1: Integer (0.0)
+eli_2: Integer (0.0)
+eli_3: Integer (0.0)
+eli_4: Integer (0.0)
+eli_5: Integer (0.0)
+eli_6: Integer (0.0)
+eli_7: Integer (0.0)
+eli_8: Integer (0.0)
+vli_1: Integer (0.0)
+vli_2: Integer (0.0)
+vli_3: Integer (0.0)
+vli_4: Integer (0.0)
+vli_5: Integer (0.0)
+vli_6: Integer (0.0)
+vli_7: Integer (0.0)
+vli_8: Integer (0.0)
+li_1: Integer (0.0)
+li_2: Integer (0.0)
+li_3: Integer (0.0)
+li_4: Integer (0.0)
+li_5: Integer (0.0)
+li_6: Integer (0.0)
+li_7: Integer (0.0)
+li_8: Integer (0.0)
+mod_1: Integer (0.0)
+mod_2: Integer (0.0)
+mod_3: Integer (0.0)
+mod_4: Integer (0.0)
+mod_5: Integer (0.0)
+mod_6: Integer (0.0)
+mod_7: Integer (0.0)
+mod_8: Integer (0.0)
