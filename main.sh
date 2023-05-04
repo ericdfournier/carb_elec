@@ -45,6 +45,10 @@ echo "Importing CPUC Utility Affordability Ratio Data..."
 echo "Importing DOE Lead Tool Data..."
 ./cpuc_utility_affordability_ratios/import.sh
 
+# Import HUD Income Limit Data
+echo "Importing HUD Income Limit Data..."
+./hud_income_limits/import.sh
+
 # Import OEHHA CalEnviroScreen-4.0 Data
 echo "Importing OEHHA CalEnviroScreen-4.0 Data..."
 ./oehha_cal_enviro_screen_4/import.sh
