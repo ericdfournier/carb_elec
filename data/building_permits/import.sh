@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -ue  # Set nounset and errexit Bash shell attributes.
 
+# Set working directory
+dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd $dir
+
 ################################################################################
 # Import building permit data
 #
@@ -12,10 +16,11 @@ set -ue  # Set nounset and errexit Bash shell attributes.
 format='PostgreSQL'
 pgdatabase='carb'
 dst="postgresql://$PGUSER@$PGHOST/$pgdatabase"
+out='./'
 schema='permits'
 
 src='./raw'
-table=combined_raw
+table=combined
 
 # For a directory to be recognized as a CSV datasource at least half the files in the directory need to have a .csv extension.
 # Use -nln $schema.$table to specify the destination table/layer since it does not seem possible
@@ -42,30 +47,8 @@ ogr2ogr \
 	--config PG_USE_COPY YES \
 	--debug ON
 
-# Postprocessing using "here document".
-# Tabs (not spaces) must be used to indent here documents with <<- redirection operator.
-psql -d $pgdatabase <<-EOF
-	-- Drop unnecessary columns.
-	alter table $schema.$table
-		drop ogc_fid,
-		drop field_1;
-
-	-- Add column for centroid in NAD83 / California Albers.
-	alter table $schema.$table
-		add centroid geometry(POINT, 3310);
-
-	-- Set centroid values, ignore those outside of WGS84 bounds.
-	update $schema.$table
-		set centroid = ST_Transform(centroid_4326, 3310)
-		where
-			ST_X(centroid_4326) >= -180
-			and ST_X(centroid_4326) <= 180
-			and ST_Y(centroid_4326) >= -90
-			and ST_Y(centroid_4326) <= 90;
-
-	-- Create spatial index on centroid.
-	create index on $schema.$table using gist (centroid);
-EOF
+# Perform additional postprocessing on permit records
+psql -d carb -a -f 'postprocess.sql'
 
 # Write table metadata output
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

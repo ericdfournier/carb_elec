@@ -1,12 +1,12 @@
 INFO: Open of `postgresql://edf@127.0.0.1/carb'
       using driver `PostgreSQL' successful.
 
-Layer name: permits.combined_raw
+Layer name: permits.combined
 Metadata:
-  DESCRIPTION=2023-04-28 - raw
+  DESCRIPTION=2023-05-15 - raw
 Geometry (centroid_4326): Point
 Geometry (centroid): Point
-Feature Count: 4853475
+Feature Count: 5033772
 Extent (centroid_4326): (-122.514264, -117.255224) - (1171540.980000, 325028.200000)
 Extent (centroid): (-8569581.268607, -603695.046247) - (3918518.856818, 5906100.153904)
 SRS WKT (centroid_4326):
@@ -93,3 +93,11 @@ finaled_date: Date (0.0)
 address: String (0.0)
 parcel_number: String (0.0)
 file_name: String (0.0)
+id: String(UUID) (0.0) UNIQUE NOT NULL DEFAULT gen_random_uuid()
+solar_pv_system: Integer(Boolean) (1.0) DEFAULT false
+battery_storage_system: Integer(Boolean) (1.0) DEFAULT false
+ev_charger: Integer(Boolean) (1.0) DEFAULT false
+heat_pump: Integer(Boolean) (1.0) DEFAULT false
+main_panel_upgrade: Integer(Boolean) (1.0) DEFAULT false
+sub_panel_upgrade: Integer(Boolean) (1.0) DEFAULT false
+upgraded_panel_size: Real (0.0)

@@ -25,6 +25,15 @@ Table: permits.combined_raw
 | file_name | Source file name for import |
 | centroid_4326 [geometry(POINT, 4326)] | Geographic coordinate system point location (Constructed from latitude and longitude columns) |
 | centroid [geometry(POINT, 3310)] | Projected coordinate system point location (Transformed from latitude and longitude columns) |
+| solar_pv_system | Boolean field indicating solar PV system reference in work description |
+| battery_storage_system | Boolean field indicating battery energy storage system reference in work description |
+| ev_charger | Boolean field indicating EV charger reference in work description |
+| heat_pump | Boolean field indicating heat pump system reference in work description |
+| main_panel_upgrade | Boolean field indicating main electrical service panel upgrade reference in work description |
+| sub_panel_upgrade | Boolean field indicating electrical sub-panel upgrade reference in work description |
+| upgraded_panel_size | Size of destination main/sub panel following upgrade (where mentioned in work description) |
+
+
 
 ## Import Notes
 

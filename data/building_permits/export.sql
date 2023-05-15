@@ -3,9 +3,9 @@
 
 /*==============================================================================
  * Export tables:
- * - carb.building_permits
+ * - permits.combined
  *
  * Warning: COPY TO (and \copy to) will overwrite existing files.
 ==============================================================================*/
 
-\copy permits.combined_raw to '/Users/edf/repos/carb_elec/dump/csv/permits_combined_raw.csv' (format csv, header true);
+\copy permits.combined to '/Users/edf/repos/carb_elec/dump/csv/permits_combined.csv' (format csv, header true);

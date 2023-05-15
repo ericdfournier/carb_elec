@@ -25,7 +25,8 @@ cd $dir
 # Set environment parameters
 src='/Users/edf/repos/carb_elec/data/usepa_egrid/'
 file='preprocess.py'
-dst="postgresql://$PGUSER@$PGHOST/carb"
+pgdatabase='carb'
+dst="postgresql://$PGUSER@$PGHOST/$pgdatabase"
 schema='usepa'
 
 # Run preprocessing/import python script
