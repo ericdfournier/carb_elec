@@ -1,8 +1,8 @@
 # CARB Electrification Analysis Database
 
-This repository contains workflows for ingesting a collection of public and private data layers into a PostgreSQL database for use in an ARB funded research project's downstream analytics. Within this database various data layers are organized into schema on the basis of the source data provider. The following table of contents provides links to individual README documentation for each data source.
+This repository contains workflows for ingesting a collection of public and private data layers into a PostgreSQL database as part of an ARB funded research project into electrification barriers within the State of California. Within this database various data layers are organized into schema on the basis of the source data provider. The following table of contents provides links to individual README documentation for each data source.
 
-!!!These methods are under active development and subject to change!!!
+!!!Please be advised: these methods are under active development and subject to change!!!
 
 ## Table of Contents
 
