@@ -56,9 +56,9 @@ INTO permits.panel_search_results
 FROM
     permits.combined,
     to_tsvector(project_description) document,
-    to_tsquery('panel') query,
+    to_tsquery('panel | load & center | service & panel') query,
     NULLIF(ts_rank(to_tsvector(project_description), query), 0) rank_description,
-    SIMILARITY('panel', project_description) similarity
+    SIMILARITY('panel | load center | service panel', project_description) similarity
 WHERE query @@ document AND similarity > 0
 ORDER BY rank_description, similarity DESC NULLS LAST;
 
@@ -109,9 +109,9 @@ INTO permits.solar_search_results
 FROM
     permits.combined,
     to_tsvector(project_description) document,
-    to_tsquery('solar') query,
+    to_tsquery('solar | pv | photovoltaic | array') query,
     NULLIF(ts_rank(to_tsvector(project_description), query), 0) rank_description,
-    SIMILARITY('solar', project_description) similarity
+    SIMILARITY('solar | pv | photovoltaic | array', project_description) similarity
 WHERE query @@ document AND similarity > 0
 ORDER BY rank_description, similarity DESC NULLS LAST;
 
@@ -145,9 +145,9 @@ INTO permits.ev_charger_search_results
 FROM
     permits.combined,
     to_tsvector(project_description) document,
-    to_tsquery('charger') query,
+    to_tsquery('electric & vehicle | ev | charger') query,
     NULLIF(ts_rank(to_tsvector(project_description), query), 0) rank_description,
-    SIMILARITY('charger', project_description) similarity
+    SIMILARITY('electric vehicle | ev | charger', project_description) similarity
 WHERE query @@ document AND
     similarity > 0 AND
     project_description !~* 'water' AND
@@ -164,9 +164,9 @@ INTO permits.battery_search_results
 FROM
     permits.combined,
     to_tsvector(project_description) document,
-    to_tsquery('battery') query,
+    to_tsquery('power & wall | powerwall | batteries | battery | energy & storage') query,
     NULLIF(ts_rank(to_tsvector(project_description), query), 0) rank_description,
-    SIMILARITY('battery', project_description) similarity
+    SIMILARITY('power wall | powerwall | batteries | battery | energy storage', project_description) similarity
 WHERE query @@ document AND
     similarity > 0
 ORDER BY rank_description, similarity DESC NULLS LAST;

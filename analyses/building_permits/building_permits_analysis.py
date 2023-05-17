@@ -3,10 +3,19 @@
 import pandas as pd
 import geopandas as gpd
 from sqlalchemy import create_engine
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from tqdm import tqdm
+import os
+
+#%% Change Working Directory
+
+root = '/Users/edf/repos/carb_elec/analyses/building_permits/'
+out = 'fig/'
+
+os.chdir(root)
 
 #%% Get DB Connection Parameters
 
@@ -53,23 +62,7 @@ permits = gpd.read_postgis(sql,
     geom_col='centroid',
     index_col = 'id')
 
-#%% Convert Array Field
-
-ps = pd.Series(index = permits.index, dtype = int)
-
-for i, r in tqdm(permits.iterrows()):
-    if r['upgraded_panel_size'] == None:
-        ps[i] = np.NaN
-    elif r['upgraded_panel_size'] == []:
-        ps[i] = np.NaN
-    else:
-        ps[i] = pd.to_numeric(r['upgraded_panel_size'][0])
-
-#%% Overwrite with Numeric Values
-
-permits['upgraded_panel_size'] = ps
-
-#%% Generate Count Data
+#%% Generate Count Data and Plot Counts
 
 cols = ['solar_pv_system',
         'main_panel_upgrade',
@@ -78,43 +71,55 @@ cols = ['solar_pv_system',
         'ev_charger',
         'battery_storage_system']
 
-permits['measure_category'] = (permits.loc[:,cols] == 1).idxmax(1)
-
-#%% Plot Counts
-
-data = permits.groupby('measure_category')['measure_category'].agg('count')
+data = permits[cols].sum(axis=0)
 
 xtick_labels = [x.replace('_', ' ').title() for x in cols]
 
 fig, ax = plt.subplots(1,1, figsize=(7,7))
 
 sns.barplot(x = data.index, y = data.values, order = cols)
-ax.set_yscale('log')
 ax.grid(True)
 plt.xticks(rotation=90)
 ax.set_xticklabels(xtick_labels)
-ax.set_yticklabels([None, None, '10,000', '100,000', '1,000,000'])
 ax.set_ylabel('Count Frequency')
 ax.set_xlabel('Upgrade Category')
+ax.yaxis.set_major_formatter(mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+
+fig.savefig(root + out + 'Upgrade_Category.png', dpi = 300, bbox_inches = 'tight')
+
+#%% Generate Combinations Table
+
+combinations = permits.groupby(cols)['file_name'].agg('count').reset_index()
+combinations.rename(columns = {'file_name':'count'}, inplace = True)
 
 #%% Plot Main Panel Upgrade Size Distribution
 
+fig, ax = plt.subplots(1,1, figsize=(7,5))
 ind = permits['main_panel_upgrade'] == True
 cols = ['upgraded_panel_size']
 data = permits.loc[ind,:].groupby(cols)[cols].agg('count')
-chart = sns.barplot(x = data.index, y = data.values.ravel())
-chart.set_xticklabels(chart.get_xticklabels(), rotation=45, horizontalalignment='right')
+sns.barplot(x = data.index, y = data.values.ravel(), ax = ax)
+ax.set_xticklabels(data.index.get_level_values(0).astype(int), rotation=45, horizontalalignment='right')
 ax.set_title('Main Panel Upgrade Sizes')
 ax.set_ylabel('Count Frequency')
 ax.set_xlabel('Panel Size [Amps]')
+ax.grid(True)
+ax.yaxis.set_major_formatter(mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+
+fig.savefig(root + out + 'Main_Panel_Upgrade_Size_Distributions.png', dpi = 300, bbox_inches = 'tight')
 
 #%% Plot Sub Panel Upgrade Size Distribution
 
+fig, ax = plt.subplots(1,1, figsize=(7,5))
 ind = permits['sub_panel_upgrade'] == True
 cols = ['upgraded_panel_size']
 data = permits.loc[ind,:].groupby(cols)[cols].agg('count')
-chart = sns.barplot(x = data.index, y = data.values.ravel())
-chart.set_xticklabels(chart.get_xticklabels(), rotation=45, horizontalalignment='right')
+sns.barplot(x = data.index, y = data.values.ravel())
+ax.set_xticklabels(data.index.get_level_values(0).astype(int), rotation=45, horizontalalignment='right')
 ax.set_title('Sub-Panel Upgrade Sizes')
 ax.set_ylabel('Count Frequency')
 ax.set_xlabel('Panel Size [Amps]')
+ax.grid(True)
+ax.yaxis.set_major_formatter(mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+
+fig.savefig(root + out + 'Sub-Panel_Upgrade_Size_Distribution.png', dpi = 300, bbox_inches = 'tight')
