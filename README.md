@@ -21,6 +21,7 @@ This repository contains workflows for ingesting a collection of public and priv
     * [Pacific Gas and Electric (PGE) Grid Infrastructure Integrated Capacity Assessment (ICA) Results](./data/pge_grid/)
     * [Regional Energy Network (REN) Boundaries](./data/regional_energy_networks/)
     * [Southern California Edison (SCE) Grid Infrastructure Integrated Capacity Assessment (ICA) Results](./data/sce_grid/)
+    * [Strategic Growth Council California Statewide Parcel Boundaries](./data/sgc_parcel_boundaries/)
     * [San Diego Gas and Electric (SDGE) Grid Infrastructure Integrated Capacity Assessment (ICA) Results](./data/sdge_grid/)
     * [US Environmental Protection Agency (USEPA) eGRID Database](./data/usepa_egrid/)
 * Privately Accessible Data Layers
