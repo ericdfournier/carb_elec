@@ -36,7 +36,7 @@ engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
 
 #%% Read permit table from database
 
-sql = '''SELECT centroid,
+permits_sql = '''SELECT centroid,
             permit_number,
             permit_class,
             permit_type,
@@ -54,22 +54,42 @@ sql = '''SELECT centroid,
             heat_pump,
             main_panel_upgrade,
             sub_panel_upgrade,
-            upgraded_panel_size
-        FROM permits.combined'''
+            upgraded_panel_size,
+            valid_centroid
+        FROM permits.panel_upgrades;'''
 
-permits = gpd.read_postgis(sql,
+permits = gpd.read_postgis(permits_sql,
     engine,
-    geom_col='centroid',
+    geom_col = 'centroid',
     index_col = 'id')
+
+#%% Import CA Boundaries
+
+ca_sql = '''SELECT *
+    FROM census.acs_ca_2019_county_geom;'''
+
+ca = gpd.read_postgis(ca_sql,
+    engine,
+    geom_col = 'geometry').unary_union
+
+#%% Valid Permits Descriptive Stas
+
+centroid_ind = permits['centroid'] != np.nan
+address_ind = permits['address'] != np.nan
+parcel_ind = permits['parcel_number'] != np.nan
+valid_centroid_ind = permits['valid_centroid'] == True
+
+print('Valid Permits: {}'.format(permits['file_name'].count()))
+print('Permits Requiring Address Geocoding: {}'.format(permits.loc[((~centroid_ind & ~parcel_ind) | (~valid_centroid_ind))]['file_name'].sum()))
 
 #%% Generate Count Data and Plot Counts
 
-cols = ['solar_pv_system',
-        'main_panel_upgrade',
-        'sub_panel_upgrade',
-        'heat_pump',
-        'ev_charger',
-        'battery_storage_system']
+cols = [    'solar_pv_system',
+            'main_panel_upgrade',
+            'sub_panel_upgrade',
+            'battery_storage_system',
+            'ev_charger',
+            'heat_pump']
 
 data = permits[cols].sum(axis=0)
 
@@ -89,7 +109,7 @@ fig.savefig(root + out + 'Upgrade_Category.png', dpi = 300, bbox_inches = 'tight
 
 #%% Generate Combinations Table
 
-combinations = permits.groupby(cols)['file_name'].agg('count').reset_index()
+combinations = valid_permits.groupby(cols)['file_name'].agg('count').reset_index()
 combinations.rename(columns = {'file_name':'count'}, inplace = True)
 
 #%% Plot Main Panel Upgrade Size Distribution

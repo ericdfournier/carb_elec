@@ -1,0 +1,59 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: sgc.ca_parcel_boundaries_2014
+Geometry: Multi Polygon
+Feature Count: 11523701
+Extent: (-373976.424100, -604499.337000) - (540012.888100, 450028.587000)
+Layer SRS WKT:
+PROJCRS["NAD83 / California Albers",
+    BASEGEOGCRS["NAD83",
+        DATUM["North American Datum 1983",
+            ELLIPSOID["GRS 1980",6378137,298.257222101,
+                LENGTHUNIT["metre",1]]],
+        PRIMEM["Greenwich",0,
+            ANGLEUNIT["degree",0.0174532925199433]],
+        ID["EPSG",4269]],
+    CONVERSION["California Albers",
+        METHOD["Albers Equal Area",
+            ID["EPSG",9822]],
+        PARAMETER["Latitude of false origin",0,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8821]],
+        PARAMETER["Longitude of false origin",-120,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8822]],
+        PARAMETER["Latitude of 1st standard parallel",34,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8823]],
+        PARAMETER["Latitude of 2nd standard parallel",40.5,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8824]],
+        PARAMETER["Easting at false origin",0,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8826]],
+        PARAMETER["Northing at false origin",-4000000,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8827]]],
+    CS[Cartesian,2],
+        AXIS["easting (X)",east,
+            ORDER[1],
+            LENGTHUNIT["metre",1]],
+        AXIS["northing (Y)",north,
+            ORDER[2],
+            LENGTHUNIT["metre",1]],
+    USAGE[
+        SCOPE["State-wide spatial data management."],
+        AREA["United States (USA) - California."],
+        BBOX[32.53,-124.45,42.01,-114.12]],
+    ID["EPSG",3310]]
+Data axis to CRS axis mapping: 1,2
+FID Column = objectid
+Geometry Column = geom
+parno: String (30.0)
+county: String (50.0)
+address: String (100.0)
+city: String (65.0)
+zip: String (5.0)
+shape_length: Real (0.0)
+shape_area: Real (0.0)

@@ -1,0 +1,13 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: sgc.ca_parcel_boundaries_2014_info
+Geometry: None
+Feature Count: 51
+Layer SRS WKT:
+(unknown)
+FID Column = objectid
+county: String (50.0)
+datecollected: DateTime (0.0)
+datecurrent: DateTime (0.0)
+notes: String (255.0)

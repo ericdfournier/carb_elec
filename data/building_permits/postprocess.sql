@@ -88,7 +88,7 @@ SET panel_upgrade_size = (SELECT ARRAY_INTERSECT(panel_upgrade_size,
             200,
             225,
             250,
-            300,
+            320,
             400,
             600,
             800,
@@ -220,6 +220,24 @@ UPDATE permits.combined AS A
 SET upgraded_panel_size = B.panel_upgrade_size[1]
 FROM permits.panel_search_results AS B
 WHERE A."id" = B."id";
+
+SELECT *
+INTO permits.panel_upgrades
+FROM permits.combined
+WHERE   solar_pv_system = TRUE OR
+        main_panel_upgrade = TRUE OR
+        sub_panel_upgrade = TRUE OR
+        heat_pump = TRUE OR
+        ev_charger = TRUE OR
+        battery_storage_system = TRUE;
+
+ALTER TABLE permits.panel_upgrades
+ADD COLUMN valid_centroid BOOL DEFAULT FALSE;
+
+UPDATE permits.panel_upgrades
+SET valid_centroid = TRUE
+FROM census.acs_ca_2019_county_geom AS B
+WHERE ST_INTERSECTS(centroid, geometry);
 
 DROP TABLE IF EXISTS permits.battery_search_results;
 DROP TABLE IF EXISTS permits.panel_search_results;
