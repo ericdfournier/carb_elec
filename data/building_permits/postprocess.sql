@@ -217,7 +217,7 @@ WHERE A."id" = B."id" AND
     B.sub_panel = TRUE;
 
 UPDATE permits.combined AS A
-SET upgraded_panel_size = B.panel_upgrade_size[1]
+SET upgraded_panel_size = B.panel_upgrade_size[1] -- Might want to think about choosing the largest matching panel size here (instead of the first) - to account for cases where the to/from sizes are both mentioned in the description. Could cast the numeric array's to int and use the intarray package operators for this...
 FROM permits.panel_search_results AS B
 WHERE A."id" = B."id";
 
