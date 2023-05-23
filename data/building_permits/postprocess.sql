@@ -221,6 +221,7 @@ SET upgraded_panel_size = B.panel_upgrade_size[1] -- Might want to think about c
 FROM permits.panel_search_results AS B
 WHERE A."id" = B."id";
 
+-- Extract Panel Upgrade Related Records
 SELECT *
 INTO permits.panel_upgrades
 FROM permits.combined
@@ -231,14 +232,17 @@ WHERE   solar_pv_system = TRUE OR
         ev_charger = TRUE OR
         battery_storage_system = TRUE;
 
+-- Add a valid centroid indicator
 ALTER TABLE permits.panel_upgrades
 ADD COLUMN valid_centroid BOOL DEFAULT FALSE;
 
+-- Assign Valid Centroid Flag Where Intersects with CA Boundary
 UPDATE permits.panel_upgrades
 SET valid_centroid = TRUE
 FROM census.acs_ca_2019_county_geom AS B
 WHERE ST_INTERSECTS(centroid, geometry);
 
+-- Drop Intermediate Tables
 DROP TABLE IF EXISTS permits.battery_search_results;
 DROP TABLE IF EXISTS permits.panel_search_results;
 DROP TABLE IF EXISTS permits.ev_charger_search_results;

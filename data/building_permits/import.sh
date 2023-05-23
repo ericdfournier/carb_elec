@@ -19,7 +19,7 @@ dst="postgresql://$PGUSER@$PGHOST/$pgdatabase"
 out='./'
 schema='permits'
 
-src='./raw'
+src='./raw/permits/'
 table=combined
 
 # For a directory to be recognized as a CSV datasource at least half the files in the directory need to have a .csv extension.
@@ -47,8 +47,26 @@ ogr2ogr \
 	--config PG_USE_COPY YES \
 	--debug ON
 
+# Import derived permit class definitions
+src='./raw/'
+file=''
+table=class_definitions
+
+ogr2ogr -f $format $dst \
+    $src$file \
+    -lco SCHEMA=$schema \
+    -nln $table  \
+    -emptyStrAsNull \
+    -lco DESCRIPTION=$table \
+    --debug ON
+
 # Perform additional postprocessing on permit records
 psql -d carb -a -f 'postprocess.sql'
+
+# Modify table records in anticipation of geocoding workflow
+psql -d carb -a -f 'geocode.sql'
+
+# Geocode from external service and write table back to database
 
 # Write table metadata output
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'

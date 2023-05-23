@@ -7,4 +7,3 @@ INTO    permits.test_boundary_join_apn_key
 FROM    permits.panel_upgrades AS A,
         sgc.ca_parcel_boundaries_2014 AS B
 WHERE   A.parcel_number = B.parno;
-        
