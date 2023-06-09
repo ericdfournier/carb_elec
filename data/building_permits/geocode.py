@@ -21,6 +21,7 @@ __author__ = 'Eric D Fournier'
 import functools  # For partial function.
 import json
 import os
+import numpy as np
 
 from sqlalchemy import create_engine
 #from geoalchemy2 import Geometry  # Enable PostGIS support.
@@ -39,14 +40,14 @@ tqdm.pandas()  # Enable the use of progress_apply().
 
 # Set database connection parameters from environment variables. Will raise KeyError if not set.
 user = os.environ['PGUSER']
-password = os.environ['PGPASSWORD']
+password = 'VSWYFW66' #os.environ['PGPASSWORD']
 host = os.environ['PGHOST']
 port = os.environ['PGPORT']
 database = 'carb'
 dst_schema = 'permits'
 dst_table = 'panel_upgrades_geocode_arcgis'
 
-# Set geocoder optional parameters
+#%% Set geocoder optional parameters
 # Choose if existing table should be overwritten via if_exists parameter to geopandas.to_postgis().
 # Options 'fail' (default), 'replace', or 'append'.
 if_exists = 'fail'
@@ -54,15 +55,6 @@ if_exists = 'fail'
 # Choose verbosity via echo parameter to sqlalchemy.create_engine().
 # Option True to echo query or 'debug' to echo query + result set output.
 echo = False
-
-#%% Create Database Connection String
-
-engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
-    user,
-    password,
-    host,
-    port,
-    database))
 
 #%% Configure geocoder
 
@@ -83,48 +75,58 @@ geocode = RateLimiter(
 out_fields = '*'
 geocode = functools.partial(geocode, out_fields=out_fields)
 
+#%% Create Database Connection String
+
+engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
+    user,
+    password,
+    host,
+    port,
+    database))
+
 #%%  Read table into output DataFrame
 
 # Read query_address column from src table into a new pandas df.
 # Select only those with prem_id values with null centroids and with rs_cd values not in the exclude list (or null rs_cd, to catch stragglers).
 with engine.connect() as conn:
-    output_df = pd.read_sql_query('''
+    df = pd.read_sql_query('''
         SELECT	id,
 				query_address
         FROM permits.panel_upgrades
-		WHERE centroid IS NULL OR
-			  valid_centroid IS FALSE;
+		WHERE (ST_ISEMPTY(centroid) OR
+			  valid_centroid IS FALSE) AND
+              query_address IS NOT NULL;
         ''',
         conn
     )
 
 # Convert object types to string types if possible.
-output_df = output_df.convert_dtypes().head(10)
+df = df.convert_dtypes()
 
 #%%  Geocode using geopy
 
-# Construct query string for geocoder.
-query = output_df['query_address']
-# Geocode using geopy.
+query = df['query_address']
 location = query.progress_apply(geocode)
+
+#%% Process result fields
 
 # Extract coordinates.
 longitude = location.apply(lambda loc: loc.longitude if loc else None)
 latitude = location.apply(lambda loc: loc.latitude if loc else None)
 
+#%% Process Outputs
+
 # Construct GeoSeries of Shapely Point objects.
-gs_4326 = gpd.GeoSeries.from_xy(longitude, latitude, crs=4326)
+gs_4326 = gpd.points_from_xy(longitude, latitude, crs=4326)
+
 # Transform CRS to NAD83 / California Albers (EPSG:3310).
 gs_3310 = gs_4326.to_crs(crs=3310)
 
 # Create GeoDataFrame.
-output_gdf = gpd.GeoDataFrame(output_df, geometry=gs_3310)
+output_gdf = gpd.GeoDataFrame(df, geometry=gs_3310)
 
 # Rename geometry column from default of 'geometry'.
 output_gdf.rename_geometry('centroid', inplace=True)
-
-# Delete DataFrame now that a proper GeoDataFrame has been created.
-del output_df
 
 # Save location.address property.
 address = location.apply(lambda loc: loc.address if loc else None)
@@ -137,14 +139,6 @@ output_gdf['raw'] = raw
 # Save score.
 score = location.apply(lambda loc: loc.raw['score'] if loc else None)
 output_gdf['score'] = score
-
-print(output_gdf.dtypes)
-# print(output_gdf)
-
-print(output_gdf.crs)
-print(output_gdf.geometry.name)
-print(output_gdf.geometry.geom_type)
-print(output_gdf.geometry)
 
 #%% Write geodataframe to database
 

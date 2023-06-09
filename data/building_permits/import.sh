@@ -49,7 +49,7 @@ ogr2ogr \
 
 # Import derived permit class definitions
 src='./raw/'
-file=''
+file='class_definitions.csv'
 table=class_definitions
 
 ogr2ogr -f $format $dst \
@@ -61,12 +61,17 @@ ogr2ogr -f $format $dst \
     --debug ON
 
 # Perform additional postprocessing on permit records
-psql -d carb -a -f 'postprocess.sql'
+psql -d carb -a -f 'import_postprocess.sql'
 
 # Modify table records in anticipation of geocoding workflow
-psql -d carb -a -f 'geocode.sql'
+psql -d carb -a -f 'geocode_preprocess.sql'
 
 # Geocode from external service and write table back to database
+#file='geocode.py'
+#/opt/anaconda3/envs/geo/bin/python $file
+
+# Geocode postprocess
+psql -d carb -a -f 'geocode_postprocess.sql'
 
 # Write table metadata output
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
