@@ -32,3 +32,24 @@ DELETE FROM permits.panel_upgrades_geocoded AS A
 USING (SELECT ST_UNION(geometry) AS geometry FROM census.acs_ca_2019_county_geom) AS B
 WHERE NOT ST_INTERSECTS(A.centroid, B.geometry) OR
     ST_ISEMPTY(A.centroid);
+
+-- Join County and Place Attributes Based Upon Centroid
+SELECT  A.id,
+        B."NAMELSAD" AS place_name,
+        C."NAMELSAD" AS county_name,
+        D.dac AS dac,
+        D.lowincome AS low_income,
+        D.nondesignated AS non_designated,
+        D.bufferlowincome AS buffer_low_income,
+        D.bufferlih AS bufferlih,
+        E."GEOID" AS tract_geoid_2019
+INTO permits.panel_upgrades_geocoded_geographies
+FROM permits.panel_upgrades_geocoded AS A
+LEFT JOIN census.acs_ca_2019_place_geom AS B
+    ON ST_INTERSECTS(A.centroid, B.geometry)
+LEFT JOIN census.acs_ca_2019_county_geom AS C
+    ON ST_INTERSECTS(A.centroid, C.geometry)
+LEFT JOIN carb.priority_populations_ces4 AS D
+    ON ST_INTERSECTS(A.centroid, D.geom)
+LEFT JOIN census.acs_ca_2019_tr_geom AS E
+    ON ST_INTERSECTS(A.centroid, E.geometry);

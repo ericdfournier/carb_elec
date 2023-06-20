@@ -38,7 +38,17 @@ engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
 
 #%% Import Permit Data
 
-permits_sql = '''SELECT * FROM permits.panel_upgrades_geocoded'''
+permits_sql = '''SELECT A.*,
+                    B.place_name,
+                    B.county_name,
+                    B.dac,
+                    B.low_income,
+                    B.non_designated,
+                    B.buffer_low_income,
+                    B.bufferlih
+                FROM permits.panel_upgrades_geocoded AS A
+                JOIN permits.panel_upgrades_geocoded_geographies AS B
+                    ON A.id = B.id'''
 
 permits = gpd.read_postgis(permits_sql,
     engine,
@@ -66,6 +76,17 @@ counties = gpd.read_postgis(counties_sql,
 counties.set_geometry('geometry', inplace = True, crs = 3310)
 counties = counties.explode()
 counties_4326 = counties.to_crs('EPSG:4326')
+
+places_sql = '''SELECT *
+    FROM census.acs_ca_2019_place_geom;'''
+
+places = gpd.read_postgis(places_sql,
+    engine,
+    geom_col = 'geometry')
+
+places.set_geometry('geometry', inplace = True, crs = 3310)
+places = places.explode()
+places_4326 = places.to_crs('EPSG:4326')
 
 #%% Valid Permits Descriptive Stas
 
@@ -339,17 +360,15 @@ fig.savefig(root + out + 'Permit_Estimated_Cost_Distribution_Boxplot_Series.png'
 
 #%% Join Permit Data to Counties
 
-permits_counties = permits.sjoin(counties.loc[:,['geometry','NAMELSAD']], how = 'inner')
-permits_counties_counts = permits_counties.groupby('NAMELSAD')['geometry'].agg('count')
-permits_counties_counts = pd.merge(permits_counties_counts, counties.loc[:,['NAMELSAD','geometry']], left_on = 'NAMELSAD', right_on = 'NAMELSAD')
-permits_counties_counts.rename(columns = {'geometry_x': 'permit_count', 'geometry_y': 'geometry'}, inplace = True)
-data = gpd.GeoDataFrame(permits_counties_counts)
+county_counts = pd.DataFrame(permits.groupby('county_name')['geometry'].agg('count'))
+county_counts.rename(columns = {'geometry' : 'permit_counts'}, inplace = True)
+data = gpd.GeoDataFrame(pd.merge(counties.loc[:,['geometry', 'NAMELSAD']], county_counts, left_on = 'NAMELSAD', right_on = 'county_name'))
 
-#%% Generate Map Visualization of Permit Counts by County
+#%% Generate Map Visualization of Permit Counts by County and Aggregate Counts for Visualization
 
 fig, ax = plt.subplots(1,1, figsize = (5,8))
 
-data.plot(column = 'permit_count',
+data.plot(column = 'permit_counts',
     ax = ax,
     cmap = 'rainbow',
     scheme = 'fisher_jenks')
@@ -357,3 +376,80 @@ counties.boundary.plot(ax=ax, edgecolor = 'black', linewidth = 0.5)
 ax.set_axis_off()
 
 fig.savefig(root + out + 'Permit_Counts_by_County_Map.png', dpi = 300, bbox_inches = 'tight')
+
+#%% Join Permit Data to Places and Aggregate Counts for Visualization
+
+place_counts = pd.DataFrame(permits.groupby('place_name')['geometry'].agg('count'))
+place_counts.rename(columns = {'geometry' : 'permit_counts'}, inplace = True)
+data = gpd.GeoDataFrame(pd.merge(places.loc[:,['geometry', 'NAMELSAD']], place_counts, left_on = 'NAMELSAD', right_on = 'place_name'))
+
+#%% Generate Map Visualization of Permit Counts by Place
+
+fig, ax = plt.subplots(1,1, figsize = (5,8))
+
+counties.dissolve().plot(ax = ax, facecolor = 'white', edgecolor = 'black', linewidth = 0.5)
+data.plot(column = 'permit_counts',
+    ax = ax,
+    cmap = 'rainbow',
+    scheme = 'fisher_jenks')
+places.boundary.plot(ax=ax, edgecolor = 'black', linewidth = 0.1)
+ax.set_axis_off()
+
+fig.savefig(root + out + 'Permit_Counts_by_Place_Map.png', dpi = 300, bbox_inches = 'tight')
+
+#%% Generate Priority Population Category Counts
+
+cols = ['dac',
+        'low_income',
+       'non_designated',
+       'buffer_low_income',
+       'bufferlih']
+
+dac_counts = permits.groupby(cols)['geometry'].agg('count')
+
+#%% Generate DAC vs Non-DAC Counts for each category
+
+cols = [    'solar_pv_system',
+            'main_panel_upgrade',
+            'sub_panel_upgrade',
+            'battery_storage_system',
+            'ev_charger',
+            'heat_pump']
+
+times = pd.DataFrame()
+
+dac_counts = pd.Series(index = cols)
+non_dac_counts = pd.Series(index = cols)
+
+for cat in cols:
+
+    dac_ind = permits['dac'] == 'Yes'
+    cat_ind = permits[cat] == 1
+
+    dac_counts[cat] = ((dac_ind) & (cat_ind)).sum()
+    non_dac_counts[cat] = ((~dac_ind) & (cat_ind)).sum()
+
+counts_by_dac = pd.merge(dac_counts.rename('dac_counts'),
+    non_dac_counts.rename('non_dac_counts'), left_index = True, right_index = True)
+
+#%% Plot Counts by DAC Status
+
+xtick_labels = [x.replace('_', ' ').title() for x in cols]
+
+fig, ax = plt.subplots(1,1, figsize = (7,5))
+
+counts_by_dac.plot.bar(stacked=True, ax = ax, color=[ 'tab:orange','tab:blue'])
+ax.set_xticklabels(xtick_labels)
+ax.yaxis.set_major_formatter(mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+ax.grid(True)
+ax.legend(['DAC Counts','Non-DAC Counts'])
+ax.set_xlabel('Upgrade Category')
+ax.set_ylabel('Count Frequency')
+
+fig.savefig(root + out + 'Upgrade_Category_by_DAC_Status.png', dpi = 300, bbox_inches = 'tight')
+
+#%% Compute Percents
+
+dac_pct = (counts_by_dac['dac_counts'] / counts_by_dac.sum(axis = 1)) * 100.0
+non_dac_pct = (counts_by_dac['non_dac_counts'] / counts_by_dac.sum(axis = 1)) * 100.0
+pct_by_dac = pd.merge(dac_pct.rename('dac_pct'), non_dac_pct.rename('non_dac_pct'), left_index = True, right_index = True).round(0)
