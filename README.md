@@ -12,6 +12,7 @@ This repository contains workflows for ingesting a collection of public and priv
     * [California Air Resources Board (CARB) Priority Populations](./data/carb_priority_populations/)
     * [California Department of Public Heatlh (CDPH) Climate Hazard Vulnerability Index](./data/cdph_climate_hazard_vulnerability_index/)
     * [California Energy Commission (CEC) Building Energy Climate Zones](./data/cec_climate_zones/)
+    * [California Energy Commission (CEC) Electric Utility and Load Serving Entity Service Territory Boundaries](./data/cec_utility_service_territory_boundaries/)
     * [California Energy Data and Reporting System (CEDARS) Fuel Substitution Program Claims](./data/cedars_fuel_substitution_program_claims/)
     * [US Census Bureau American Community Survey (ACS) Attributes](./data/census_american_community_survey/)
     * [Community Choice Aggregation (CCA) Boundaries](./data/community_choice_aggregations/)
