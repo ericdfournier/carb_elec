@@ -6,10 +6,10 @@ dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd $dir
 
 ################################################################################
-# Import Housing and Urban Development County Income Limits
+# Import NOAA Medium Shoreline Boundaries for the Continental United States
 #
 # Creates tables:
-# - hud.ca_2022_county_income_limits
+# - noaa.us_medium_shoreline
 #
 # Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
@@ -17,22 +17,24 @@ cd $dir
 # Set environment parameters
 format='PostgreSQL'
 dst="postgresql://$PGUSER@$PGHOST/carb"
-schema='hud'
+schema='noaa'
 src='./raw/'
 out='./'
 
-# Import county level income limit csv
-file='2022-income-limits.csv'
-table='ca_2022_county_income_limits'
+# Import medium resolution shoreline boundary shapefile
+file='us_medium_shoreline.shp'
+table='us_medium_shoreline'
 
 ogr2ogr -f $format $dst \
     $src$file \
     -lco SCHEMA=$schema \
-    -nln $table \
+    -nln $table  \
+    -nlt LINESTRING \
+    -t_srs EPSG:3310 \
+    -lco GEOMETRY_NAME=geom \
+    -unsetFieldWidth \
     -emptyStrAsNull \
     -lco DESCRIPTION=$table \
-    -oo AUTODETECT_TYPE=YES \
-    -oo AUTODETECT_SIZE_LIMIT=0 \
     --debug ON
 
 # Write table metadata outputs

@@ -19,6 +19,7 @@ This repository contains workflows for ingesting a collection of public and priv
     * [California Public Utility Commission (CPUC) Utility Affordability Ratios](./data/cpuc_utility_affordability_ratios/)
     * [California Office of Environmental Health Hazard Assessemnt (OEHHA) CalEnviroScreen 4.0](./data/oehha_cal_enviro_screen_4/)
     * [California Department of Housing and Urban Development (HUD) Income Limits](./data/hud_income_limits/)
+    * [National Oceanographic and Atmospheric Administration (NOAA) Medium Resolution Shoreline Boundaries](./data/noaa_medium_shoreline/)
     * [Pacific Gas and Electric (PGE) Grid Infrastructure Integrated Capacity Assessment (ICA) Results](./data/pge_grid/)
     * [Regional Energy Network (REN) Boundaries](./data/regional_energy_networks/)
     * [Southern California Edison (SCE) Grid Infrastructure Integrated Capacity Assessment (ICA) Results](./data/sce_grid/)
