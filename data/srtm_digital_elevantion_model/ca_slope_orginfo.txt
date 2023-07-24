@@ -1,0 +1,11 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: srtm.ca_slope
+Geometry: None
+Feature Count: 58385
+Layer SRS WKT:
+(unknown)
+FID Column = rid
+rast: String (0.0)
+filename: String (0.0)
