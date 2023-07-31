@@ -14,7 +14,7 @@ cd $dir
 # - srtm.ca_elevation
 # - srtm.ca_slope
 #
-# Inpnut GeoTIFF is already in EPSG:3310 (NAD83 / California Albers) SRS.
+# Input GeoTIFF is already in EPSG:3310 (NAD83 / California Albers) SRS.
 #
 ################################################################################
 
@@ -39,6 +39,16 @@ src='./raw/ca_slope.tif'
 table='ca_slope'
 
 # Import slope raster geotiff
+raster2pgsql -s 3310 -I -e -M $src -F -t 100x100 $schema.$table | psql -d $dbase
+
+# Write table metadata output
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Set aspect raster parameters
+src='./raw/ca_aspect.tif'
+table='ca_aspect'
+
+# Import aspect raster geotiff
 raster2pgsql -s 3310 -I -e -M $src -F -t 100x100 $schema.$table | psql -d $dbase
 
 # Write table metadata output

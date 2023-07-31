@@ -1,0 +1,89 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: la100.sf_training
+Metadata:
+  DESCRIPTION=sf_training
+Geometry: Multi Point
+Feature Count: 572321
+Extent: (122767.812343, -477318.942794) - (170144.501831, -408382.275576)
+Layer SRS WKT:
+PROJCRS["NAD83 / California Albers",
+    BASEGEOGCRS["NAD83",
+        DATUM["North American Datum 1983",
+            ELLIPSOID["GRS 1980",6378137,298.257222101,
+                LENGTHUNIT["metre",1]]],
+        PRIMEM["Greenwich",0,
+            ANGLEUNIT["degree",0.0174532925199433]],
+        ID["EPSG",4269]],
+    CONVERSION["California Albers",
+        METHOD["Albers Equal Area",
+            ID["EPSG",9822]],
+        PARAMETER["Latitude of false origin",0,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8821]],
+        PARAMETER["Longitude of false origin",-120,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8822]],
+        PARAMETER["Latitude of 1st standard parallel",34,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8823]],
+        PARAMETER["Latitude of 2nd standard parallel",40.5,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8824]],
+        PARAMETER["Easting at false origin",0,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8826]],
+        PARAMETER["Northing at false origin",-4000000,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8827]]],
+    CS[Cartesian,2],
+        AXIS["easting (X)",east,
+            ORDER[1],
+            LENGTHUNIT["metre",1]],
+        AXIS["northing (Y)",north,
+            ORDER[2],
+            LENGTHUNIT["metre",1]],
+    USAGE[
+        SCOPE["State-wide spatial data management."],
+        AREA["United States (USA) - California."],
+        BBOX[32.53,-124.45,42.01,-114.12]],
+    ID["EPSG",3310]]
+Data axis to CRS axis mapping: 1,2
+FID Column = ogc_fid
+Geometry Column = geom
+apn: String (0.0)
+ain: String (0.0)
+ztrax_rowid: String (0.0)
+city: String (0.0)
+census_tract: Real (0.0)
+ciscorep: Real (0.0)
+dac_status: String (0.0)
+buildings: Real (0.0)
+lot_sqft: Real (0.0)
+year_built: DateTime (0.0)
+building_sqft: Real (0.0)
+units: Real (0.0)
+bedrooms: Real (0.0)
+bathrooms: Real (0.0)
+county_landuse_description: String (0.0)
+occupancy_status_stnd_code: String (0.0)
+usetype: String (0.0)
+usedescription: String (0.0)
+heating_system_stnd_code: String (0.0)
+ac_system_stnd_code: String (0.0)
+roll_year: DateTime (0.0)
+roll_landvalue: Real (0.0)
+roll_landbaseyear: DateTime (0.0)
+roll_impvalue: Real (0.0)
+roll_impbaseyear: DateTime (0.0)
+permit_type: String (0.0)
+permit_sub_type: String (0.0)
+permit_description: String (0.0)
+panel_related_permit: String (0.0)
+permit_issue_date: DateTime (0.0)
+permitted_panel_upgrade: Integer(Boolean) (1.0)
+panel_size_as_built: Real (0.0)
+inferred_panel_upgrade: Integer(Boolean) (1.0)
+upgrade_time_delta: Real (0.0)
+panel_size_existing: Real (0.0)

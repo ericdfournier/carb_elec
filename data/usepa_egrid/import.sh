@@ -23,11 +23,12 @@ cd $dir
 ################################################################################
 
 # Set environment parameters
-src='/Users/edf/repos/carb_elec/data/usepa_egrid/'
 file='preprocess.py'
 pgdatabase='carb'
 dst="postgresql://$PGUSER@$PGHOST/$pgdatabase"
 schema='usepa'
+src='./raw/'
+out='./'
 
 # Run preprocessing/import python script
 /opt/anaconda3/envs/geo/bin/python $src$file
