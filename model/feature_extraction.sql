@@ -86,8 +86,8 @@ CREATE INDEX IF NOT EXISTS idx_aspect_rowid_idx
 ON ztrax.aspect ("RowID");
 
 -- Extract Relevant Parcel Attributes for LA Training Data
-SELECT  training.rowid,
-        training.panel_size_existing::TEXT,
+SELECT  training."rowid",
+        training."panel_size_existing",
         main."LotSizeSquareFeet",
         main."NoOfBuildings",
         building."NoOfUnits",
@@ -103,8 +103,6 @@ SELECT  training.rowid,
         elevation."elevationm",
         slope."slopepct",
         aspect."aspectdeg",
-        place."NAMELSAD" AS "placename",
-        county."NAMELSAD" AS "countyname",
         pp."dac",
         pp."lowincome",
         pp."nondesignated",
@@ -136,10 +134,6 @@ INNER JOIN ztrax.slope AS slope
     ON training.rowid = slope."RowID"
 INNER JOIN ztrax.aspect AS aspect
     ON training.rowid = aspect."RowID"
-INNER JOIN census.acs_ca_2019_place_geom AS place
-    ON ST_INTERSECTS(training."geom", place."geometry")
-INNER JOIN census.acs_ca_2019_county_geom AS county
-    ON ST_INTERSECTS(training."geom", county."geometry")
 INNER JOIN carb.priority_populations_ces4 AS pp
     ON ST_INTERSECTS(training."geom", pp."geom")
 INNER JOIN usepa.ej_screen_ca_2023_tr AS ejscreen

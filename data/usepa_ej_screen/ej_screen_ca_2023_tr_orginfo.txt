@@ -6,7 +6,7 @@ Metadata:
   DESCRIPTION=ej_screen_ca_2023_tr
 Geometry: Multi Polygon
 Feature Count: 9129
-Extent: (-124.482003, 32.528832) - (-114.131211, 42.009503)
+Extent: (-380101.065661, -605327.048168) - (540037.546850, 450446.711598)
 Layer SRS WKT:
 PROJCRS["NAD83 / California Albers",
     BASEGEOGCRS["NAD83",
