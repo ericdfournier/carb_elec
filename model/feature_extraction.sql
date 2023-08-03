@@ -110,7 +110,14 @@ SELECT  training.rowid,
         pp."nondesignated",
         pp."bufferlowincome",
         pp."bufferlih",
-        ejscreen
+        ejscreen."peopcolorpct",
+        ejscreen."lowincpct",
+        ejscreen."unemppct",
+        ejscreen."lingisopct",
+        ejscreen."lesshspct",
+        ejscreen."under5pct",
+        ejscreen."over64pct",
+        ejscreen."lifeexppct" 
 INTO    la100."sf_training_full"
 FROM    la100.sf_training AS training
 INNER JOIN ztrax.main AS main
@@ -130,10 +137,10 @@ INNER JOIN ztrax.slope AS slope
 INNER JOIN ztrax.aspect AS aspect
     ON training.rowid = aspect."RowID"
 INNER JOIN census.acs_ca_2019_place_geom AS place
-    ON ST_INTERSECTS(training.geom, place.geometry)
+    ON ST_INTERSECTS(training."geom", place."geometry")
 INNER JOIN census.acs_ca_2019_county_geom AS county
-    ON ST_INTERSECTS(training.geom, county.geometry)
+    ON ST_INTERSECTS(training."geom", county."geometry")
 INNER JOIN carb.priority_populations_ces4 AS pp
-    ON ST_INTERSECTS(training.geom, pp.geom)
+    ON ST_INTERSECTS(training."geom", pp."geom")
 INNER JOIN usepa.ej_screen_ca_2023_tr AS ejscreen
-    ON ST_INTERSECTS(training.geom, ejscreen.geometry);
+    ON ST_INTERSECTS(training."geom", ejscreen."geom");

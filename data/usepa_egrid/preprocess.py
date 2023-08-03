@@ -42,61 +42,61 @@ engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
 
 #%% Output Sheet Data to PostGres Tables
 
-unt21.to_sql('unt_2021',
+unt21.to_sql('egrid_unt_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-gen21.to_sql('gen_2021',
+gen21.to_sql('egrid_gen_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-plnt21.to_sql('plnt_2021',
+plnt21.to_sql('egrid_plnt_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-st21.to_sql('st_2021',
+st21.to_sql('egrid_st_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-ba21.to_sql('ba_2021',
+ba21.to_sql('egrid_ba_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-srl21.to_sql('srl_2021',
+srl21.to_sql('egrid_srl_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-nrl21.to_sql('nrl_2021',
+nrl21.to_sql('egrid_nrl_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-us21.to_sql('us_2021',
+us21.to_sql('egrid_us_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-ggl21.to_sql('ggl_2021',
+ggl21.to_sql('egrid_ggl_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
     con = engine)
 
-demo21.to_sql('demo_2021',
+demo21.to_sql('egrid_demo_2021',
     if_exists = 'replace',
     index = False,
     schema = 'usepa',
