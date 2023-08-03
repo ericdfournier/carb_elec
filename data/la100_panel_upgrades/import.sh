@@ -6,7 +6,7 @@ dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd $dir
 
 ################################################################################
-# Import USEPA eGRID Attributes
+# Import LA100 Panel Upgrade Analysis Training Data
 #
 # Creates tables:
 # - la100.sf_training
