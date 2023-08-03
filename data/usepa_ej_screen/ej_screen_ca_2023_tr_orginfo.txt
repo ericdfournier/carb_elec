@@ -1,0 +1,180 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: usepa.ej_screen_ca_2023_tr
+Metadata:
+  DESCRIPTION=ej_screen_ca_2023_tr
+Geometry: Multi Polygon
+Feature Count: 9129
+Extent: (-124.482003, 32.528832) - (-114.131211, 42.009503)
+Layer SRS WKT:
+PROJCRS["NAD83 / California Albers",
+    BASEGEOGCRS["NAD83",
+        DATUM["North American Datum 1983",
+            ELLIPSOID["GRS 1980",6378137,298.257222101,
+                LENGTHUNIT["metre",1]]],
+        PRIMEM["Greenwich",0,
+            ANGLEUNIT["degree",0.0174532925199433]],
+        ID["EPSG",4269]],
+    CONVERSION["California Albers",
+        METHOD["Albers Equal Area",
+            ID["EPSG",9822]],
+        PARAMETER["Latitude of false origin",0,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8821]],
+        PARAMETER["Longitude of false origin",-120,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8822]],
+        PARAMETER["Latitude of 1st standard parallel",34,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8823]],
+        PARAMETER["Latitude of 2nd standard parallel",40.5,
+            ANGLEUNIT["degree",0.0174532925199433],
+            ID["EPSG",8824]],
+        PARAMETER["Easting at false origin",0,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8826]],
+        PARAMETER["Northing at false origin",-4000000,
+            LENGTHUNIT["metre",1],
+            ID["EPSG",8827]]],
+    CS[Cartesian,2],
+        AXIS["easting (X)",east,
+            ORDER[1],
+            LENGTHUNIT["metre",1]],
+        AXIS["northing (Y)",north,
+            ORDER[2],
+            LENGTHUNIT["metre",1]],
+    USAGE[
+        SCOPE["State-wide spatial data management."],
+        AREA["United States (USA) - California."],
+        BBOX[32.53,-124.45,42.01,-114.12]],
+    ID["EPSG",3310]]
+Data axis to CRS axis mapping: 1,2
+FID Column = ogc_fid
+Geometry Column = geom
+objectid: Integer (0.0)
+id: String (0.0)
+state_name: String (0.0)
+st_abbrev: String (0.0)
+cnty_name: String (0.0)
+region: Integer (0.0)
+acstotpop: Integer (0.0)
+acsipovbas: Integer (0.0)
+acseducbas: Integer (0.0)
+acstothh: Integer (0.0)
+acstothu: Integer (0.0)
+acsunempbas: Integer (0.0)
+demogidx_2: Real (0.0)
+demogidx_5: Real (0.0)
+peopcolor: Integer (0.0)
+peopcolorpct: Real (0.0)
+lowincome: Integer (0.0)
+lowincpct: Real (0.0)
+unemployed: Integer (0.0)
+unemppct: Real (0.0)
+lingiso: Integer (0.0)
+lingisopct: Real (0.0)
+lesshs: Integer (0.0)
+lesshspct: Real (0.0)
+under5: Integer (0.0)
+under5pct: Real (0.0)
+over64: Integer (0.0)
+over64pct: Real (0.0)
+lifeexppct: Real (0.0)
+pm25: Real (0.0)
+ozone: Real (0.0)
+dslpm: Real (0.0)
+cancer: Real (0.0)
+resp: Real (0.0)
+rsei_air: Real (0.0)
+ptraf: Real (0.0)
+pre1960: Real (0.0)
+pre1960pct: Real (0.0)
+pnpl: Real (0.0)
+prmp: Real (0.0)
+ptsdf: Real (0.0)
+ust: Real (0.0)
+pwdis: Real (0.0)
+d2_pm25: Real (0.0)
+d5_pm25: Real (0.0)
+d2_ozone: Real (0.0)
+d5_ozone: Real (0.0)
+d2_dslpm: Real (0.0)
+d5_dslpm: Real (0.0)
+d2_cancer: Real (0.0)
+d5_cancer: Real (0.0)
+d2_resp: Real (0.0)
+d5_resp: Real (0.0)
+d2_rsei_air: Real (0.0)
+d5_rsei_air: Real (0.0)
+d2_ptraf: Real (0.0)
+d5_ptraf: Real (0.0)
+d2_ldpnt: Real (0.0)
+d5_ldpnt: Real (0.0)
+d2_pnpl: Real (0.0)
+d5_pnpl: Real (0.0)
+d2_prmp: Real (0.0)
+d5_prmp: Real (0.0)
+d2_ptsdf: Real (0.0)
+d5_ptsdf: Real (0.0)
+d2_ust: Real (0.0)
+d5_ust: Real (0.0)
+d2_pwdis: Real (0.0)
+d5_pwdis: Real (0.0)
+p_demogidx_2: Integer (0.0)
+p_demogidx_5: Integer (0.0)
+p_peopcolorpct: Integer (0.0)
+p_lowincpct: Integer (0.0)
+p_unemppct: Integer (0.0)
+p_lingisopct: Integer (0.0)
+p_lesshspct: Integer (0.0)
+p_under5pct: Integer (0.0)
+p_over64pct: Integer (0.0)
+p_lifeexppct: Integer (0.0)
+p_pm25: Integer (0.0)
+p_ozone: Integer (0.0)
+p_dslpm: Integer (0.0)
+p_cancer: Integer (0.0)
+p_resp: Integer (0.0)
+p_rsei_air: Integer (0.0)
+p_ptraf: Integer (0.0)
+p_ldpnt: Integer (0.0)
+p_pnpl: Integer (0.0)
+p_prmp: Integer (0.0)
+p_ptsdf: Integer (0.0)
+p_ust: Integer (0.0)
+p_pwdis: Integer (0.0)
+p_d2_pm25: Integer (0.0)
+p_d5_pm25: Integer (0.0)
+p_d2_ozone: Integer (0.0)
+p_d5_ozone: Integer (0.0)
+p_d2_dslpm: Integer (0.0)
+p_d5_dslpm: Integer (0.0)
+p_d2_cancer: Integer (0.0)
+p_d5_cancer: Integer (0.0)
+p_d2_resp: Integer (0.0)
+p_d5_resp: Integer (0.0)
+p_d2_rsei_air: Integer (0.0)
+p_d5_rsei_air: Integer (0.0)
+p_d2_ptraf: Integer (0.0)
+p_d5_ptraf: Integer (0.0)
+p_d2_ldpnt: Integer (0.0)
+p_d5_ldpnt: Integer (0.0)
+p_d2_pnpl: Integer (0.0)
+p_d5_pnpl: Integer (0.0)
+p_d2_prmp: Integer (0.0)
+p_d5_prmp: Integer (0.0)
+p_d2_ptsdf: Integer (0.0)
+p_d5_ptsdf: Integer (0.0)
+p_d2_ust: Integer (0.0)
+p_d5_ust: Integer (0.0)
+p_d2_pwdis: Integer (0.0)
+p_d5_pwdis: Integer (0.0)
+arealand: Real (0.0)
+areawater: Real (0.0)
+npl_cnt: Integer (0.0)
+tsdf_cnt: Integer (0.0)
+exceed_count_80: Integer (0.0)
+exceed_count_80_sup: Integer (0.0)
+shape_length: Real (0.0)
+shape_area: Real (0.0)
