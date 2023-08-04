@@ -1,11 +1,11 @@
 -- Add centroid geometry field
-ALTER TABLE ztrax.main 
+ALTER TABLE ztrax.main
 ADD COLUMN centroid GEOMETRY(point, 3310);
 
 -- Generate Centroid from Existing Latitude Longitude Coordinates
-UPDATE ztrax.main 
+UPDATE ztrax.main
 SET centroid = ST_TRANSFORM(ST_SETSRID(ST_MAKEPOINT(
-    "PropertyAddressLongitude", "PropertyAddressLatitude"), 4326), 3310); 
+    "PropertyAddressLongitude", "PropertyAddressLatitude"), 4326), 3310);
 
 -- Index the Ztrax centroid geometry field
 CREATE INDEX IF NOT EXISTS idx_us_main_centroid_idx
@@ -56,7 +56,7 @@ CROSS JOIN LATERAL
     (SELECT FLOOR(ST_VALUE(rast, parcels.centroid))::INTEGER AS aspectdeg
         FROM srtm.ca_aspect
         WHERE ST_INTERSECTS(parcels.centroid, rast)) AS aspect;
-    
+
 -- Index Join Tables on RowID
 CREATE INDEX IF NOT EXISTS idx_training_rowid_idx
 ON la100.sf_training (rowid);
@@ -115,7 +115,8 @@ SELECT  training."rowid",
         ejscreen."lesshspct",
         ejscreen."under5pct",
         ejscreen."over64pct",
-        ejscreen."lifeexppct" 
+        ejscreen."lifeexppct",
+        cz."bzone"
 INTO    la100."sf_training_full"
 FROM    la100.sf_training AS training
 INNER JOIN ztrax.main AS main
@@ -137,4 +138,6 @@ INNER JOIN ztrax.aspect AS aspect
 INNER JOIN carb.priority_populations_ces4 AS pp
     ON ST_INTERSECTS(training."geom", pp."geom")
 INNER JOIN usepa.ej_screen_ca_2023_tr AS ejscreen
-    ON ST_INTERSECTS(training."geom", ejscreen."geom");
+    ON ST_INTERSECTS(training."geom", ejscreen."geom")
+INNER JOIN cec.ca_building_climate_zones_2021 AS cz
+    ON ST_INTERSECTS(training."geom", cz."geom");

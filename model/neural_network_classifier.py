@@ -1,3 +1,4 @@
+
 #%% Package Imports
 
 import pandas as pd
@@ -6,7 +7,7 @@ import sqlalchemy as sql
 import numpy as np
 from scipy.stats import randint
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 from sklearn.impute import SimpleImputer
@@ -21,6 +22,12 @@ import graphviz
 
 import matplotlib.pyplot as plt
 import os
+import pickle
+
+#%% Set Output Environment
+
+root = '/Users/edf/repos/carb_elec/model/saved/'
+os.chdir(root)
 
 #%% Class Definitions
 
@@ -159,30 +166,36 @@ y = output_pipeline.fit_transform(outputs)
 #%% Training Test Split
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.33, random_state=42)
+    X, y, test_size=0.33, random_state=69)
 
 y_train = y_train.ravel()
 
-#%% Random Forest Model Parameter Search
+#%% Fit Model and Save Weights
 
-param_dist = {'n_estimators': randint(500,800),
-              'max_depth': randint(30,50)}
+# Specify Hidden Layer Sizes
+n = 5
+hls = np.repeat(X_train.shape[1], n)
 
-rnd_clf = RandomForestClassifier()
-rand_search = RandomizedSearchCV(rnd_clf,
-                                 param_distributions = param_dist,
-                                 n_iter=5,
-                                 cv=5)
+# Set Model Parameters
+mlp_clf = MLPClassifier(
+    hidden_layer_sizes = hls,
+    activation = 'relu',
+    solver = 'adam',
+    max_iter = 500,
+    verbose = True,
+    warm_start = True)
 
-#%% Model Fit with Best Parameters
+# Fit Model
+mlp_clf.fit(X_train,y_train)
 
-rand_search.fit(X_train, y_train)
-best_rnd_clf = rand_search.best_estimator_
+# Save Weights
+filename = 'mlp_clf.pkl'
+pickle.dump(mlp_clf, open(filename, 'wb'))
 
 #%% Predict and Evaluate Accuracy on Test Set
 
-predict_train = best_rnd_clf.predict(X_train)
-predict_test = best_rnd_clf.predict(X_test)
+predict_train = mlp_clf.predict(X_train)
+predict_test = mlp_clf.predict(X_test)
 
 #%% Print Accuracy, Confusion Matrix, and Classificaiton Report
 
@@ -194,24 +207,44 @@ print(accuracy)
 print(confusion_mat)
 print(clf_report)
 
-#%% Construct Attribute Field Name List
+#%% Generate Predictor Names
 
 n1 = passthrough_pipeline['selector'].attribute_names
 n2 = list(fill_pipeline['one_hot_encoder'].get_feature_names_out())
 n3 = numeric_pipeline['selector'].attribute_names
 n4 = list(categorical_pipeline['one_hot_encoder'].get_feature_names_out())
+predictor_names = n1 + n2 + n3 + n4
 
-class_names = n1 + n2 + n3 + n4
+#%% Generate Class Names
 
-#%% Export the first three decision trees from the forest
+class_names = list(np.sort(outputs[output_attrib[0]].unique()))[:-1]
 
-for i in range(3):
-    tree = rnd_clf.estimators_[i]
-    dot_data = export_graphviz(tree,
-                               feature_names=field_names,
-                               filled=True,
-                               max_depth=2,
-                               impurity=False,
-                               proportion=True)
-    graph = graphviz.Source(dot_data)
-    display(graph)
+#%% Plot Confusion Matrix
+
+fig, ax = plt.subplots(1,2,figsize=(30,11))
+
+cat_norm = ConfusionMatrixDisplay.from_estimator(
+    mlp_clf,
+    X_test,
+    y_test,
+    display_labels=class_names,
+    cmap=plt.cm.Blues,
+    normalize= 'true',
+    ax = ax[0]
+)
+
+cat_norm.ax_.set_title('Within-Category Normalized Confusion Matrix')
+
+all_norm = ConfusionMatrixDisplay.from_estimator(
+    mlp_clf,
+    X_test,
+    y_test,
+    display_labels=class_names,
+    cmap=plt.cm.Reds,
+    normalize= 'all',
+    ax = ax[1]
+)
+
+all_norm.ax_.set_title('Full Normalized Confusion Matrix')
+
+plt.show()
