@@ -166,7 +166,7 @@ y = output_pipeline.fit_transform(outputs)
 #%% Training Test Split
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.33, random_state=69)
+    X, y, test_size=0.10, random_state=69)
 
 y_train = y_train.ravel()
 
@@ -191,6 +191,15 @@ mlp_clf.fit(X_train,y_train)
 # Save Weights
 filename = 'mlp_clf.pkl'
 pickle.dump(mlp_clf, open(filename, 'wb'))
+
+#%% Cross Validation
+
+cv_results = cross_validate(
+    mlp_clf,
+    X_train_test,
+    y_train_test,
+    cv=10,
+    return_estimator=True)
 
 #%% Predict and Evaluate Accuracy on Test Set
 
@@ -233,7 +242,7 @@ cat_norm = ConfusionMatrixDisplay.from_estimator(
     ax = ax[0]
 )
 
-cat_norm.ax_.set_title('Within-Category Normalized Confusion Matrix')
+cat_norm.ax_.set_title('Within-Class Count Normalized Confusion Matrix')
 
 all_norm = ConfusionMatrixDisplay.from_estimator(
     mlp_clf,
@@ -245,6 +254,6 @@ all_norm = ConfusionMatrixDisplay.from_estimator(
     ax = ax[1]
 )
 
-all_norm.ax_.set_title('Full Normalized Confusion Matrix')
+all_norm.ax_.set_title('Full Count Normalized Confusion Matrix')
 
 plt.show()
