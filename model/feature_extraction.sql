@@ -85,6 +85,41 @@ ON ztrax.slope ("RowID");
 CREATE INDEX IF NOT EXISTS idx_aspect_rowid_idx
 ON ztrax.aspect ("RowID");
 
+CREATE INDEX IF NOT EXISTS idx_geom_geoid_idx
+ON census.acs_ca_2019_tr_geom ("GEOID");
+
+CREATE INDEX IF NOT EXISTS idx_housing_geoid_idx
+ON census.acs_ca_2019_tr_housing ("GEOID");
+
+CREATE INDEX IF NOT EXISTS idx_fuel_geoid_idx
+ON census.acs_ca_2019_tr_fuel ("GEOID");
+
+-- Extract housing features 
+SELECT A."GEOID", 
+       A."DP04_0047PE" / 100.0 AS "renterhouseholdspct", 
+       B."geometry" AS "geom"
+INTO census.housing_features
+FROM census.acs_ca_2019_tr_housing AS A,
+     census.acs_ca_2019_tr_geom AS B
+WHERE A."GEOID" = B."GEOID";
+
+-- Index Geometry for Spatial Join
+CREATE INDEX IF NOT EXISTS idx_housing_geom_idx
+ON census.housing_features USING GIST("geom");
+
+-- Extract fuel features
+SELECT A."GEOID", 
+       A."DP04_0065PE" / 100.0 AS "elecheatinghouseholdspct", 
+       B."geometry" AS "geom" 
+INTO census.fuel_features
+FROM census.acs_ca_2019_tr_fuel AS A,
+     census.acs_ca_2019_tr_geom AS B
+WHERE A."GEOID" = B."GEOID";
+
+-- Index Geometry for Spatial Join
+CREATE INDEX IF NOT EXISTS idx_fuel_geom_idx
+ON census.fuel_features USING GIST("geom");
+
 -- Extract Relevant Parcel Attributes for LA Training Data
 SELECT  training."rowid",
         training."panel_size_existing",
@@ -116,28 +151,37 @@ SELECT  training."rowid",
         ejscreen."under5pct",
         ejscreen."over64pct",
         ejscreen."lifeexppct",
-        cz."bzone"
-INTO    la100."sf_training_full"
+        housing."renterhouseholdspct",
+        fuel."elecheatinghouseholdspct",
+        cz."bzone",
+        ST_X(ST_GEOMETRYN(training."geom", 1)) AS "x",
+        ST_Y(ST_GEOMETRYN(training."geom", 1)) AS "y"
+INTO    la100.sf_training_full
 FROM    la100.sf_training AS training
 INNER JOIN ztrax.main AS main
-    ON training.rowid = main."RowID"
+    ON training."rowid" = main."RowID"
 INNER JOIN ztrax.building AS building
-    ON training.rowid = building."RowID"
+    ON training."rowid" = building."RowID"
 INNER JOIN ztrax.building_areas AS areas
-    ON training.rowid = areas."RowID"
+    ON training."rowid" = areas."RowID"
 INNER JOIN ztrax.value AS val
-    ON training.rowid = val."RowID"
+    ON training."rowid" = val."RowID"
 INNER JOIN ztrax.distance AS dist
-    ON training.rowid = dist."RowID"
+    ON training."rowid"= dist."RowID"
 INNER JOIN ztrax.elevation AS elevation
-    ON training.rowid = elevation."RowID"
+    ON training."rowid" = elevation."RowID"
 INNER JOIN ztrax.slope AS slope
-    ON training.rowid = slope."RowID"
+    ON training."rowid" = slope."RowID"
 INNER JOIN ztrax.aspect AS aspect
-    ON training.rowid = aspect."RowID"
+    ON training."rowid" = aspect."RowID"
 INNER JOIN carb.priority_populations_ces4 AS pp
     ON ST_INTERSECTS(training."geom", pp."geom")
 INNER JOIN usepa.ej_screen_ca_2023_tr AS ejscreen
     ON ST_INTERSECTS(training."geom", ejscreen."geom")
 INNER JOIN cec.ca_building_climate_zones_2021 AS cz
-    ON ST_INTERSECTS(training."geom", cz."geom");
+    ON ST_INTERSECTS(training."geom", cz."geom")
+INNER JOIN census.housing_features AS housing
+    ON ST_INTERSECTS(training."geom", housing."geom")
+INNER JOIN census.fuel_features AS fuel
+    ON ST_INTERSECTS(training."geom", fuel."geom");
+

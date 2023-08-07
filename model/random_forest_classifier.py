@@ -1,3 +1,4 @@
+
 #%% Package Imports
 
 import pandas as pd
@@ -15,12 +16,19 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay, classification_report, confusion_matrix
 from sklearn.tree import export_graphviz
+from sklearn.model_selection import cross_validate
 
 from IPython.display import Image
 import graphviz
 
 import matplotlib.pyplot as plt
 import os
+import pickle
+
+#%% Set Output Environment
+
+root = '/Users/edf/repos/carb_elec/model/saved/'
+os.chdir(root)
 
 #%% Class Definitions
 
@@ -84,7 +92,9 @@ passthrough_attribs = [ 'slopepct',
                         'lesshspct',
                         'under5pct',
                         'over64pct',
-                        'lifeexppct']
+                        'lifeexppct',
+                        'renterhouseholdspct',
+                        'elecheatinghouseholdspct']
 
 fill_attribs = ['HeatingTypeorSystemStndCode',
                 'AirConditioningTypeorSystemStndCode']
@@ -159,25 +169,25 @@ y = output_pipeline.fit_transform(outputs)
 #%% Training Test Split
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.33, random_state=42)
+    X, y,
+    test_size=0.3,
+    random_state=69,
+    stratify = y)
 
 y_train = y_train.ravel()
+y_test = y_test.ravel()
 
 #%% Random Forest Model Parameter Search
 
-param_dist = {'n_estimators': randint(500,800),
-              'max_depth': randint(30,50)}
-
-rnd_clf = RandomForestClassifier()
-rand_search = RandomizedSearchCV(rnd_clf,
-                                 param_distributions = param_dist,
-                                 n_iter=5,
-                                 cv=5)
+rnd_clf = RandomForestClassifier(
+    n_estimators = 500,
+    max_depth = 50,
+    n_iter = 5,
+    cv = 10)
 
 #%% Model Fit with Best Parameters
 
-rand_search.fit(X_train, y_train)
-best_rnd_clf = rand_search.best_estimator_
+rnd_clf.fit(X_train, y_train)
 
 #%% Predict and Evaluate Accuracy on Test Set
 
