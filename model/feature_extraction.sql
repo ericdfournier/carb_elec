@@ -157,7 +157,8 @@ SELECT  training."rowid",
         ST_X(ST_GEOMETRYN(training."geom", 1)) AS "x",
         ST_Y(ST_GEOMETRYN(training."geom", 1)) AS "y"
 INTO    la100.sf_training_full
-FROM    la100.sf_training AS training
+FROM    la100.sf_training
+    la100.sf_training AS training
 INNER JOIN ztrax.main AS main
     ON training."rowid" = main."RowID"
 INNER JOIN ztrax.building AS building

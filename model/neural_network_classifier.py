@@ -101,6 +101,7 @@ def ImportRaw(sector):
         raise Exception("Sector must be either 'single-family' or multi_family'")
 
     raw = pd.read_sql(query, db_con)
+    raw.set_index('rowid', drop = True, inplace = True)
 
     return raw
 
@@ -108,7 +109,6 @@ def ImportRaw(sector):
 
 sector = 'single_family'
 data = ImportRaw(sector)
-data.set_index('rowid', drop = True, inplace = True)
 
 #%% Get Training Feature Types
 
@@ -262,7 +262,7 @@ predict_train = mlp_clf.predict(X_train)
 predict_test = mlp_clf.predict(X_test)
 predict_test_score = mlp_clf.predict_proba(X_test)
 
-#%% Print Accuracy, Confusion Matrix, and Classificaiton Report
+#%% Print Accuracy, Confusion Matrix, and Classification Report
 
 accuracy = accuracy_score(y_test, predict_test)
 confusion_mat = confusion_matrix(y_train, predict_train)
@@ -325,107 +325,135 @@ macro_roc_auc_ovr = roc_auc_score(
 
 #%% Compute ROC Statistics
 
-n_classes = len(np.unique(y_train))
+def ROCStats(y_test_binary, predict_test_score, n_classes):
 
-fpr, tpr, roc_auc = dict(), dict(), dict()
-fpr["micro"], tpr["micro"], _ = roc_curve(y_test_binary.ravel(), predict_test_score.ravel())
-roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+    fpr, tpr, roc_auc = dict(), dict(), dict()
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_test_binary.ravel(), predict_test_score.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
-for i in range(n_classes):
-    fpr[i], tpr[i], _ = roc_curve(y_test_binary[:, i], predict_test_score[:, i])
-    roc_auc[i] = auc(fpr[i], tpr[i])
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test_binary[:, i], predict_test_score[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
 
-fpr_grid = np.linspace(0.0, 1.0, 1000)
+    fpr_grid = np.linspace(0.0, 1.0, 1000)
 
-# Interpolate all ROC curves at these points
-mean_tpr = np.zeros_like(fpr_grid)
+    # Interpolate all ROC curves at these points
+    mean_tpr = np.zeros_like(fpr_grid)
 
-for i in range(n_classes):
-    mean_tpr += np.interp(fpr_grid, fpr[i], tpr[i])  # linear interpolation
+    for i in range(n_classes):
+        mean_tpr += np.interp(fpr_grid, fpr[i], tpr[i])  # linear interpolation
 
-# Average it and compute AUC
-mean_tpr /= n_classes
+    # Average it and compute AUC
+    mean_tpr /= n_classes
 
-fpr["macro"] = fpr_grid
-tpr["macro"] = mean_tpr
-roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+    fpr["macro"] = fpr_grid
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+
+    return tpr, fpr, roc_auc
+
+#%% Compute Precision and Recall Statistics
+
+def PrecisionRecallStats(y_test_binary, predict_test_score, n_classes):
+
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+
+    for i in range(n_classes):
+        precision[i], recall[i], _ = precision_recall_curve(y_test_binary[:, i], predict_test_score[:, i])
+        average_precision[i] = average_precision_score(y_test_binary[:, i], predict_test_score[:, i])
+
+    precision["micro"], recall["micro"], _ = precision_recall_curve(
+        y_test_binary.ravel(), predict_test_score.ravel()
+    )
+    average_precision["micro"] = average_precision_score(y_test_binary, predict_test_score, average="micro")
+
+    return precision, recall, average_precision
 
 #%% Plot Micro and Macro ROC Curves
 
-fig, ax = plt.subplots(figsize=(9, 9))
+def PlotROCAverages(tpr, fpr, roc_auc):
 
-x_lin = np.linspace(0,1,100)
-y_lin = np.linspace(0,1,100)
+    fig, ax = plt.subplots(figsize=(9, 9))
 
-ax.plot(x_lin, y_lin, linestyle = '--', color = 'k', linewidth = 1.5)
+    x_lin = np.linspace(0,1,100)
+    y_lin = np.linspace(0,1,100)
 
-ax.plot(
-    fpr["micro"],
-    tpr["micro"],
-    label=f"micro-average ROC curve (AUC = {roc_auc['micro']:.2f})",
-    color="deeppink",
-    linestyle=":",
-    linewidth=4,
-)
+    ax.plot(x_lin, y_lin, linestyle = '--', color = 'k', linewidth = 1.5)
 
-ax.plot(
-    fpr["macro"],
-    tpr["macro"],
-    label=f"macro-average ROC curve (AUC = {roc_auc['macro']:.2f})",
-    color="navy",
-    linestyle=":",
-    linewidth=4,
-)
+    ax.plot(
+        fpr["micro"],
+        tpr["micro"],
+        label=f"micro-average ROC curve (AUC = {roc_auc['micro']:.2f})",
+        color="deeppink",
+        linestyle=":",
+        linewidth=4,
+    )
 
-plt.grid(True)
-plt.axis("square")
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-plt.title("Extension of Receiver Operating Characteristic\nto Micro & Macro multiclass")
-plt.legend()
-plt.show()
+    ax.plot(
+        fpr["macro"],
+        tpr["macro"],
+        label=f"macro-average ROC curve (AUC = {roc_auc['macro']:.2f})",
+        color="navy",
+        linestyle=":",
+        linewidth=4,
+    )
+
+    plt.grid(True)
+    plt.axis("square")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Extension of Receiver Operating Characteristic\nto Micro & Macro multiclass")
+    plt.legend()
+    plt.show()
+
+    return fig, ax
 
 #%% Plot One-vs-Rest ROC Curves
 
-fig, ax = plt.subplots(figsize=(9, 9))
+def PlotROCOneVsRest(y_test_binary, predict_test_score, class_names, n_classes):
 
-colors = sns.color_palette(None, n_classes)
+    fig, ax = plt.subplots(figsize=(9, 9))
 
-for class_id, color in zip(range(n_classes), colors):
-    RocCurveDisplay.from_predictions(
-        y_test_binary[:, class_id],
-        predict_test_score[:, class_id],
-        name = f"ROC curve for {class_names[class_id]}",
-        color = color,
-        ax = ax,
-        plot_chance_level = (class_id == 0),
-    )
+    colors = sns.color_palette(None, n_classes)
 
-plt.grid(True)
-plt.axis("square")
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-plt.title("Extension of Receiver Operating Characteristic\nto One-vs-Rest multiclass")
-plt.legend()
-plt.show()
+    for class_id, color in zip(range(n_classes), colors):
+        RocCurveDisplay.from_predictions(
+            y_test_binary[:, class_id],
+            predict_test_score[:, class_id],
+            name = f"ROC curve for {class_names[class_id]}",
+            color = color,
+            ax = ax,
+            plot_chance_level = (class_id == 0),
+        )
 
-#%% Compute Precision and Recall Values
+    plt.grid(True)
+    plt.axis("square")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Extension of Receiver Operating Characteristic\nto One-vs-Rest multiclass")
+    plt.legend()
+    plt.show()
 
-# For each class
-precision = dict()
-recall = dict()
-average_precision = dict()
-for i in range(n_classes):
-    precision[i], recall[i], _ = precision_recall_curve(y_test_binary[:, i], predict_test_score[:, i])
-    average_precision[i] = average_precision_score(y_test_binary[:, i], predict_test_score[:, i])
+    return fig, ax
 
-# A "micro-average": quantifying score on all classes jointly
-precision["micro"], recall["micro"], _ = precision_recall_curve(
-    y_test_binary.ravel(), predict_test_score.ravel()
-)
-average_precision["micro"] = average_precision_score(y_test_binary, predict_test_score, average="micro")
+#%% Compute ROC Stats and Generate Diagnostic Plots
+
+n_classes = len(np.unique(y_train))
+
+tpr, fpr, roc_auc = ROCStats(y_test_binary, predict_test_score, n_classes)
+
+fig1, ax1 = PlotROCAverages(tpr, fpr, roc_auc)
+fig2, ax2 = PlotROCOneVsRest(y_test_binary, predict_test_score, class_names, n_classes)
+
+#%% Compute Precision and Recall Stats and Generate Diagnostic Plots
+
+precision, recall, average_precision = PrecisionRecallStats(y_test_binary, predict_test_score, n_classes)
 
 #%% Plot Micro-Average Precision-Recall Curve
+
+# TODO: Functionalize remaining plot routines below...
 
 display = PrecisionRecallDisplay(
     recall=recall["micro"],
