@@ -14,6 +14,7 @@ import seaborn as sns
 from itertools import cycle
 from scipy.stats import randint
 from collections import Counter
+from datetime import datetime
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.compose import ColumnTransformer
@@ -55,14 +56,11 @@ from sklearn.model_selection import (
     cross_val_score
 )
 
-#%% Set Output Environment
+#%% Data Frame Selector Class Definitions
 
-root = '/Users/edf/repos/carb_elec/model/saved/'
-os.chdir(root)
-
-#%% Class Definitions
-
-class DataFrameSelector(BaseEstimator, TransformerMixin):
+class DataFrameSelector(
+    BaseEstimator,
+    TransformerMixin):
     '''Custom class to support the pipeline filtering of input pandas dataframes
     on the basis of attribute field name lists'''
 
@@ -75,7 +73,7 @@ class DataFrameSelector(BaseEstimator, TransformerMixin):
     def feature_names_in_(self, X):
         return X.columns.to_list()
 
-#%% Function Definitions
+#%% Import Raw Training Data from PostgreSQL Database
 
 def ImportRaw(sector):
     '''Function to import pre-processed buildind permit training data from
@@ -98,23 +96,85 @@ def ImportRaw(sector):
     elif sector == 'multi_family':
         query = '''SELECT * FROM la100.mf_training_full;'''
     else:
-        raise Exception("Sector must be either 'single-family' or multi_family'")
+        raise Exception("Sector must be 'single-family' or multi_family'")
 
     raw = pd.read_sql(query, db_con)
     raw.set_index('rowid', drop = True, inplace = True)
 
     return raw
 
+#%% Construct Input Pipeline
+
+def ConstructPipelines(
+    passthrough_attribs,
+    fill_attribs,
+    num_attribs,
+    cat_attribs,
+    output_attribs):
+
+    # Construct Training Feature Pipeline
+    passthrough_pipeline = Pipeline([
+        ('selector', DataFrameSelector(passthrough_attribs)),
+        ('passthrough_imputer', SimpleImputer(missing_values = np.nan,
+            strategy = 'median')),
+    ])
+
+    fill_pipeline = Pipeline([
+        ('selector', DataFrameSelector(fill_attribs)),
+        ('fill_imputer', SimpleImputer(missing_values = np.nan,
+            strategy = 'constant',
+            fill_value = 'NA')),
+        ('one_hot_encoder', OneHotEncoder(sparse_output = False))
+    ])
+
+    numeric_pipeline = Pipeline([
+        ('selector', DataFrameSelector(num_attribs)),
+        ('imputer', SimpleImputer(missing_values = np.nan,
+            strategy = 'median')),
+        ('std_scaler', StandardScaler()),
+    ])
+
+    categorical_pipeline = Pipeline([
+        ('selector', DataFrameSelector(cat_attribs)),
+        ('imputer', SimpleImputer(missing_values = np.nan,
+            strategy = 'most_frequent')),
+        ('one_hot_encoder', OneHotEncoder(sparse_output = False)),
+    ])
+
+    input_pipeline = FeatureUnion(transformer_list = [
+        ('passthrough_pipeline', passthrough_pipeline),
+        ('fill_pipeline', fill_pipeline),
+        ('numeric_pipeline', numeric_pipeline),
+        ('categorical_pipeline', categorical_pipeline),
+    ])
+
+    # Construct Ouput Feature Pipleine
+    output_pipeline = Pipeline([
+        ('selector', DataFrameSelector(output_attrib)),
+        ('imputer', SimpleImputer(missing_values = np.nan,
+            strategy = 'most_frequent')),
+        ('ordinal_encoder', OrdinalEncoder())
+    ])
+
+    return input_pipeline, output_pipeline
+
 #%% Compute ROC Statistics
 
-def ROCStats(y_test_binary, predict_test_score, n_classes):
+def ROCStats(
+    y_test_binary,
+    predict_test_score,
+    n_classes):
 
     fpr, tpr, roc_auc = dict(), dict(), dict()
-    fpr["micro"], tpr["micro"], _ = roc_curve(y_test_binary.ravel(), predict_test_score.ravel())
+    fpr["micro"], tpr["micro"], _ = roc_curve(
+        y_test_binary.ravel(),
+        predict_test_score.ravel())
     roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
     for i in range(n_classes):
-        fpr[i], tpr[i], _ = roc_curve(y_test_binary[:, i], predict_test_score[:, i])
+        fpr[i], tpr[i], _ = roc_curve(
+            y_test_binary[:, i],
+            predict_test_score[:, i])
         roc_auc[i] = auc(fpr[i], tpr[i])
 
     fpr_grid = np.linspace(0.0, 1.0, 1000)
@@ -136,26 +196,41 @@ def ROCStats(y_test_binary, predict_test_score, n_classes):
 
 #%% Compute Precision and Recall Statistics
 
-def PrecisionRecallStats(y_test_binary, predict_test_score, n_classes):
+def PRStats(
+    y_test_binary,
+    predict_test_score,
+    n_classes):
 
     precision = dict()
     recall = dict()
     average_precision = dict()
 
     for i in range(n_classes):
-        precision[i], recall[i], _ = precision_recall_curve(y_test_binary[:, i], predict_test_score[:, i])
-        average_precision[i] = average_precision_score(y_test_binary[:, i], predict_test_score[:, i])
+        precision[i], recall[i], _ = precision_recall_curve(
+            y_test_binary[:, i],
+            predict_test_score[:, i])
+        average_precision[i] = average_precision_score(
+            y_test_binary[:, i],
+            predict_test_score[:, i])
 
     precision["micro"], recall["micro"], _ = precision_recall_curve(
-        y_test_binary.ravel(), predict_test_score.ravel()
+        y_test_binary.ravel(),
+        predict_test_score.ravel()
     )
-    average_precision["micro"] = average_precision_score(y_test_binary, predict_test_score, average="micro")
+    average_precision["micro"] = average_precision_score(
+        y_test_binary,
+        predict_test_score,
+        average="micro")
 
     return precision, recall, average_precision
 
 #%% Plot Micro and Macro ROC Curves
 
-def PlotROCAverages(tpr, fpr, roc_auc):
+def PlotROCAverages(
+    tpr,
+    fpr,
+    roc_auc,
+    output_directory):
 
     fig, ax = plt.subplots(figsize=(9, 9))
 
@@ -190,11 +265,22 @@ def PlotROCAverages(tpr, fpr, roc_auc):
     plt.legend()
     plt.show()
 
+    fig.savefig(
+        output_directory + '/roc_curve_micro_macro_averages.png',
+        bbox_inches = 'tight',
+        dpi = 300
+    )
+
     return fig, ax
 
 #%% Plot One-vs-Rest ROC Curves
 
-def PlotROCOneVsRest(y_test_binary, predict_test_score, class_names, n_classes):
+def PlotROCOneVsRest(
+    y_test_binary,
+    predict_test_score,
+    class_names,
+    n_classes,
+    output_directory):
 
     fig, ax = plt.subplots(figsize=(9, 9))
 
@@ -218,11 +304,22 @@ def PlotROCOneVsRest(y_test_binary, predict_test_score, class_names, n_classes):
     plt.legend()
     plt.show()
 
+    fig.savefig(
+        output_directory + '/roc_curve_one_vs_rest.png',
+        bbox_inches = 'tight',
+        dpi = 300
+    )
+
     return fig, ax
 
 #%% Plot Micro-Average Precision-Recall Curve
 
-def PlotPRMicroAverages(recall, precision, average_precision, y_test):
+def PlotPRMicroAverages(
+    recall,
+    precision,
+    average_precision,
+    y_test,
+    output_directory):
 
     fig, ax = plt.subplots(1, 1, figsize=(9, 9))
 
@@ -238,11 +335,22 @@ def PlotPRMicroAverages(recall, precision, average_precision, y_test):
     ax.legend(loc = 'best')
     ax.grid(True)
 
+    fig.savefig(
+        output_directory + '/precision_recall_micro_averages.png',
+        bbox_inches = 'tight',
+        dpi = 300
+    )
+
     return fig, ax
 
 #%% Plot Class Level Precision-Recall Curves
 
-def PlotPRClassLevel(recall, precision, average_precision, n_classes):
+def PlotPRClassLevel(
+    recall,
+    precision,
+    average_precision,
+    n_classes,
+    output_directory):
 
     fig, ax = plt.subplots(figsize=(9, 9))
 
@@ -261,6 +369,8 @@ def PlotPRClassLevel(recall, precision, average_precision, n_classes):
     )
     display.plot(ax=ax, name="Micro-average precision-recall", color="gold")
 
+    colors = sns.color_palette(None, n_classes)
+
     for i, color in zip(range(n_classes), colors):
         display = PrecisionRecallDisplay(
             recall=recall[i],
@@ -277,13 +387,22 @@ def PlotPRClassLevel(recall, precision, average_precision, n_classes):
     ax.legend(handles=handles, labels=labels, bbox_to_anchor=(1.05, 0.8))
     ax.set_title("Precision-Recall Curve\n for Each Individual Class")
 
-    plt.show()
+    fig.savefig(
+        output_directory + '/precision_recall_curves_class_level.png',
+        bbox_inches = 'tight',
+        dpi = 300
+    )
 
     return fig, ax
 
 #%% Plot Within-Class Count Normalized Confusion Matrix
 
-def PlotWithinClassNormalizedConfusionMatrix(mlp_clf, X_test, y_test, class_names):
+def PlotWithinClassNormalizedCM(
+    mlp_clf,
+    X_test,
+    y_test,
+    class_names,
+    output_directory):
 
     fig, ax = plt.subplots(1,1,figsize=(15,11))
 
@@ -299,11 +418,22 @@ def PlotWithinClassNormalizedConfusionMatrix(mlp_clf, X_test, y_test, class_name
 
     cat_norm.ax_.set_title('Confusion Matrix\nWithin-Class, Count Normalized')
 
+    fig.savefig(
+        output_directory + '/within_class_normalized_confusion_matrix.png',
+        bbox_inches = 'tight',
+        dpi = 300
+    )
+
     return fig, ax
 
 #%% Plot Across Class Count Normalized Confusion Matrix
 
-def PlotAcrossClassCountNormalizedConfusionnMatrix(mlp_clf, X_test, y_test, class_names):
+def PlotAcrossClassCountNormalizedCM(
+    mlp_clf,
+    X_test,
+    y_test,
+    class_names,
+    output_directory):
 
     fig, ax = plt.subplots(1,1,figsize=(15,11))
 
@@ -319,15 +449,31 @@ def PlotAcrossClassCountNormalizedConfusionnMatrix(mlp_clf, X_test, y_test, clas
 
     all_norm.ax_.set_title('Confusion Matrix\nAll-Class, Count Normalized')
 
+    fig.savefig(
+        output_directory + '/across_class_normalized_confusion_matrix.png',
+        bbox_inches = 'tight',
+        dpi = 300
+    )
+
     return fig, ax
 
-#%% Extract Training Data
+#%% Save Model Run to File
+
+def SaveModelResults(model, output_directory, filename):
+    '''Saves model results for a specified run to a pickle file.'''
+
+    if not os.path.exists(root + run):
+        os.makedirs(root + run)
+    pickle.dump(model, open(output_directory + '/' + filename, 'wb'))
+
+    return
+
+#%% Extract Raw Training Data and Parse Fields for Pre-processing Pipeline
 
 sector = 'single_family'
 data = ImportRaw(sector)
 
-#%% Get Training Feature Types
-
+# Set Training Feature Types
 output_attrib = ['panel_size_existing']
 
 passthrough_attribs = [ 'slopepct',
@@ -357,164 +503,122 @@ for val in fill_attribs:
 
 num_attribs.remove(output_attrib[0])
 
-#%% Split Inputs from Outputs
+#%% Execute Pre-Processing Worfklow
 
+# Split Inputs from Outputs
 inputs = data[passthrough_attribs + fill_attribs + num_attribs + cat_attribs]
 outputs = data[output_attrib]
 
-#%% Construct Training Feature Pipeline
+# Construct Pre-Processing Pipelines
+input_pipeline, output_pipeline = ConstructPipelines(
+    passthrough_attribs,
+    fill_attribs,
+    num_attribs,
+    cat_attribs,
+    output_attribs)
 
-passthrough_pipeline = Pipeline([
-    ('selector', DataFrameSelector(passthrough_attribs)),
-    ('passthrough_imputer', SimpleImputer(missing_values = np.nan,
-        strategy = 'median')),
-])
-
-fill_pipeline = Pipeline([
-    ('selector', DataFrameSelector(fill_attribs)),
-    ('fill_imputer', SimpleImputer(missing_values = np.nan,
-        strategy = 'constant',
-        fill_value = 'NA')),
-    ('one_hot_encoder', OneHotEncoder(sparse_output = False))
-])
-
-numeric_pipeline = Pipeline([
-    ('selector', DataFrameSelector(num_attribs)),
-    ('imputer', SimpleImputer(missing_values = np.nan,
-        strategy = 'median')),
-    ('std_scaler', StandardScaler()),
-])
-
-categorical_pipeline = Pipeline([
-    ('selector', DataFrameSelector(cat_attribs)),
-    ('imputer', SimpleImputer(missing_values = np.nan,
-        strategy = 'most_frequent')),
-    ('one_hot_encoder', OneHotEncoder(sparse_output = False)),
-])
-
-input_pipeline = FeatureUnion(transformer_list = [
-    ('passthrough_pipeline', passthrough_pipeline),
-    ('fill_pipeline', fill_pipeline),
-    ('numeric_pipeline', numeric_pipeline),
-    ('categorical_pipeline', categorical_pipeline),
-])
-
+# Execute Preprocessing Pipelines
 X = input_pipeline.fit_transform(inputs)
-
-#%% Construct Ouput Feature Pipleine
-
-output_pipeline = Pipeline([
-    ('selector', DataFrameSelector(output_attrib)),
-    ('imputer', SimpleImputer(missing_values = np.nan,
-        strategy = 'most_frequent')),
-    ('ordinal_encoder', OrdinalEncoder())
-])
-
 y = output_pipeline.fit_transform(outputs)
 
-#%% Training Test Split
-
+# Training Test Split
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
-    test_size=0.3,
-    random_state=69,
+    X,
+    y,
+    test_size = 0.3,
+    random_state = 69,
     stratify = y)
 
+# Reshape Prediction Output Variables
 y_train = y_train.ravel()
 y_test = y_test.ravel()
 
-#%% Fit Model and Save Weights
+#%% Train Models Using Processed Data and Save Results
 
-# Specify Hidden Layer Counts
+# Specify Hidden Layer Nodes and Counts
 hlc = 3
-
-# Specify Hidden Layer Node Counts
 hlnc = X_train.shape[1]
-
-# Specify Hidden Layers
 hl = np.repeat(hlnc, hlc)
 
-# Set Model Parameters
+# Specify Scoring Criteria
+scoring = [ 'accuracy',
+            'balanced_accuracy',
+            'f1_micro',
+            'f1_macro',
+            'f1_weighted']
+
+# Specify Model Parameters
 mlp_clf = MLPClassifier(
-    hidden_layer_sizes = hl,
-    activation = 'relu',
-    solver = 'adam',
-    max_iter = 500,
-    verbose = True,
-    warm_start = True)
-
-mlp_clf.fit(X_train, y_train)
-
-# Save CV Object
-filename = 'mlp_clf.pkl'
-pickle.dump(mlp_clf, open(filename, 'wb'))
-
-#%% Cross Validate
-
-scoring = ['precision_macro', 'recall_macro']
-
-mlp_clf_cv = MLPClassifier(
     hidden_layer_sizes = hl,
     activation = 'relu',
     solver = 'adam',
     max_iter = 500,
     verbose = True)
 
+# Fit Model on Training Data
+mlp_clf.fit(X_train, y_train)
+
+# Evaluate Model Fits with 5-Fold Cross Validation
 mlp_clf_cv_results = cross_validate(
-    mlp_clf_cv,
+    mlp_clf,
     X_train,
     y_train,
     cv = 5,
     scoring = scoring,
     return_estimator = True)
 
-# Save CV Results Object
-filename = 'mlp_clf_cv_results.pkl'
-pickle.dump(mlp_clf_cv_results, open(filename, 'wb'))
+#%% Save model and cross-validation results to file
 
-#%% Predict and Evaluate Accuracy on Test Set
+root = '/Users/edf/repos/carb_elec/model/model_runs/'
+now = datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
+run = 'mlp_clf_model_run_{}'.format(now)
+output_directory = root + run
 
+SaveModelResults(mlp_clf, output_directory, 'mlp_clf')
+SaveModelResults(mlp_clf_cv_results, output_directory, 'mlp_clf_cv_results')
+
+#%% Generate Model Predictions and Print Diagnostics
+
+# Predict and Evaluate Accuracy on Test Set
 predict_train = mlp_clf.predict(X_train)
 predict_test = mlp_clf.predict(X_test)
 predict_test_score = mlp_clf.predict_proba(X_test)
 
-#%% Print Accuracy, Confusion Matrix, and Classification Report
-
+# Print Accuracy, Confusion Matrix, and Classification Report
 accuracy = accuracy_score(y_test, predict_test)
 confusion_mat = confusion_matrix(y_train, predict_train)
 clf_report = classification_report(y_train, predict_train)
 
+# Print diagnostic results
 print(accuracy)
 print(confusion_mat)
 print(clf_report)
 
-#%% Generate Class Names and Counts
+#%% Compute Metrics Based on Predictions and Output Diagnostic Plots
 
+# Extract Class Names and Counts
 class_names = list(np.sort(outputs[output_attrib[0]].unique()))[:-1]
 n_classes = len(np.unique(y_train))
 
-#%% Generate Binary Label Representation for Test Data
-
+# Create Binary Label Representation for Test Data
 y_test_binary = LabelBinarizer().fit(y_test).transform(y_test)
 
-#%% Compute ROC and PR Stats
-
+# Compute ROC and PR Stats
 tpr, fpr, roc_auc = ROCStats(
     y_test_binary, predict_test_score, n_classes)
-precision, recall, average_precision = PrecisionRecallStats(
+precision, recall, average_precision = PRStats(
     y_test_binary, predict_test_score, n_classes)
 
-#%% Generate Diagnostic Plots
-
+# Generate Diagnostic Plots
 fig1, ax1 = PlotROCAverages(
-    tpr, fpr, roc_auc)
+    tpr, fpr, roc_auc, output_directory)
 fig2, ax2 = PlotROCOneVsRest(
-    y_test_binary, predict_test_score, class_names, n_classes)
+    y_test_binary, predict_test_score, class_names, n_classes, output_directory)
 fig3, ax3 = PlotPRMicroAverages(
-    recall, precision, average_precision, y_test)
+    recall, precision, average_precision, y_test, output_directory)
 fig4, ax4 = PlotPRClassLevel(
-    recall, precision, average_precision, n_classes)
-fig5, ax5 = PlotWithinClassNormalizedConfusionMatrix(
-    mlp_clf, X_test, y_test, class_names)
-fig6, ax6 = PlotAcrossClassCountNormalizedConfusionMatrix(
-    mlp_clf, X_test, y_test, class_names)
+    recall, precision, average_precision, n_classes, output_directory)
+fig5, ax5 = PlotWithinClassNormalizedCM(
+    mlp_clf, X_test, y_test, class_names, output_directory)
+fig6, ax6 = PlotAcrossClassCountNormalizedCM(
+    mlp_clf, X_test, y_test, class_names, output_directory)
