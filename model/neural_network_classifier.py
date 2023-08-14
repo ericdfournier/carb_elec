@@ -110,7 +110,7 @@ def ConstructPipelines(
     fill_attribs,
     num_attribs,
     cat_attribs,
-    output_attribs):
+    output_attrib):
 
     # Construct Training Feature Pipeline
     passthrough_pipeline = Pipeline([
@@ -515,7 +515,7 @@ input_pipeline, output_pipeline = ConstructPipelines(
     fill_attribs,
     num_attribs,
     cat_attribs,
-    output_attribs)
+    output_attrib)
 
 # Execute Preprocessing Pipelines
 X = input_pipeline.fit_transform(inputs)
