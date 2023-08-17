@@ -1,44 +1,40 @@
--- Add Centroid Field for Parcel Attributes
-ALTER TABLE ztrax.parcel_attributes ADD COLUMN centroid geometry(Point,3310);
+-- Add polygon geometry field to ZTRAX main from SGC Parcel Layer
+ALTER TABLE ztrax.main
+ADD COLUMN geom GEOMETRY(MULTIPOLYGON, 3310);
 
--- Compute Centroids from Parcel Boundaries
-UPDATE ztrax.parcel_attributes
-SET centroid = ST_CENTROID(geom);
+-- Assign Polygon Geometry to ztrax records
+UPDATE ztrax.main
+SET geom = sgc.geom
+FROM sgc.ca_parcel_boundaries_2014 AS sgc
+WHERE ST_INTERSECTS(centroid, sgc.geom);
 
--- Index ZTRAX Parcel Boundaries Prior to Spatial Join
-CREATE INDEX IF NOT EXISTS idx_sgc_parcel_attributes_geom ON ztrax.parcel_attributes USING gist (geom);
-CREATE INDEX IF NOT EXISTS idx_sgc_parcel_attributes_centroid ON ztrax.parcel_attributes USING gist (centroid);
+-- Generate Polygon Aggregate ZTRAX data
+SELECT  A.geom,
+        PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY B."YearBuilt") AS "MedianYearBuilt",
+        SUM(C."BuildingAreaSqFt") AS "TotalBuildingAreaSqFt",
+        ARRAY_AGG(B."PropertyLandUseStndCode") AS "PropertyLandUseStndCodes",
+        ARRAY_AGG(A."RowID") AS "RowIDs"
+INTO ztrax.megaparcels
+FROM ztrax.main AS A
+JOIN ztrax.building AS B
+    ON A."RowID" = B."RowID"
+JOIN ztrax.building_areas AS C
+    ON A."RowID" = C."RowID"
+GROUP BY A.geom;
 
--- Generate Geocoded Geographies Table
-SELECT DISTINCT ON (A.id)
-        A.id,
-        B."NAMELSAD" AS place_name,
-        C."NAMELSAD" AS county_name,
-        D.dac AS dac,
-        D.lowincome AS low_income,
-        D.nondesignated AS non_designated,
-        D.bufferlowincome AS buffer_low_income,
-        D.bufferlih AS bufferlih,
-        E."GEOID" AS tract_geoid_2019,
-        F."rowid" AS ztrax_rowid,
-        F."geom" AS geom,
-        F."centroid" AS centroid
-INTO permits.panel_upgrades_geocoded_geographies
-FROM permits.panel_upgrades_geocoded AS A
-JOIN census.acs_ca_2019_place_geom AS B
-    ON ST_INTERSECTS(A.centroid, B.geometry)
-JOIN census.acs_ca_2019_county_geom AS C
-    ON ST_INTERSECTS(A.centroid, C.geometry)
-JOIN carb.priority_populations_ces4 AS D
-    ON ST_INTERSECTS(A.centroid, D.geom)
-JOIN census.acs_ca_2019_tr_geom AS E
-    ON ST_INTERSECTS(A.centroid, E.geometry)
-JOIN ztrax.parcel_attributes AS F
-    ON ST_INTERSECTS(A.centroid, F.geom);
+-- Add Permit ID Field 
+ALTER TABLE ztrax.megaparcels
+ADD COLUMN MegaParcelID SERIAL;
 
--- TODO: There is an issue with overlapping boundaries for the parcel attribute intersections
--- Need to think about how to assign the right parcel attributes to the centroid for each permit
--- This probably requires generating a "megaparcel" like layer from the ztrax attributes for the spatial join
+-- Assign permits to megaparcels
+ALTER TABLE permits.panel_upgrades_geocoded
+ADD COLUMN MegaParcelID NUMERIC;
+
+-- Update Each Panel Upgrade Permit with the Associated Megaparcel ID
+UPDATE permits.panel_upgrades_geocoded
+SET MegaParcelID = B.MegaParcelID
+FROM ztrax.megaparcels AS B
+WHERE ST_INTERSECTS(centroid, B.geom);
 
 -- Enumerate Sampled Places
 SELECT *
@@ -84,6 +80,7 @@ WHERE "NAMELSAD" IN (
     'Yuba City city',
     'San Francisco city');
 
+-- Add union code
 ALTER TABLE permits.sampled_places
 ADD COLUMN union_code BOOL DEFAULT TRUE;
 
@@ -108,26 +105,39 @@ WHERE "NAMELSAD" IN (
     'Tulare County',
     'Yolo County');
 
+-- Add union code
 ALTER TABLE permits.sampled_counties
 ADD COLUMN union_code BOOL DEFAULT TRUE;
 
--- Select Out Sampled Territories
-SELECT ST_UNION(territory.geometry) AS geometry
-INTO permits.sampled_territory
-FROM (  SELECT "NAMELSAD", union_code, geometry FROM permits.sampled_counties 
-            UNION
-        SELECT "NAMELSAD", union_code, geometry FROM permits.sampled_places) AS territory
-GROUP BY union_code;
+-- Create Sampled Territory as Spatial Union of Sampled Places and Counties
+SELECT ST_UNION(A.geometry) AS geometry,
+    union_code
+INTO permits.sampled_territories
+FROM (SELECT geometry, union_code FROM permits.sampled_places 
+        UNION
+    SELECT geometry, union_code FROM permits.sampled_counties) AS A
+GROUP BY A.union_code;
+    
+-- Add boolean field to megaparcel layer to indicate sampled territories
+ALTER TABLE ztrax.megaparcels
+ADD COLUMN sampled BOOL DEFAULT FALSE;
 
--- Index Sample Territories Prior to Spatial Join
-CREATE INDEX IF NOT EXISTS idx_sgc_sampled_territory_geom ON permits.sampled_territory USING gist (geometry);
+-- Add centroid field to megaparcel layer
+ALTER TABLE ztrax.megaparcels
+ADD COLUMN centroid GEOMETRY(POINT, 3310);
 
--- Select ZTRAX Parcels That in Sampled Territories 
-SELECT  A.*
-INTO    permits.sampled_territory_all_parcels
-FROM    ztrax.parcel_attributes AS A
-JOIN permits.sampled_territory AS B
-    ON ST_INTERSECTS(A.centroid, B.geometry);
+-- Update Centroid Geometries for Megaparcel Layer
+UPDATE ztrax.megaparcels
+SET centroid = ST_CENTROID(geom);
 
-SELECT COUNT(*)
-FROM permits.panel_upgrades_geocoded_geographies;
+-- Index sampled territory geometries prior to spatial join
+CREATE INDEX IF NOT EXISTS idx_sampled_territories_geometry ON permits.sampled_territories USING GIST(geometry);
+
+-- Index megaparcel centroids prior to spatial join
+CREATE INDEX IF NOT EXISTS idx_megaparcels_centroid ON ztrax.megaparcels USING GIST(centroid);
+
+-- Mark Sampled Megaparcels Based Upon Sampled Territory Intersection
+UPDATE ztrax.megaparcels
+SET sampled = TRUE
+FROM permits.sampled_territories AS B
+WHERE ST_INTERSECTS(centroid, B.geometry);
