@@ -162,6 +162,8 @@ state_geom_data = state_geom_data.to_crs(3310)
 
 urban_url = "https://www2.census.gov/geo/tiger/TIGER_RD18/LAYER/UAC20/tl_rd22_us_uac20.zip"
 urban_geom_data = gpd.read_file(urban_url)
+ca_ind = urban_geom_data['NAME20'].str.contains(', CA')
+urban_geom_data = urban_geom_data.loc[ca_ind,:].copy()
 urban_geom_data = urban_geom_data.to_crs(3310)
 
 #%% Get DB Connection Parameters
@@ -243,7 +245,7 @@ state_geom_data.to_postgis('acs_ca_2019_state_geom',
     schema = 'census',
     con = engine)
 
-urban_geom_data.to_postgis('acs_usa_2022_urban_geom',
+urban_geom_data.to_postgis('acs_ca_2020_urban_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',

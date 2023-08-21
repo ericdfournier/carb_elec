@@ -7,6 +7,9 @@
  * - census.acs_ca_2019_place_geom
  * - census.acs_ca_2019_puma_geom
  * - census.acs_ca_2019_unincorporated_geom
+ * - census.acs_ca_2019_urban_geom
+ * - census.acs_ca_2019_rural_geom
+ * - census.acs_ca_2019_state_geom
  * - census.acs_ca_2019_tr_fuel
  * - census.acs_ca_2019_tr_housing
  * - census.acs_ca_2019_tr_income
@@ -20,6 +23,9 @@
 \copy census.acs_ca_2019_place_geom to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_place_geom.csv' (format csv, header true);
 \copy census.acs_ca_2019_puma_geom to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_puma_geom.csv' (format csv, header true);
 \copy census.acs_ca_2019_unincorporated_geom to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_unincorporated_geom.csv' (format csv, header true);
+\copy census.acs_ca_2020_urban_geom to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_urban_geom.csv' (format csv, header true);
+\copy census.acs_ca_2020_rural_geom to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_rural_geom.csv' (format csv, header true);
+\copy census.acs_ca_2020_state_geom to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_state_geom.csv' (format csv, header true);
 \copy census.acs_ca_2019_tr_fuel to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_tr_fuel.csv' (format csv, header true);
 \copy census.acs_ca_2019_tr_housing to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_tr_housing.csv' (format csv, header true);
 \copy census.acs_ca_2019_tr_income to '/Users/edf/repos/carb_elec/dump/csv/census_acs_ca_2019_tr_income.csv' (format csv, header true);
