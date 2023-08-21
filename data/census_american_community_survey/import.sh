@@ -17,6 +17,10 @@ cd $dir
 # - census.acs_ca_2019_tr_geom
 # - census.acs_ca_2019_puma_geom
 # - census.acs_ca_2019_county_geom
+# - census.acs_ca_2019_state_geom
+# - census.acs_ca_2020_urban_geom
+# - census.acs_ca_2020_rural_geom (Note: Computed as suymmetric difference of
+#   the urban and state geometry layers)
 # - census.acs_ca_2019_unincorporated_geom (Note: Computed as symmetric
 #   difference of the county and place geometry layers)
 #
@@ -36,7 +40,9 @@ tables=('acs_ca_2019_tr_population'
     'acs_ca_2019_tr_geom'
     'acs_ca_2019_place_geom'
     'acs_ca_2019_puma_geom'
-    'acs_ca_2019_county_geom' )
+    'acs_ca_2019_county_geom'
+    'acs_ca_2019_state_geom'
+    'acs_ca_2020_urban_geom' )
 
 # Download data via python Census API
 /opt/anaconda3/envs/geo/bin/python $src$file
@@ -69,11 +75,30 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
+# Import to rural geometry table
+file='acs_ca_2020_rural_geom.geojson'
+table='acs_ca_2020_rural_geom'
+
+ogr2ogr -f $format $dst \
+    $src$file \
+    -lco SCHEMA=$schema \
+    -nln $table  \
+    -nlt MULTIPOLYGON \
+    -t_srs EPSG:3310 \
+    -lco GEOMETRY_NAME=geom \
+    -emptyStrAsNull \
+    -lco DESCRIPTION=$table \
+    --debug ON
+
 # Postprocess tables
 psql -d carb -a -f 'postprocess.sql'
 
 # Output Metadata
 table='acs_ca_2019_unincorporated_geom'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Output Metadata
+table='acs_ca_2020_rural_geom'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 # Export CSV versions of tables

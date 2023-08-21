@@ -150,6 +150,20 @@ ca_ind = county_geom_data['STATEFP'] == '06'
 county_geom_data = county_geom_data.loc[ca_ind,:].copy()
 county_geom_data = county_geom_data.to_crs(3310)
 
+#%% Read State Geometry Data
+
+state_url = "https://www2.census.gov/geo/tiger/TIGER2019/STATE/tl_2019_us_state.zip"
+state_geom_data = gpd.read_file(state_url)
+ca_ind = state_geom_data['STATEFP'] == '06'
+state_geom_data = state_geom_data.loc[ca_ind,:].copy()
+state_geom_data = state_geom_data.to_crs(3310)
+
+#%% Read Urban Geometry Data
+
+urban_url = "https://www2.census.gov/geo/tiger/TIGER_RD18/LAYER/UAC20/tl_rd22_us_uac20.zip"
+urban_geom_data = gpd.read_file(urban_url)
+urban_geom_data = urban_geom_data.to_crs(3310)
+
 #%% Get DB Connection Parameters
 
 user = os.environ['PGUSER']
@@ -218,6 +232,18 @@ puma_geom_data.to_postgis('acs_ca_2019_puma_geom',
     con = engine)
 
 county_geom_data.to_postgis('acs_ca_2019_county_geom',
+    if_exists = 'replace',
+    index = False,
+    schema = 'census',
+    con = engine)
+
+state_geom_data.to_postgis('acs_ca_2019_state_geom',
+    if_exists = 'replace',
+    index = False,
+    schema = 'census',
+    con = engine)
+
+urban_geom_data.to_postgis('acs_usa_2022_urban_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',
