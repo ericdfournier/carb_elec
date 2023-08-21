@@ -1,17 +1,3 @@
--- Add centroid geometry field
-ALTER TABLE ztrax.main
-ADD COLUMN centroid GEOMETRY(point, 3310);
-
--- Generate Centroid from Existing Latitude Longitude Coordinates
-UPDATE ztrax.main
-SET centroid = ST_TRANSFORM(ST_SETSRID(ST_MAKEPOINT(
-    "PropertyAddressLongitude", "PropertyAddressLatitude"), 4326), 3310);
-
--- Index the Ztrax centroid geometry field
-CREATE INDEX IF NOT EXISTS idx_us_main_centroid_idx
-ON ztrax.main
-USING gist (centroid);
-
 -- Index the shoreline geometry linestring prior to runnning calculation
 CREATE INDEX IF NOT EXISTS idx_us_medium_shoreline_geom_idx
 ON noaa.us_medium_shoreline

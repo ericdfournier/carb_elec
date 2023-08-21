@@ -1,3 +1,17 @@
+-- Add centroid geometry field
+ALTER TABLE ztrax.main
+ADD COLUMN centroid GEOMETRY(point, 3310);
+
+-- Generate Centroid from Existing Latitude Longitude Coordinates
+UPDATE ztrax.main
+SET centroid = ST_TRANSFORM(ST_SETSRID(ST_MAKEPOINT(
+    "PropertyAddressLongitude", "PropertyAddressLatitude"), 4326), 3310);
+
+-- Index the Ztrax centroid geometry field
+CREATE INDEX IF NOT EXISTS idx_us_main_centroid_idx
+ON ztrax.main
+USING gist (centroid);
+
 -- Add polygon geometry field to ZTRAX main from SGC Parcel Layer
 ALTER TABLE ztrax.main
 ADD COLUMN geom GEOMETRY(MULTIPOLYGON, 3310);
