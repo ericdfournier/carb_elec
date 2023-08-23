@@ -62,30 +62,8 @@ sf = megaparcels.loc[sf_ind, :]
 
 #%% Extract MF Sample
 
-RI000
-RI101
-RI102
-RI103
-RI104
-RI105
-RI106
-RI107
-RI108
-RI109
-RI110
-RI111
-RI112
-RI113
-RI114
-RR000
-RR101
-RR102
-RR103
-RR104
-RR105
-RR106
-
 mf_ind = megaparcels['PropertyLanduseStndCodes'].map(lambda x: 'RR')
+
 #%% Plot Distributions
 
 def SizeVintageJointPlot(data, title):
