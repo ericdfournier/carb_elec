@@ -4,72 +4,60 @@ ON noaa.us_medium_shoreline
 USING gist (geom);
 
 -- Compute the distance to shore from each parcel centroid
-SELECT DISTINCT parcels."RowID",
-    (SELECT FLOOR(ST_Distance(parcels.centroid, shoreline.geom))::INTEGER
+SELECT DISTINCT megaparcels."megaparcelid",
+    (SELECT FLOOR(ST_Distance(megaparcels.centroid, shoreline.geom))::INTEGER
         FROM   noaa.us_medium_shoreline AS shoreline
         ORDER BY
-            parcels.centroid <-> shoreline.geom
+            megaparcels.centroid <-> shoreline.geom
         LIMIT  1) AS shorelinedistm
 INTO ztrax.distance
-FROM ztrax.main AS parcels;
+FROM ztrax.megaparcels AS megaparcels;
 
 -- Compute the elevation of each parcel centroid using a cross lateral join
-SELECT DISTINCT parcels."RowID",
+SELECT DISTINCT megaparcels."megaparcelid",
        elevation.elevationm
 INTO    ztrax.elevation
-FROM    ztrax.main AS parcels
+FROM    ztrax.megaparcels AS megaparcels
 CROSS JOIN LATERAL
-    (SELECT FLOOR(ST_Value(rast, parcels.centroid))::INTEGER AS elevationm
+    (SELECT FLOOR(ST_Value(rast, megaparcels.centroid))::INTEGER AS elevationm
         FROM srtm.ca_elevation
-        WHERE ST_INTERSECTS(parcels.centroid, rast)) AS elevation;
+        WHERE ST_INTERSECTS(megaparcels.centroid, rast)) AS elevation;
 
 -- Compute the slope at each parcel centroid using a cross lateral join
-SELECT DISTINCT parcels."RowID",
+SELECT DISTINCT megaparcels."megaparcelid",
        slope.slopepct
 INTO    ztrax.slope
-FROM    ztrax.main AS parcels
+FROM    ztrax.megaparcels AS megaparcels
 CROSS JOIN LATERAL
-    (SELECT FLOOR(ST_Value(rast, parcels.centroid))::INTEGER AS slopepct
+    (SELECT FLOOR(ST_Value(rast, megaparcels.centroid))::INTEGER AS slopepct
         FROM srtm.ca_slope
-        WHERE ST_INTERSECTS(parcels.centroid, rast)) AS slope;
+        WHERE ST_INTERSECTS(megaparcels.centroid, rast)) AS slope;
 
 -- Compute the aspect at each parcel centroid using a cross lateral join
-SELECT DISTINCT parcels."RowID",
+SELECT DISTINCT megaparcels."megaparcelid",
         aspect.aspectdeg
 INTO ztrax.aspect
-FROM ztrax.main AS parcels
+FROM ztrax.megaparcels AS megaparcels
 CROSS JOIN LATERAL
-    (SELECT FLOOR(ST_VALUE(rast, parcels.centroid))::INTEGER AS aspectdeg
+    (SELECT FLOOR(ST_VALUE(rast, megaparcels.centroid))::INTEGER AS aspectdeg
         FROM srtm.ca_aspect
-        WHERE ST_INTERSECTS(parcels.centroid, rast)) AS aspect;
+        WHERE ST_INTERSECTS(megaparcels.centroid, rast)) AS aspect;
 
--- Index Join Tables on RowID
-CREATE INDEX IF NOT EXISTS idx_training_rowid_idx
-ON la100.sf_training (rowid);
+-- Index Join Tables on MegaparcelID
+CREATE INDEX IF NOT EXISTS idx_mp_mpid_idx
+ON ztrax.megaparcels ("megaparcelid");
 
-CREATE INDEX IF NOT EXISTS idx_main_rowid_idx
-ON ztrax.main ("RowID");
+CREATE INDEX IF NOT EXISTS idx_distance_mpid_idx
+ON ztrax.distance ("megaparcelid");
 
-CREATE INDEX IF NOT EXISTS idx_building_rowid_idx
-ON ztrax.building ("RowID")
+CREATE INDEX IF NOT EXISTS idx_elevation_mpid_idx
+ON ztrax.elevation ("megaparcelid");
 
-CREATE INDEX IF NOT EXISTS idx_building_areas_rowid_idx
-ON ztrax.building_areas ("RowID");
+CREATE INDEX IF NOT EXISTS idx_slope_mpid_idx
+ON ztrax.slope ("megaparcelid");
 
-CREATE INDEX IF NOT EXISTS idx_value_rowid_idx
-ON ztrax.value ("RowID");
-
-CREATE INDEX IF NOT EXISTS idx_distance_rowid_idx
-ON ztrax.distance ("RowID");
-
-CREATE INDEX IF NOT EXISTS idx_elevation_rowid_idx
-ON ztrax.elevation ("RowID");
-
-CREATE INDEX IF NOT EXISTS idx_slope_rowid_idx
-ON ztrax.slope ("RowID");
-
-CREATE INDEX IF NOT EXISTS idx_aspect_rowid_idx
-ON ztrax.aspect ("RowID");
+CREATE INDEX IF NOT EXISTS idx_aspect_mpid_idx
+ON ztrax.aspect ("megaparcelid");
 
 CREATE INDEX IF NOT EXISTS idx_geom_geoid_idx
 ON census.acs_ca_2019_tr_geom ("GEOID");
@@ -80,9 +68,13 @@ ON census.acs_ca_2019_tr_housing ("GEOID");
 CREATE INDEX IF NOT EXISTS idx_fuel_geoid_idx
 ON census.acs_ca_2019_tr_fuel ("GEOID");
 
--- Extract housing features 
-SELECT A."GEOID", 
-       A."DP04_0047PE" / 100.0 AS "renterhouseholdspct", 
+-- Create Spatial Index on Ztrax Mepaparcel Centroids
+CREATE INDEX IF NOT EXISTS idx_mp_centroid_idx
+ON ztrax.megaparcels USING GIST("centroid");
+
+-- Extract housing features
+SELECT A."GEOID",
+       A."DP04_0047PE" / 100.0 AS "renterhouseholdspct",
        B."geometry" AS "geom"
 INTO census.housing_features
 FROM census.acs_ca_2019_tr_housing AS A,
@@ -94,9 +86,9 @@ CREATE INDEX IF NOT EXISTS idx_housing_geom_idx
 ON census.housing_features USING GIST("geom");
 
 -- Extract fuel features
-SELECT A."GEOID", 
-       A."DP04_0065PE" / 100.0 AS "elecheatinghouseholdspct", 
-       B."geometry" AS "geom" 
+SELECT A."GEOID",
+       A."DP04_0065PE" / 100.0 AS "elecheatinghouseholdspct",
+       B."geometry" AS "geom"
 INTO census.fuel_features
 FROM census.acs_ca_2019_tr_fuel AS A,
      census.acs_ca_2019_tr_geom AS B
@@ -106,24 +98,15 @@ WHERE A."GEOID" = B."GEOID";
 CREATE INDEX IF NOT EXISTS idx_fuel_geom_idx
 ON census.fuel_features USING GIST("geom");
 
+-- TODO: NEED TO FIGURE OUT THIS CROSS LATERAL JOIN THING GOING ON BELOW!!!
+
 -- Extract Relevant Parcel Attributes for LA Training Data
-SELECT  training."rowid",
-        training."panel_size_existing",
-        main."LotSizeSquareFeet",
-        main."NoOfBuildings",
-        building."NoOfUnits",
-        building."PropertyLandUseStndCode",
-        building."YearBuilt",
-        building."TotalBedrooms",
-        building."HeatingTypeorSystemStndCode",
-        building."AirConditioningTypeorSystemStndCode",
-        areas."BuildingAreaSqFt",
-        val."LandAssessedValue"::NUMERIC,
-        val."ImprovementAssessedValue"::NUMERIC,
+SELECT  mp.*,
         dist."shorelinedistm",
-        elevation."elevationm",
+        elev."elevationm",
         slope."slopepct",
         aspect."aspectdeg",
+        ces4."ciscorep",
         pp."dac",
         pp."lowincome",
         pp."nondesignated",
@@ -140,34 +123,31 @@ SELECT  training."rowid",
         housing."renterhouseholdspct",
         fuel."elecheatinghouseholdspct",
         cz."bzone",
-        ST_X(ST_GEOMETRYN(training."geom", 1)) AS "x",
-        ST_Y(ST_GEOMETRYN(training."geom", 1)) AS "y"
-INTO    la100.sf_training_full
-FROM    la100.sf_training AS training
-INNER JOIN ztrax.main AS main
-    ON training."rowid" = main."RowID"
-INNER JOIN ztrax.building AS building
-    ON training."rowid" = building."RowID"
-INNER JOIN ztrax.building_areas AS areas
-    ON training."rowid" = areas."RowID"
-INNER JOIN ztrax.value AS val
-    ON training."rowid" = val."RowID"
+        ST_X(ST_GEOMETRYN(mp."centroid", 1)) AS "x",
+        ST_Y(ST_GEOMETRYN(mp."centroid", 1)) AS "y"
+INTO    ztrax.model_data
+FROM    ztrax.megaparcels AS mp
 INNER JOIN ztrax.distance AS dist
-    ON training."rowid"= dist."RowID"
-INNER JOIN ztrax.elevation AS elevation
-    ON training."rowid" = elevation."RowID"
+    ON dist."megaparcelid" = mp."megaparcelid"
+INNER JOIN ztrax.elevation AS elev
+    ON elev."megaparcelid" = mp."megaparcelid"
 INNER JOIN ztrax.slope AS slope
-    ON training."rowid" = slope."RowID"
+    ON slope."megaparcelid" = mp."megaparcelid"
 INNER JOIN ztrax.aspect AS aspect
-    ON training."rowid" = aspect."RowID"
+    ON aspect."megaparcelid" = mp."megaparcelid"
+INNER JOIN oehha.ca_ces4 AS ces4
+    ON ST_INTERSECTS(mp."centroid", ces4."geom" )
 INNER JOIN carb.priority_populations_ces4 AS pp
-    ON ST_INTERSECTS(training."geom", pp."geom")
+    ON ST_INTERSECTS(mp."centroid", pp."geom")
 INNER JOIN usepa.ej_screen_ca_2023_tr AS ejscreen
-    ON ST_INTERSECTS(training."geom", ejscreen."geom")
+    ON ST_INTERSECTS(mp."centroid", ejscreen."geom")
 INNER JOIN cec.ca_building_climate_zones_2021 AS cz
-    ON ST_INTERSECTS(training."geom", cz."geom")
+    ON ST_INTERSECTS(mp."centroid", cz."geom")
 INNER JOIN census.housing_features AS housing
-    ON ST_INTERSECTS(training."geom", housing."geom")
+    ON ST_INTERSECTS(mp."centroid", housing."geom")
 INNER JOIN census.fuel_features AS fuel
-    ON ST_INTERSECTS(training."geom", fuel."geom");
+    ON ST_INTERSECTS(mp."centroid", fuel."geom");
 
+-- Create Empty Panel Size Existing Field Before Passing to Inference Routine
+ALTER TABLE ztrax.model_data
+ADD COLUMN panel_size_existing NUMERIC DEFAULT NULL;

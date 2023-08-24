@@ -9,32 +9,42 @@ SET centroid = ST_TRANSFORM(ST_SETSRID(ST_MAKEPOINT(
 
 -- Index the Ztrax centroid geometry field
 CREATE INDEX IF NOT EXISTS idx_us_main_centroid_idx
-ON ztrax.main
-USING gist (centroid);
+ON ztrax.main USING gist (centroid);
 
 -- Add polygon geometry field to ZTRAX main from SGC Parcel Layer
 ALTER TABLE ztrax.main
 ADD COLUMN geom GEOMETRY(MULTIPOLYGON, 3310);
 
--- Assign Polygon Geometry to ztrax records
+-- Assign Polygon Geometries to Ztrax records from SGC data
 UPDATE ztrax.main
 SET geom = sgc.geom
-FROM sgc.ca_parcel_boundaries_2014 AS sgc
+FROM (SELECT DISTINCT geom FROM 
+        sgc.ca_parcel_boundaries_2014) AS sgc
 WHERE ST_INTERSECTS(centroid, sgc.geom);
 
--- Generate Polygon Aggregate ZTRAX data
-SELECT  A.geom,
-        PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY B."YearBuilt") AS "MedianYearBuilt",
-        SUM(C."BuildingAreaSqFt") AS "TotalBuildingAreaSqFt",
-        ARRAY_AGG(B."PropertyLandUseStndCode") AS "PropertyLandUseStndCodes",
-        ARRAY_AGG(A."RowID") AS "RowIDs"
+-- Generate Polygon Aggregated ZTRAX data as Megaparcels
+SELECT  main.geom,
+        ARRAY_AGG(main."RowID") AS "RowIDs",
+        ARRAY_AGG(building."PropertyLandUseStndCode") AS "PropertyLandUseStndCodes",
+        PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY building."YearBuilt") AS "YearBuilt",
+        SUM(main."NoOfBuildings") AS "TotalNoOfBuildings",
+        MODE() WITHIN GROUP(ORDER BY main."LotSizeSquareFeet") AS "LotSizeSquareFeet",
+        SUM(areas."BuildingAreaSqFt") AS "TotalBuildingAreaSqFt",
+        SUM(building."NoOfUnits") AS "TotalNoOfUnits",
+        SUM(building."TotalBedrooms") AS "TotalNoOfBedrooms",
+        SUM(value."LandAssessedValue"::NUMERIC) AS "TotalLandAssessedValue",
+        SUM(value."ImprovementAssessedValue"::NUMERIC) AS "TotalImprovementAssessedValue",
+        MODE() WITHIN GROUP(ORDER BY building."HeatingTypeorSystemStndCode") AS "HeatingTypeorSystemStndCode",
+        MODE() WITHIN GROUP(ORDER BY building."AirConditioningTypeorSystemStndCode") AS "AirConditioningTypeorSystemStndCode"
 INTO ztrax.megaparcels
-FROM ztrax.main AS A
-JOIN ztrax.building AS B
-    ON A."RowID" = B."RowID"
-JOIN ztrax.building_areas AS C
-    ON A."RowID" = C."RowID"
-GROUP BY A.geom;
+FROM ztrax.main AS main
+JOIN ztrax.building AS building
+    ON main."RowID" = building."RowID"
+JOIN ztrax.building_areas AS areas
+    ON main."RowID" = areas."RowID"
+JOIN ztrax.value AS value
+    ON main."RowID" = value."RowID"
+GROUP BY main.geom;
 
 -- Add Permit ID Field
 ALTER TABLE ztrax.megaparcels
@@ -203,47 +213,47 @@ ADD COLUMN panel_size_as_built NUMERIC DEFAULT NULL;
 UPDATE ztrax.megaparcels 
 SET panel_size_as_built = CASE
     -- Pre-1883
-    WHEN "MedianYearBuilt" <= 1883 THEN 0
+    WHEN "YearBuilt" <= 1883 THEN 0
     -- 1883-1950
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 30
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 40
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 60
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 100
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 125
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 150
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 200
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 320
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 400
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 30
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 40
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 60
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 100
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 125
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 150
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 200
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 320
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 400
     -- 1950-1978
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 40
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 60
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 100
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 125
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 150
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 200
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 320
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 400
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 600
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 40
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 60
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 100
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 125
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 150
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 200
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 320
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 400
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 600
     -- 1978-2010
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 60
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 100
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 125
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 150
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 200
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 320
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 400
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 600
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 800
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 60
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 100
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 125
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 150
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 200
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 320
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 400
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 600
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 800
     -- Post-2010
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 200
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 200
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 225
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 320
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 400
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 600
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 800
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 1000
-    WHEN ("MedianYearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 1200
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 200
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 200
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 225
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 320
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 400
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 600
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 800
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 1000
+    WHEN ("YearBuilt" > 2010) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 1200
 END
 WHERE usetype = 'single_family';
 
@@ -251,15 +261,15 @@ WHERE usetype = 'single_family';
 UPDATE ztrax.megaparcels 
 SET panel_size_as_built = CASE
     -- Pre-1883
-    WHEN "MedianYearBuilt" <= 1883 THEN 0
+    WHEN "YearBuilt" <= 1883 THEN 0
     -- 1883-1950
-    WHEN ("MedianYearBuilt" > 1883 AND "MedianYearBuilt" <= 1950) THEN 30
+    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) THEN 40
     -- 1950-1978
-    WHEN ("MedianYearBuilt" > 1950 AND "MedianYearBuilt" <= 1978) THEN 40
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) THEN 60
     -- 1978-2010
-    WHEN ("MedianYearBuilt" > 1978 AND "MedianYearBuilt" <= 2010) THEN 60
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) THEN 90
     -- Post-2010
-    WHEN ("MedianYearBuilt" > 2010) THEN 1200
+    WHEN ("YearBuilt" > 2010) THEN 150
 END
 WHERE usetype = 'multi_family';
 
