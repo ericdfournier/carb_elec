@@ -151,3 +151,15 @@ INNER JOIN census.fuel_features AS fuel
 -- Create Empty Panel Size Existing Field Before Passing to Inference Routine
 ALTER TABLE ztrax.model_data
 ADD COLUMN panel_size_existing NUMERIC DEFAULT NULL;
+
+-- Determine Missing Counties
+SELECT county."NAMELSAD", 
+       county."geometry",
+       COUNT(DISTINCT mp."megaparcelid") AS valid_megaparcels
+INTO ztrax.valid_counties
+FROM ztrax.megaparcels AS mp
+JOIN census.acs_ca_2019_county_geom AS county
+    ON ST_INTERSECTS(mp."geom", county."geometry")
+WHERE mp.panel_size_as_built IS NOT NULL
+GROUP BY county."NAMELSAD", county."geometry";
+
