@@ -101,9 +101,9 @@ While a number of municipalities did provide latitude longitude coordinates of t
 
 # Data Dictionary
 
-Table: permits.combined
+## Table: permits.combined
 
-Note: This table contains the raw collated permit data assembled from all the sampled municipalities - prior to any subsequent filtering or post-processing operations.
+This table contains the raw collated permit data assembled from all the sampled municipalities - prior to any subsequent filtering or post-processing operations.
 
 | Data Field | Definition |
 |------------|------------|
@@ -128,9 +128,9 @@ Note: This table contains the raw collated permit data assembled from all the sa
 | sub_panel_upgrade | Boolean field indicating electrical sub-panel upgrade reference in work description |
 | upgraded_panel_size | Size of destination main/sub panel following upgrade (where mentioned in work description) |
 
-Table: permits.class_definitions
+## Table: permits.class_definitions
 
-Note: This table contains a manually defined dictionary which is used for translating raw permit class designations into a more limited and standardized set.
+This table contains a manually defined dictionary which is used for translating raw permit class designations into a more limited and standardized set.
 
 | Data Field | Definition |
 |------------|------------|
@@ -138,9 +138,9 @@ Note: This table contains a manually defined dictionary which is used for transl
 | permit_class | Permit classification field value in raw dataset |
 | permit_class_std | Mapping to standardized permit classification value |
 
-Table: permits.panel_upgrades
+## Table: permits.panel_upgrades
 
-Note: This table contains a filtered subset of permits that were deemed to be associated with panel upgrades as based upon the content of their work description field. The table includes, as a set of boolean fields, indicators of what relevant measures were identified in the work description field. The table also contains the output of various address string pre-processing operations designed to improve geocoding performance.
+This table contains a filtered subset of permits that were deemed to be associated with panel upgrades as based upon the content of their work description field. The table includes, as a set of boolean fields, indicators of what relevant measures were identified in the work description field. The table also contains the output of various address string pre-processing operations designed to improve geocoding performance.
 
 | Data Field | Definition |
 |------------|------------|
@@ -174,9 +174,9 @@ Note: This table contains a filtered subset of permits that were deemed to be as
 | na | Normalized address type formatted address information |
 | query_address | Final formatted address string to be submitted to the geocoder |
 
-Table: permits.panel_ugprades_geocode_arcgis
+## Table: permits.panel_ugprades_geocode_arcgis
 
-Note: This table contains response information obtained from the ArcGIS geocding service. The scope of the permit records covered in this table only includes those for which a valid centroid was missing in the original data.
+This table contains response information obtained from the ArcGIS geocding service. The scope of the permit records covered in this table only includes those for which a valid centroid was missing in the original data.
 
 | Data Field | Definition |
 |------------|------------|
@@ -189,7 +189,7 @@ Note: This table contains response information obtained from the ArcGIS geocding
 
 Table: permits.panel_upgrades_geocoded
 
-Note:
+This table reflects a consolidation of the records in the filtered panel upgrade permit table with the geocoding results table. It also contains a foreign key linkage to ZTRAX parcel record derived megaparcel table.
 
 | Data Field | Definition |
 |------------|------------|
@@ -217,25 +217,63 @@ Note:
 
 Table: permits.sampled_counties
 
-Note:
+This table contains a list of the counties for which permit data was accessed.
 
 | Data Field | Definition |
 |------------|------------|
+| STATEFP | State FIPS Code |
+| COUNTYFP | County FIPS Code |
+| COUNTYNS | ANSI County Code |
+| GEOID | Geographic Identification Code |
+| NAME | County Name |
+| NAMELSAD | County Name with translated Legal/Statistical Area Description |
+| LSAD | Legal/Statistical Area Description Code |
+| CLASSFP | Class FIPS Code |
+| MTFCC | MAF/Tiger Feature Class Code |
+| CSAFP | Geographic Entity Class Code |
+| CBSAFP | Core Based Statistical Area |
+| METDIVFP | Metropolitan division code |
+| FUNCSTAT | Functional Status Code |
+| ALAND | Land Area |
+| AWATER | Water Area |
+| INTPTLAT | Latitude of the Internal Point |
+| INTPTLON | Longitude of the Internal Point |
+| geometry | Geometry |
+| union_code | Boolean value used for spatial union operation |
 
 Table: permits.sampled_places
 
-Note:
+This table contains a list of the census designated place
 
 | Data Field | Definition |
 |------------|------------|
+| STATEFP | State FIPS Code |
+| PLACEFP | Place FIPS Code |
+| PLACENS | Place ANSI Code |
+| GEOID | Geographic Identification Code |
+| NAME | County Name |
+| NAMELSAD | County Name with translated Legal/Statistical Area Description |
+| LSAD | Legal/Statistical Area Description Code |
+| CLASSFP | Class FIPS Code |
+| PCICBSA | Current metropolitan or micropolitan statistical area principal city indicator |
+| PCINECTA | Current Census Designated Place Principal City Indicator |
+| MTFCC | MAF/Tiger Feature Class Code |
+| FUNCSTAT | Functional Status Code |
+| ALAND | Land Area |
+| AWATER | Water Area |
+| INTPTLAT | Latitude of the Internal Point |
+| INTPTLON | Longitude of the Internal Point |
+| geometry | Geometry |
+| union_code | Boolean value used for spatial union operation |
 
 Table: permits.sampled_territories
 
-Note:
+This table contains a unified polygon geometry which represents all of the combined sampled places and counties.
 
 | Data Field | Definition |
 |------------|------------|
-
+| geometry | Geometry |
+| union_code| Boolean value used for spatial union operation |
 
 ## Database Import Notes
 
