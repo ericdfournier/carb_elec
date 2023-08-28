@@ -74,13 +74,36 @@ Issued: Permit was issued but still needs inspections
 Com: Commercial
 Res: Residential
 
-### Collation and Post-Processing
+## Data Post-Processing
 
-Individual raw data files were collated into a single combined csv table for each municipality using customized python scripts. During this process, field names were standardized and records with corrupted or missing attributes were dropped as necessary. The database import workflow documented in this portion of the repository operates over these post-processed CSV files to generate a single unified permit record table in the database. The structure of this table is documented in the data-dictionary below.
+Individual raw data files were collated into a single combined csv file for each municipality using customized python scripts. During this process, field names were standardized and records with corrupted or missing attributes were dropped as necessary. The database import workflow documented in this portion of the repository operates over these post-processed CSV files to generate a single unified permit record table in the database. The structure of this table is documented in the data-dictionary for the "permits.combined_raw" table below.
+
+### Class Definition Standardization
+
+Within the scope of each municipality, permit "class" designation fields were deemed of interest. However, upon inspection it became obvious that there were a wide range of class values used between the different data providers. An effort to standardize these disparate class fields into a single, property usetype based, classification scheme was undertaken. This involved generating a list of all of the unique class values that appeared across all of the data sets and manually deriving a dictionary mapping them to a simplified and standardized set.
+
+### Panel Upgrade Filtering
+
+While efforts were made during the initial raw data collection effort to constrain the scope of the permits being collected to just those which pertained to panel upgrades and other associated electrification measures - a significant number of unrelated permits were included in the raw data. Thus, an effort was undertaken to flag relevant permits on the basis of keywords within their work description fields. This process resulted in individual permits being assigned a boolean flag (True/False) for each of the following measure type categories:
+
+- Main Panel Upgrade
+- Sub-panel Upgrade
+- Solar PV System
+- Heat Pump HVAC System
+- EV Charger
+- Battery Energy Storage System (BESS)
+
+Note: While heat pump hot water heaters represent an important electrification measure, their power demand is not typically such that we would expect them to necessarily result in the need for a main service panel upgrade in most cases. Consequently, the decision was made to exclude them here from this list - which is focused on measures that nearly always require an upgraded service panel to be installed.
+
+### Address Geocoding
+
+While a number of municipalities did provide latitude longitude coordinates of the parcels associated with their permit records, most did not. For these, latitude longitude coordinate pairs had to be derived by either geocoding provided address information fields or joining to a separate parcel boundary dataset via the provided Assessor Parcel Number (APN). Additionally, for a number of municipalities, the provided address fields in the raw data were found to be incomplete (i.e. missing the county designation as it was implied within the scope of the original dataset). This meant that some preprocessing was required before geocoding could proceeed. Overall, 300,000+ of the filtered panel upgrade permit records had to be geocoded using a python script that called the ArcGIS geocoder API. This geocoder provides a geocoding qaulity score (0-100) that was used, in combination with a state boundary mask, to filter out permits with obviously incorrect geocoding results.
 
 # Data Dictionary
 
-Table: permits.combined_raw
+Table: permits.combined
+
+Note: This table contains the raw collated permit data assembled from all the sampled municipalities - prior to any subsequent filtering or post-processing operations.
 
 | Data Field | Definition |
 |------------|------------|
@@ -105,9 +128,49 @@ Table: permits.combined_raw
 | sub_panel_upgrade | Boolean field indicating electrical sub-panel upgrade reference in work description |
 | upgraded_panel_size | Size of destination main/sub panel following upgrade (where mentioned in work description) |
 
+Table: permits.class_definitions
+
+Note: This table contains a manually defined dictionary which is used for translating raw permit class designations into a more standardized (and limited) set.
+
+| Data Field | Definition |
+|------------|------------|
+
+Table: permits.panel_upgrades
+
+Note: This table contains a filtered subset of permits that were deemed to be associated with panel upgrades as based upon the content of their work description field. The table includes, as a set of boolean fields, indicators of what relevant measures were identified in the work description field.
+
+| Data Field | Definition |
+|------------|------------|
+
+Table: permits.panel_ugprades_geocode_arcgis
+
+Note:
+
+| Data Field | Definition |
+|------------|------------|
+
+Table: permits.panel_upgrades_geocoded
+
+| Data Field | Definition |
+|------------|------------|
+
+Table: permits.sampled_counties
+
+| Data Field | Definition |
+|------------|------------|
+
+Table: permits.sampled_places
+
+| Data Field | Definition |
+|------------|------------|
+
+Table: permits.sampled_territories
+
+| Data Field | Definition |
+|------------|------------|
 
 
-## Import Notes
+## Database Import Notes
 
 Default autodetection (`-oo AUTODETECT_TYPE=YES`) generates the following warnings:
 
