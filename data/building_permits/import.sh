@@ -10,7 +10,15 @@ cd $dir
 #
 # Database: carb
 #
-# Creates tables: permits.permit_processing_combined
+# Creates tables:
+# - permits.class_definitions
+# - permits.combined
+# - permits.panel_upgrades
+# - permits.panel_upgrades_geocode_arcgis
+# - permits.panel_upgrades_geocoded
+# - permits.sampled_counties
+# - permits.sampled_places
+# - permits.sampled_territories
 ################################################################################
 
 format='PostgreSQL'
@@ -67,13 +75,42 @@ psql -d carb -a -f 'import_postprocess.sql'
 psql -d carb -a -f 'geocode_preprocess.sql'
 
 # Geocode from external service and write table back to database
-#file='geocode.py'
-#/opt/anaconda3/envs/geo/bin/python $file
+file='geocode.py'
+/opt/anaconda3/envs/geo/bin/python $file
 
 # Geocode postprocess
 psql -d carb -a -f 'geocode_postprocess.sql'
 
-# Write table metadata output
+# Write class definition table metadata output
+table="class_definitions"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Write combined raw data table metadata output
+table="combined"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Write panel upgrade permit data table metadata output
+table="panel_upgrades"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Write panel upgrade arcgis geocoder input table metadata output
+table="panel_upgrades_geocode_arcgis"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Write panel upgrade arcgis geocoder input table metadata output
+table="panel_upgrades_geocoded"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Write sampled counties table metadata output
+table="sampled_counties"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Write sampled places table metadata output
+table="sampled_places"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+# Write sampled territories table metadata output
+table="sampled_territories"
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 # Export CSV Formatted Tables

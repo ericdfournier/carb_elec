@@ -248,3 +248,85 @@ DROP TABLE IF EXISTS permits.panel_search_results;
 DROP TABLE IF EXISTS permits.ev_charger_search_results;
 DROP TABLE IF EXISTS permits.solar_search_results;
 DROP TABLE IF EXISTS permits.heat_pump_search_results;
+
+-- Enumerate Sampled Places
+SELECT *
+INTO permits.sampled_places
+FROM census.acs_ca_2019_place_geom
+WHERE "NAMELSAD" IN (
+    'Alameda city',
+    'Anaheim city',
+    'Ceres city',
+    'Clovis city',
+    'Corona city',
+    'Elk Grove city',
+    'Fairfield city',
+    'Fresno city',
+    'Garden Grove city',
+    'Hanford city',
+    'Los Angeles city',
+    'Los Gatos town',
+    'Moreno Valley city',
+    'Oakland city',
+    'Oceanside city',
+    'Ojai city',
+    'Pasadena city',
+    'Paso Robles city',
+    'Pleasanton city',
+    'Rancho Cucamonga city',
+    'Redding city',
+    'Richmond city',
+    'Riverside city',
+    'Roseville city',
+    'San Diego city',
+    'San Mateo city',
+    'San Rafael city',
+    'Santa Ana city',
+    'Santa Clara city',
+    'Santa Monica city',
+    'Santa Rosa city',
+    'Stockton city',
+    'Victorville city',
+    'West Sacramento city',
+    'Yorba Linda city',
+    'Yolo CDP',
+    'Yuba City city',
+    'San Francisco city');
+
+-- Add union code
+ALTER TABLE permits.sampled_places
+ADD COLUMN union_code BOOL DEFAULT TRUE;
+
+-- Enumerate Sampled Counties
+SELECT *
+INTO permits.sampled_counties
+FROM census.acs_ca_2019_county_geom
+WHERE "NAMELSAD" IN (
+    'Contra Costa County',
+    'El Dorado County',
+    'Humboldt County',
+    'Kern County',
+    'Lake County',
+    'Marin County',
+    'Nevada County',
+    'Placer County',
+    'Riverside County',
+    'Sacramento County',
+    'San Bernardino County',
+    'San Francisco County',
+    'San Mateo County',
+    'Tulare County',
+    'Yolo County');
+
+-- Add union code
+ALTER TABLE permits.sampled_counties
+ADD COLUMN union_code BOOL DEFAULT TRUE;
+
+-- Create Sampled Territory as Spatial Union of Sampled Places and Counties
+SELECT ST_UNION(A.geometry) AS geometry,
+    union_code
+INTO permits.sampled_territories
+FROM (SELECT geometry, union_code FROM permits.sampled_places
+        UNION
+    SELECT geometry, union_code FROM permits.sampled_counties) AS A
+GROUP BY A.union_code;

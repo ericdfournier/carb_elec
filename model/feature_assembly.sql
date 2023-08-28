@@ -18,7 +18,7 @@ ADD COLUMN geom GEOMETRY(MULTIPOLYGON, 3310);
 -- Assign Polygon Geometries to Ztrax records from SGC data
 UPDATE ztrax.main
 SET geom = sgc.geom
-FROM (SELECT DISTINCT geom FROM 
+FROM (SELECT DISTINCT geom FROM
         sgc.ca_parcel_boundaries_2014) AS sgc
 WHERE ST_INTERSECTS(centroid, sgc.geom);
 
@@ -60,88 +60,6 @@ SET MegaParcelID = B.MegaParcelID
 FROM ztrax.megaparcels AS B
 WHERE ST_INTERSECTS(centroid, B.geom);
 
--- Enumerate Sampled Places
-SELECT *
-INTO permits.sampled_places
-FROM census.acs_ca_2019_place_geom
-WHERE "NAMELSAD" IN (
-    'Alameda city',
-    'Anaheim city',
-    'Ceres city',
-    'Clovis city',
-    'Corona city',
-    'Elk Grove city',
-    'Fairfield city',
-    'Fresno city',
-    'Garden Grove city',
-    'Hanford city',
-    'Los Angeles city',
-    'Los Gatos town',
-    'Moreno Valley city',
-    'Oakland city',
-    'Oceanside city',
-    'Ojai city',
-    'Pasadena city',
-    'Paso Robles city',
-    'Pleasanton city',
-    'Rancho Cucamonga city',
-    'Redding city',
-    'Richmond city',
-    'Riverside city',
-    'Roseville city',
-    'San Diego city',
-    'San Mateo city',
-    'San Rafael city',
-    'Santa Ana city',
-    'Santa Clara city',
-    'Santa Monica city',
-    'Santa Rosa city',
-    'Stockton city',
-    'Victorville city',
-    'West Sacramento city',
-    'Yorba Linda city',
-    'Yolo CDP',
-    'Yuba City city',
-    'San Francisco city');
-
--- Add union code
-ALTER TABLE permits.sampled_places
-ADD COLUMN union_code BOOL DEFAULT TRUE;
-
--- Enumerate Sampled Counties
-SELECT *
-INTO permits.sampled_counties
-FROM census.acs_ca_2019_county_geom
-WHERE "NAMELSAD" IN (
-    'Contra Costa County',
-    'El Dorado County',
-    'Humboldt County',
-    'Kern County',
-    'Lake County',
-    'Marin County',
-    'Nevada County',
-    'Placer County',
-    'Riverside County',
-    'Sacramento County',
-    'San Bernardino County',
-    'San Francisco County',
-    'San Mateo County',
-    'Tulare County',
-    'Yolo County');
-
--- Add union code
-ALTER TABLE permits.sampled_counties
-ADD COLUMN union_code BOOL DEFAULT TRUE;
-
--- Create Sampled Territory as Spatial Union of Sampled Places and Counties
-SELECT ST_UNION(A.geometry) AS geometry,
-    union_code
-INTO permits.sampled_territories
-FROM (SELECT geometry, union_code FROM permits.sampled_places
-        UNION
-    SELECT geometry, union_code FROM permits.sampled_counties) AS A
-GROUP BY A.union_code;
-
 -- Add boolean field to megaparcel layer to indicate sampled territories
 ALTER TABLE ztrax.megaparcels
 ADD COLUMN sampled BOOL DEFAULT FALSE;
@@ -171,20 +89,20 @@ ALTER TABLE ztrax.megaparcels
 ADD COLUMN usetype TEXT DEFAULT NULL;
 
 -- Single Family is defined strictly here as megaparcels that consist of a single parcel number
--- with the property land use stnd code is either 'RR101' or 'RI101'. 
+-- with the property land use stnd code is either 'RR101' or 'RI101'.
 -- There are a total of 5,967,714 of these in the dataset.
 UPDATE ztrax.megaparcels
 SET usetype = 'single_family'
-WHERE   "PropertyLandUseStndCodes" = ARRAY['RR101'] OR 
+WHERE   "PropertyLandUseStndCodes" = ARRAY['RR101'] OR
         "PropertyLandUseStndCodes" = ARRAY['RR999']
 
 -- Multi Family is defined openly here as megaparcels that at least contain one of the following property
--- landuse standard codes that do not correspond to 'RR101' or 'RI101'. 
+-- landuse standard codes that do not correspond to 'RR101' or 'RI101'.
 -- There are a total of 995,411 of these in the dataset.
 UPDATE ztrax.megaparcels
 SET usetype = 'multi_family'
 WHERE   "PropertyLandUseStndCodes" @> ARRAY['RI000'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['RI101'] OR 
+        "PropertyLandUseStndCodes" @> ARRAY['RI101'] OR
         "PropertyLandUseStndCodes" @> ARRAY['RI102'] OR
         "PropertyLandUseStndCodes" @> ARRAY['RI103'] OR
         "PropertyLandUseStndCodes" @> ARRAY['RI104'] OR
@@ -208,9 +126,9 @@ WHERE   "PropertyLandUseStndCodes" @> ARRAY['RI000'] OR
 -- Create As Built Panel Size Field
 ALTER TABLE ztrax.megaparcels
 ADD COLUMN panel_size_as_built NUMERIC DEFAULT NULL;
-    
+
 -- Estimate As-Built Panel Size from Vintage Year and Size Combination for Single Family Megaparcels
-UPDATE ztrax.megaparcels 
+UPDATE ztrax.megaparcels
 SET panel_size_as_built = CASE
     -- Pre-1883
     WHEN "YearBuilt" <= 1883 THEN 0
@@ -258,7 +176,7 @@ END
 WHERE usetype = 'single_family';
 
 -- Estimate As-Built Panel Size from Vintage Year for Multi Family Megaparcels
-UPDATE ztrax.megaparcels 
+UPDATE ztrax.megaparcels
 SET panel_size_as_built = CASE
     -- Pre-1883
     WHEN "YearBuilt" <= 1883 THEN 0
@@ -272,5 +190,3 @@ SET panel_size_as_built = CASE
     WHEN ("YearBuilt" > 2010) THEN 150
 END
 WHERE usetype = 'multi_family';
-
-
