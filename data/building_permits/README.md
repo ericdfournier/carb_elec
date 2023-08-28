@@ -32,9 +32,9 @@ Different municipalities collect different types of attribute information as par
 
 For permit record type keyword searches, the following terms were used:
 
--	Electrical, Residential Electrical (Res elec), Commercial Electrical (Com elec), Residential Alteration (res alt), Commercial Alteration (com alt), OTC (over the counter), No plan permits (permits that do not require detailed plans), Simple permits, Express permits, PV permit, EV permit, Panel upgrade, MPU (main panel upgrade), Service upgrade, Utility permit, Residential, Building, Commercial.
--	If the building permit portal did not provide a query to specify permit type, we used the Record ID query and searched: B (for building permit- some Record ID’s start with B), R (for residential), C (for commercial)
--	Dates: Dates ranged from 1950 to present
+    - Electrical, Residential Electrical (Res elec), Commercial Electrical (Com elec), Residential Alteration (res alt), Commercial Alteration (com alt), OTC (over the counter), No plan permits (permits that do not require detailed plans), Simple permits, Express permits, PV permit, EV permit, Panel upgrade, MPU (main panel upgrade), Service upgrade, Utility permit, Residential, Building, Commercial.
+    - If the building permit portal did not provide a query to specify permit type, we used the Record ID query and searched: B (for building permit- some Record ID’s start with B), R (for residential), C (for commercial)
+    - Dates: Dates ranged from 1950 to present
 
 ### Access Patterns
 
@@ -44,35 +44,35 @@ There are commercial software solution providers which specialize in building pe
 
 Below describes the general process for searching for and downloading building permit data from a building permit tracking system:
 
-    -	Accela
-    Starting at home page -> Advanced search -> Search records/applications-> Building-> Record type (if given option)-> From (date) -> Download results
-    -	eTRAKit
-    Starting at home page -> Search By -> Permit Type/Permit Subtype/Record ID -> “contains” -> *fill in* -> check for address, project description -> Download Results
-    -	Other
-    The first step is to look at the query options. Sometimes there was also a button that said “advanced search” and this would provide more specific queries. In other cases, the same steps as above were adapted on the basis of what functionality was available.
+    - Accela
+      - Starting at home page -> Advanced search -> Search records/applications-> Building-> Record type (if given option)-> From (date) -> Download results
+    - eTRAKit
+      - Starting at home page -> Search By -> Permit Type/Permit Subtype/Record ID -> “contains” -> *fill in* -> check for address, project description -> Download Results
+    - Other
+      - The first step is to look at the query options. Sometimes there was also a button that said “advanced search” and this would provide more specific queries. In other cases, the same steps as above were adapted on the basis of what functionality was available.
 
 If no open data or online building permit tracking system existed, then an unstructured web search was conducted on "building permit data" or "building permit report" for the municipality in question. Some were found to have pdf's or csv's of the data, while others did not appear to make anything publicly available in any format. These municipalities have been highlighted in light yellow in the tracking spreadsheet.
 
 ### Summary Results
 
 Our sample consists of the cities and counties in California whose building permit data met the following criteria:
-1.	Was able to be downloaded as .csv, .json, or .geojson
-2.	Permit data included a project description
-3.	Permit data included an address, APN, or coordinates
+   - Was able to be downloaded as .csv, .json, or .geojson
+   - Permit data included a project description
+   - Permit data included an address, APN, or coordinates
 
 Overall, 162 municipalities were checked for publicly available building permit data. 56 municipalities met all of the aforementioned requirements (see table 1.). Nintey-four municipalities had building permit data but did not meet our requirements. Their data was either not possible to download (there was no “download” button), the query system required specific entries (only searchable by address, APN, complete permit number), the query system required an account, or there was an error downloading the records.  Lastly, twenty-five out of the nintey-four municipalities only had their building permit data available in PDF format. These municipalities are not included in our sample. Twelve municipalities did not have any type of permit data available on line.
 
 There are multiple raw data files that were collected for some municipalities because there may have been different permit record types that had information on panel upgrades (ex. electrical permits and PV permits). Each raw CSV source file represents a permit record type for that municipality. Any given permit can only be one permit record type. This means that a Residential Solar permit cannot also be a Residential Electricity permit. It may happen that a particular project has multiple related permits, but the scope of work for each permit will be different. All of the raw datafiles have been named with either the “City_” or “County_” prefix following by the name of the municipality, and then a way to denote what type of permits are in that file. The following abbreviations were utilized to codify data files:
 
-EV: Electric Vehicle
-PV: Photovoltaic
-ESU: Electrical Service Upgrade
-MPU: Main Panel Upgrade
-EPM: Electrical, Plumbing, Mechanical permit type
-Finaled: The project has had all its inspections and is complete
-Issued: Permit was issued but still needs inspections
-Com: Commercial
-Res: Residential
+    - EV: Electric Vehicle
+    - PV: Photovoltaic
+    - ESU: Electrical Service Upgrade
+    - MPU: Main Panel Upgrade
+    - EPM: Electrical, Plumbing, Mechanical permit type
+    - Finaled: The project has had all its inspections and is complete
+    - Issued: Permit was issued but still needs inspections
+    - Com: Commercial
+    - Res: Residential
 
 ## Data Post-Processing
 
@@ -172,31 +172,66 @@ Note: This table contains a filtered subset of permits that were deemed to be as
 | address_clean | Concatenated address string fields for address standarization/normalization |
 | sa | Standardized address type formatted address information |
 | na | Normalized address type formatted address information |
-| query_address | Final formatted address string for output to geocoder |
+| query_address | Final formatted address string to be submitted to the geocoder |
 
 Table: permits.panel_ugprades_geocode_arcgis
+
+Note: This table contains response information obtained from the ArcGIS geocding service. The scope of the permit records covered in this table only includes those for which a valid centroid was missing in the original data.
+
+| Data Field | Definition |
+|------------|------------|
+| id | Globally unique UUID for permit record (Derived) |
+| query_address | Final formatted address string to be submitted to the geocoder |
+| centroid | EPSG: 3310 formatted X/Y coordinate pair for the query_address returned from geocoder |
+| address | Geocoder match address |
+| raw | Raw geocoder JSON response payload |
+| score | Geocder match quality score (0-100) |
+
+Table: permits.panel_upgrades_geocoded
+
+Note:
+
+| Data Field | Definition |
+|------------|------------|
+| id | Globally unique UUID for permit record (Derived) |
+| permit_number | Permit identification number (unique within the scope of each reporting entity) |
+| permit_class | Permit classification |
+| permit_type | Permit type |
+| estimated_cost | Estimated total project cost |
+| applied_date | Permit application date |
+| issued_date | Permit issuance date |
+| finaled_date | Permit finaled date |
+| solar_pv_system | Solar PV System measure boolean flag |
+| battery_storage_system | Battery Energy Storage System (BESS) measure boolean flag |
+| ev_charger | EV Charger boolean flag |
+| heat_pump | Heat-Pump HVAC system boolean flag |
+| main_panel_upgrade | Main electrical service panel upgrade boolean flag |
+| sub_panel_upgrade | Electrical service sub-panel upgrade boolean flag |
+| upgraded_panel_size | Destination panel size (where available) |
+| parcel_number | Assessor Parcel Number |
+| address | Street Address |
+| query_address | Final formatted address string to be submitted to the geocoder |
+| match_address | Geocoder match address |
+| centroid | EPSG: 3310 formatted X/Y centroid point with Null values in original data filled from Geocoding results |
+| megaparcelid | ZTRAX derived megaparcel table serial ID (foreign key) |
+
+Table: permits.sampled_counties
 
 Note:
 
 | Data Field | Definition |
 |------------|------------|
 
-Table: permits.panel_upgrades_geocoded
-
-| Data Field | Definition |
-|------------|------------|
-
-Table: permits.sampled_counties
-
-| Data Field | Definition |
-|------------|------------|
-
 Table: permits.sampled_places
+
+Note:
 
 | Data Field | Definition |
 |------------|------------|
 
 Table: permits.sampled_territories
+
+Note:
 
 | Data Field | Definition |
 |------------|------------|
