@@ -44,12 +44,12 @@ There are commercial software solution providers which specialize in building pe
 
 Below describes the general process for searching for and downloading building permit data from a building permit tracking system:
 
--	Accela
-Starting at home page -> Advanced search -> Search records/applications-> Building-> Record type (if given option)-> From (date) -> Download results
--	eTRAKit
-Starting at home page -> Search By -> Permit Type/Permit Subtype/Record ID -> “contains” -> *fill in* -> check for address, project description -> Download Results
--	Other
-The first step is to look at the query options. Sometimes there was also a button that said “advanced search” and this would provide more specific queries. In other cases, the same steps as above were adapted on the basis of what functionality was available.
+    -	Accela
+    Starting at home page -> Advanced search -> Search records/applications-> Building-> Record type (if given option)-> From (date) -> Download results
+    -	eTRAKit
+    Starting at home page -> Search By -> Permit Type/Permit Subtype/Record ID -> “contains” -> *fill in* -> check for address, project description -> Download Results
+    -	Other
+    The first step is to look at the query options. Sometimes there was also a button that said “advanced search” and this would provide more specific queries. In other cases, the same steps as above were adapted on the basis of what functionality was available.
 
 If no open data or online building permit tracking system existed, then an unstructured web search was conducted on "building permit data" or "building permit report" for the municipality in question. Some were found to have pdf's or csv's of the data, while others did not appear to make anything publicly available in any format. These municipalities have been highlighted in light yellow in the tracking spreadsheet.
 
@@ -86,14 +86,14 @@ Within the scope of each municipality, permit "class" designation fields were de
 
 While efforts were made during the initial raw data collection effort to constrain the scope of the permits being collected to just those which pertained to panel upgrades and other associated electrification measures - a significant number of unrelated permits were included in the raw data. Thus, an effort was undertaken to flag relevant permits on the basis of keywords within their work description fields. This process resulted in individual permits being assigned a boolean flag (True/False) for each of the following measure type categories:
 
-- Main Panel Upgrade
-- Sub-panel Upgrade
-- Solar PV System
-- Heat Pump HVAC System
-- EV Charger
-- Battery Energy Storage System (BESS)
+    - Main Panel Upgrade
+    - Sub-panel Upgrade
+    - Solar PV System
+    - Heat Pump HVAC System
+    - EV Charger
+    - Battery Energy Storage System (BESS)
 
-Note: While heat pump hot water heaters represent an important electrification measure, their power demand is not typically such that we would expect them to necessarily result in the need for a main service panel upgrade in most cases. Consequently, the decision was made to exclude them here from this list - which is focused on measures that nearly always require an upgraded service panel to be installed.
+Note: While heat pump hot water heaters represent an important electrification measure, their power demand is not typically such that we would expect them to necessarily result in the need for a main service panel upgrade, in most cases. Consequently, the decision was made to exclude them here from this list - which is focused on measures that nearly always require an upgraded service panel to be installed.
 
 ### Address Geocoding
 
@@ -130,17 +130,49 @@ Note: This table contains the raw collated permit data assembled from all the sa
 
 Table: permits.class_definitions
 
-Note: This table contains a manually defined dictionary which is used for translating raw permit class designations into a more standardized (and limited) set.
+Note: This table contains a manually defined dictionary which is used for translating raw permit class designations into a more limited and standardized set.
 
 | Data Field | Definition |
 |------------|------------|
+| ogc_fid | Serial ID (Automatically generated on import |)
+| permit_class | Permit classification field value in raw dataset |
+| permit_class_std | Mapping to standardized permit classification value |
 
 Table: permits.panel_upgrades
 
-Note: This table contains a filtered subset of permits that were deemed to be associated with panel upgrades as based upon the content of their work description field. The table includes, as a set of boolean fields, indicators of what relevant measures were identified in the work description field.
+Note: This table contains a filtered subset of permits that were deemed to be associated with panel upgrades as based upon the content of their work description field. The table includes, as a set of boolean fields, indicators of what relevant measures were identified in the work description field. The table also contains the output of various address string pre-processing operations designed to improve geocoding performance.
 
 | Data Field | Definition |
 |------------|------------|
+| permit_number | Permit number provided from each original data provider (no guarantee of uniqueness) |
+| project_description | Project work description |
+| permit_class | Original permit class designation |
+| permit_type | Original permit type designation |
+| estimated_cost | Estimated total project cost |
+| applied_date | Permit application date |
+| issued_date | Permit issuance date |
+| finaled_date | Permit finaled date |
+| address | Street address |
+| parcel_number | Assessor Parcel number (APN) |
+| place | Census place/city name designation (Derived) |
+| county_name | Census county name designation (Derived) |
+| zipcode | 5-digit zipcode |
+| file_name | Source filename of associated referenced from database import routine |
+| centroid_4326 | ESPG: 4326 formatted latitude longitude centroid point |
+| centroid | EPSG: 3310 formatted X/Y centroid point |
+| id | Globally unique UUID for permit record (Derived) |
+| solar_pv_system | Solar PV System measure boolean flag |
+| battery_storage_system | Battery Energy Storage System (BESS) measure boolean flag |
+| ev_charger | EV Charger boolean flag |
+| heat_pump | Heat-Pump HVAC system boolean flag |
+| main_panel_upgrade | Main electrical service panel upgrade boolean flag |
+| sub_panel_upgrade | Electrical service sub-panel upgrade boolean flag |
+| upgraded_panel_size | Destination panel size (where available) |
+| valid_centroid | Valid centroid determination boolean flag |
+| address_clean | Concatenated address string fields for address standarization/normalization |
+| sa | Standardized address type formatted address information |
+| na | Normalized address type formatted address information |
+| query_address | Final formatted address string for output to geocoder |
 
 Table: permits.panel_ugprades_geocode_arcgis
 
