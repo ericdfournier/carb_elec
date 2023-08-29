@@ -187,7 +187,7 @@ This table contains response information obtained from the ArcGIS geocding servi
 | raw | Raw geocoder JSON response payload |
 | score | Geocder match quality score (0-100) |
 
-Table: permits.panel_upgrades_geocoded
+## Table: permits.panel_upgrades_geocoded
 
 This table reflects a consolidation of the records in the filtered panel upgrade permit table with the geocoding results table. It also contains a foreign key linkage to ZTRAX parcel record derived megaparcel table.
 
@@ -214,6 +214,23 @@ This table reflects a consolidation of the records in the filtered panel upgrade
 | match_address | Geocoder match address |
 | centroid | EPSG: 3310 formatted X/Y centroid point with Null values in original data filled from Geocoding results |
 | megaparcelid | ZTRAX derived megaparcel table serial ID (foreign key) |
+
+## Table: permits.panel_upgrades_geocoded_geographies
+
+This table contains a set of contextual attributes for each permit record that have been derived from spatial joins against its centroid location.
+
+| Data Field | Definition |
+|------------|------------|
+| id | Globally unique UUID for permit record (Derived) |
+| place_name | Place Name with translated Legal/Statistical Area Description
+| county_name | County Name with translated Legal/Statistical Area Description
+| dac | CES-4.0 Disadvantaged Community boolean flag |
+| low_income | CARB Priority Population low income community boolean flag |
+| non_designated | CARB Priority Population non-designated community boolean flag |
+| buffer_low_income | CARB Priority Population buffer low-income community boolean flag |
+| bufferlih | CARB Priority Populations buffer low-income household eligible boolean flag |
+| tract_geoid_2019 | 2019 Census Tract Geometry Geogrpahic Identification Code |
+| megaparcelid | ZTRAX megaparcel serial ID |
 
 ## Table: permits.sampled_counties
 
@@ -251,8 +268,8 @@ This table contains a list of the census designated place
 | PLACEFP | Place FIPS Code |
 | PLACENS | Place ANSI Code |
 | GEOID | Geographic Identification Code |
-| NAME | County Name |
-| NAMELSAD | County Name with translated Legal/Statistical Area Description |
+| NAME | Place Name |
+| NAMELSAD | Place Name with translated Legal/Statistical Area Description |
 | LSAD | Legal/Statistical Area Description Code |
 | CLASSFP | Class FIPS Code |
 | PCICBSA | Current metropolitan or micropolitan statistical area principal city indicator |

@@ -33,7 +33,7 @@ USING (SELECT ST_UNION(geometry) AS geometry FROM census.acs_ca_2019_county_geom
 WHERE NOT ST_INTERSECTS(A.centroid, B.geometry) OR
     ST_ISEMPTY(A.centroid);
 
--- Join County and Place Attributes Based Upon Centroid
+-- Join County, Place, and Other Attributes Based Upon Centroid Intersections
 SELECT DISTINCT ON (A.id)
         A.id,
         B."NAMELSAD" AS place_name,
@@ -44,7 +44,7 @@ SELECT DISTINCT ON (A.id)
         D.bufferlowincome AS buffer_low_income,
         D.bufferlih AS bufferlih,
         E."GEOID" AS tract_geoid_2019,
-        F."rowid" AS ztrax_rowid
+        F."megaparcelid" AS megaparcelid
 INTO permits.panel_upgrades_geocoded_geographies
 FROM permits.panel_upgrades_geocoded AS A
 JOIN census.acs_ca_2019_place_geom AS B
@@ -55,5 +55,5 @@ JOIN carb.priority_populations_ces4 AS D
     ON ST_INTERSECTS(A.centroid, D.geom)
 JOIN census.acs_ca_2019_tr_geom AS E
     ON ST_INTERSECTS(A.centroid, E.geometry)
-JOIN ztrax.parcel_attributes AS F
+JOIN ztrax.megaparcels AS F
     ON ST_INTERSECTS(A.centroid, F.geom);

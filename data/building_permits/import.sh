@@ -16,6 +16,7 @@ cd $dir
 # - permits.panel_upgrades
 # - permits.panel_upgrades_geocode_arcgis
 # - permits.panel_upgrades_geocoded
+# - permits.panel_upgrades_geocoded_geographies
 # - permits.sampled_counties
 # - permits.sampled_places
 # - permits.sampled_territories
@@ -84,35 +85,39 @@ psql -d carb -a -f 'geocode_postprocess.sql'
 
 # Write class definition table metadata output
 table="class_definitions"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Write combined raw data table metadata output
 table="combined"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Write panel upgrade permit data table metadata output
 table="panel_upgrades"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Write panel upgrade arcgis geocoder input table metadata output
 table="panel_upgrades_geocode_arcgis"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Write panel upgrade arcgis geocoder input table metadata output
 table="panel_upgrades_geocoded"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
+
+# Write panel upgrade geocoded geographies table metadata output
+table="panel_upgrades_geocoded_geographies"
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Write sampled counties table metadata output
 table="sampled_counties"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Write sampled places table metadata output
 table="sampled_places"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Write sampled territories table metadata output
 table="sampled_territories"
-ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_ogrinfo.txt'
 
 # Export CSV Formatted Tables
 psql -d carb -a -f 'export.sql'
