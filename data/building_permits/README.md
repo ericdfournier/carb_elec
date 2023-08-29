@@ -7,10 +7,10 @@ Building permit data pertaining to electrical service panel upgrades and other r
 Each row of this spreadsheet is highlighted with a specific color based on two components: 1. Building permit data availability, and 2. Which method (open data portal, permit tracking portal system, PDF) the permit data is available. The key is below:
 
     - SB 535 Disadvantaged Community (County)
-	- Municipality has Permit Data in PDF Format
-	- Municipality has Permit Data in Open Data Portal
-	- Municipality has Permit Data in Permit Tracking Portal System
-	- SB 535 Priority Community with no available data on permits
+    - Municipality has Permit Data in PDF Format
+    - Municipality has Permit Data in Open Data Portal
+    - Municipality has Permit Data in Permit Tracking Portal System
+    - SB 535 Priority Community with no available data on permits
 
 # Data Overview
 

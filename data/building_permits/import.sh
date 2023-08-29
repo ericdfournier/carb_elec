@@ -19,6 +19,7 @@ cd $dir
 # - permits.sampled_counties
 # - permits.sampled_places
 # - permits.sampled_territories
+#
 ################################################################################
 
 format='PostgreSQL'
