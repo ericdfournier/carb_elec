@@ -1,14 +1,12 @@
 INFO: Open of `postgresql://edf@127.0.0.1/carb'
       using driver `PostgreSQL' successful.
 
-Layer name: permits.combined
-Metadata:
-  DESCRIPTION=2023-06-05 - permits
+Layer name: permits.panel_upgrades
 Geometry (centroid_4326): Point
 Geometry (centroid): Point
-Feature Count: 4853032
-Extent (centroid_4326): (-122.514264, -117.255224) - (1171540.980000, 325028.200000)
-Extent (centroid): (-8569581.268607, -603695.046247) - (3918518.856818, 5906100.153904)
+Feature Count: 605787
+Extent (centroid_4326): (-122.510715, 32.542335) - (117.031650, 48.902240)
+Extent (centroid): (-8569581.268607, -603354.089033) - (490077.600203, 5906100.153904)
 SRS WKT (centroid_4326):
 GEOGCRS["WGS 84",
     ENSEMBLE["World Geodetic System 1984 ensemble",
@@ -96,11 +94,16 @@ place: String (0.0)
 county_name: String (0.0)
 zipcode: String (0.0)
 file_name: String (0.0)
-id: String(UUID) (0.0) UNIQUE NOT NULL DEFAULT gen_random_uuid()
-solar_pv_system: Integer(Boolean) (1.0) DEFAULT false
-battery_storage_system: Integer(Boolean) (1.0) DEFAULT false
-ev_charger: Integer(Boolean) (1.0) DEFAULT false
-heat_pump: Integer(Boolean) (1.0) DEFAULT false
-main_panel_upgrade: Integer(Boolean) (1.0) DEFAULT false
-sub_panel_upgrade: Integer(Boolean) (1.0) DEFAULT false
+id: String(UUID) (0.0)
+solar_pv_system: Integer(Boolean) (1.0)
+battery_storage_system: Integer(Boolean) (1.0)
+ev_charger: Integer(Boolean) (1.0)
+heat_pump: Integer(Boolean) (1.0)
+main_panel_upgrade: Integer(Boolean) (1.0)
+sub_panel_upgrade: Integer(Boolean) (1.0)
 upgraded_panel_size: Real (0.0)
+valid_centroid: Integer(Boolean) (1.0) DEFAULT false
+address_clean: String (0.0)
+sa: String (0.0) DEFAULT standardize_address('tiger.pagc_lex'::text, 'tiger.pagc_gaz'::text, 'tiger.pagc_rules'::text, address_clean)
+na: String (0.0)
+query_address: String (0.0)
