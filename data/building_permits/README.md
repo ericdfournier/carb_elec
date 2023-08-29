@@ -6,11 +6,11 @@ Building permit data pertaining to electrical service panel upgrades and other r
 
 Each row of this spreadsheet is highlighted with a specific color based on two components: 1. Building permit data availability, and 2. Which method (open data portal, permit tracking portal system, PDF) the permit data is available. The key is below:
 
-    - SB 535 Disadvantaged Community (County)
-    - Municipality has Permit Data in PDF Format
-    - Municipality has Permit Data in Open Data Portal
-    - Municipality has Permit Data in Permit Tracking Portal System
-    - SB 535 Priority Community with no available data on permits
+- SB 535 Disadvantaged Community (County)
+- Municipality has Permit Data in PDF Format
+- Municipality has Permit Data in Open Data Portal
+- Municipality has Permit Data in Permit Tracking Portal System
+- SB 535 Priority Community with no available data on permits
 
 # Data Overview
 
@@ -20,7 +20,7 @@ This building permit dataset was prepared by Nicole Matteson, a staff research a
 
 ### Search Prioritization
 
-Our objective was to develop a database of panel upgrade and electrification building permits for as representative sample of California's geographies and demographics as possible. This data set would later be used to train a machine learning model capable of predicting installed electrical service panel sizes (amps) for the state's residential building stock.
+Our objective was to develop a database of panel upgrade and electrification building permits for as representative a sample of California's geographies and demographics as possible. This data set would later be used to train a machine learning model capable of predicting installed electrical service panel sizes (amps) for the state's residential building stock.
 
 To structure our permit data search process, we began by ranking the list of the state's counties and cities by their population size. Our experience has shown that population sizes correlate strongly with the volume tax revenues collected by municipalities and thus, the available financial resources for developing and maintaining sophisticated digital data collection and hosting infrastructure.
 
@@ -32,9 +32,9 @@ Different municipalities collect different types of attribute information as par
 
 For permit record type keyword searches, the following terms were used:
 
-    - Electrical, Residential Electrical (Res elec), Commercial Electrical (Com elec), Residential Alteration (res alt), Commercial Alteration (com alt), OTC (over the counter), No plan permits (permits that do not require detailed plans), Simple permits, Express permits, PV permit, EV permit, Panel upgrade, MPU (main panel upgrade), Service upgrade, Utility permit, Residential, Building, Commercial.
-    - If the building permit portal did not provide a query to specify permit type, we used the Record ID query and searched: B (for building permit- some Record ID’s start with B), R (for residential), C (for commercial)
-    - Dates: Dates ranged from 1950 to present
+- Electrical, Residential Electrical (Res elec), Commercial Electrical (Com elec), Residential Alteration (res alt), Commercial Alteration (com alt), OTC (over the counter), No plan permits (permits that do not require detailed plans), Simple permits, Express permits, PV permit, EV permit, Panel upgrade, MPU (main panel upgrade), Service upgrade, Utility permit, Residential, Building, Commercial.
+- If the building permit portal did not provide a query to specify permit type, we used the Record ID query and searched: B (for building permit- some Record ID’s start with B), R (for residential), C (for commercial)
+- Dates: Dates ranged from 1950 to present
 
 ### Access Patterns
 
@@ -44,12 +44,12 @@ There are commercial software solution providers which specialize in building pe
 
 Below describes the general process for searching for and downloading building permit data from a building permit tracking system:
 
-    - Accela
-      - Starting at home page -> Advanced search -> Search records/applications-> Building-> Record type (if given option)-> From (date) -> Download results
-    - eTRAKit
-      - Starting at home page -> Search By -> Permit Type/Permit Subtype/Record ID -> “contains” -> *fill in* -> check for address, project description -> Download Results
-    - Other
-      - The first step is to look at the query options. Sometimes there was also a button that said “advanced search” and this would provide more specific queries. In other cases, the same steps as above were adapted on the basis of what functionality was available.
+- Accela
+  - Starting at home page -> Advanced search -> Search records/applications-> Building-> Record type (if given option)-> From (date) -> Download results
+- eTRAKit
+  - Starting at home page -> Search By -> Permit Type/Permit Subtype/Record ID -> “contains” -> *fill in* -> check for address, project description -> Download Results
+- Other
+  - The first step is to look at the query options. Sometimes there was also a button that said “advanced search” and this would provide more specific queries. In other cases, the same steps as above were adapted on the basis of what functionality was available.
 
 If no open data or online building permit tracking system existed, then an unstructured web search was conducted on "building permit data" or "building permit report" for the municipality in question. Some were found to have pdf's or csv's of the data, while others did not appear to make anything publicly available in any format. These municipalities have been highlighted in light yellow in the tracking spreadsheet.
 
@@ -64,15 +64,15 @@ Overall, 162 municipalities were checked for publicly available building permit 
 
 There are multiple raw data files that were collected for some municipalities because there may have been different permit record types that had information on panel upgrades (ex. electrical permits and PV permits). Each raw CSV source file represents a permit record type for that municipality. Any given permit can only be one permit record type. This means that a Residential Solar permit cannot also be a Residential Electricity permit. It may happen that a particular project has multiple related permits, but the scope of work for each permit will be different. All of the raw datafiles have been named with either the “City_” or “County_” prefix following by the name of the municipality, and then a way to denote what type of permits are in that file. The following abbreviations were utilized to codify data files:
 
-    - EV: Electric Vehicle
-    - PV: Photovoltaic
-    - ESU: Electrical Service Upgrade
-    - MPU: Main Panel Upgrade
-    - EPM: Electrical, Plumbing, Mechanical permit type
-    - Finaled: The project has had all its inspections and is complete
-    - Issued: Permit was issued but still needs inspections
-    - Com: Commercial
-    - Res: Residential
+- EV: Electric Vehicle
+- PV: Photovoltaic
+- ESU: Electrical Service Upgrade
+- MPU: Main Panel Upgrade
+- EPM: Electrical, Plumbing, Mechanical permit type
+- Finaled: The project has had all its inspections and is complete
+- Issued: Permit was issued but still needs inspections
+- Com: Commercial
+- Res: Residential
 
 ## Data Post-Processing
 
@@ -86,12 +86,12 @@ Within the scope of each municipality, permit "class" designation fields were de
 
 While efforts were made during the initial raw data collection effort to constrain the scope of the permits being collected to just those which pertained to panel upgrades and other associated electrification measures - a significant number of unrelated permits were included in the raw data. Thus, an effort was undertaken to flag relevant permits on the basis of keywords within their work description fields. This process resulted in individual permits being assigned a boolean flag (True/False) for each of the following measure type categories:
 
-    - Main Panel Upgrade
-    - Sub-panel Upgrade
-    - Solar PV System
-    - Heat Pump HVAC System
-    - EV Charger
-    - Battery Energy Storage System (BESS)
+- Main Panel Upgrade
+- Sub-panel Upgrade
+- Solar PV System
+- Heat Pump HVAC System
+- EV Charger
+- Battery Energy Storage System (BESS)
 
 Note: While heat pump hot water heaters represent an important electrification measure, their power demand is not typically such that we would expect them to necessarily result in the need for a main service panel upgrade, in most cases. Consequently, the decision was made to exclude them here from this list - which is focused on measures that nearly always require an upgraded service panel to be installed.
 
@@ -215,7 +215,7 @@ This table reflects a consolidation of the records in the filtered panel upgrade
 | centroid | EPSG: 3310 formatted X/Y centroid point with Null values in original data filled from Geocoding results |
 | megaparcelid | ZTRAX derived megaparcel table serial ID (foreign key) |
 
-Table: permits.sampled_counties
+## Table: permits.sampled_counties
 
 This table contains a list of the counties for which permit data was accessed.
 
@@ -241,7 +241,7 @@ This table contains a list of the counties for which permit data was accessed.
 | geometry | Geometry |
 | union_code | Boolean value used for spatial union operation |
 
-Table: permits.sampled_places
+## Table: permits.sampled_places
 
 This table contains a list of the census designated place
 
@@ -266,7 +266,7 @@ This table contains a list of the census designated place
 | geometry | Geometry |
 | union_code | Boolean value used for spatial union operation |
 
-Table: permits.sampled_territories
+## Table: permits.sampled_territories
 
 This table contains a unified polygon geometry which represents all of the combined sampled places and counties.
 
