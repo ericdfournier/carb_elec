@@ -1,0 +1,18 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: permits.panel_upgrades_geocoded_geographies
+Geometry: None
+Feature Count: 534108
+Layer SRS WKT:
+(unknown)
+id: String(UUID) (0.0)
+place_name: String (0.0)
+county_name: String (0.0)
+dac: String (255.0)
+low_income: String (255.0)
+non_designated: String (255.0)
+buffer_low_income: String (255.0)
+bufferlih: String (255.0)
+tract_geoid_2019: String (0.0)
+megaparcelid: Integer (0.0)
