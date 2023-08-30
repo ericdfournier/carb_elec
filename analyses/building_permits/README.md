@@ -2,7 +2,7 @@
 
 This directory contains a python script which was used to generate figures and analytics for the final building permit data sample. These were presented on at the project's July 2023 Quarterly progress update meeting.
 
-Notes:
+## Notes
 
 - [building_permits_analysis.py](/analyses/building_permits/building_permits_analysis.py) requires a connection to a locally hosted postgres database containing the relevant building permit data tables documented in [/data/building_permits](/data/building_permits/)
 
