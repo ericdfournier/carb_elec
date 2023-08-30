@@ -211,6 +211,8 @@ This table contains response information obtained from the ArcGIS geocding servi
 
 This table reflects a consolidation of the records in the filtered panel upgrade permit table with the geocoding results table. It also contains a foreign key linkage to ZTRAX parcel record derived megaparcel table.
 
+**NOTE: This table should be considered the final output building permit data table for this workflow**
+
 | Data Field | Definition |
 |------------|------------|
 | id | Globally unique UUID for permit record (Derived) |
