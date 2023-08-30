@@ -40,7 +40,26 @@ For permit record type keyword searches, the following terms were used:
 
 Permit data were access according to one of the following three mechanisms: open data portals, building permit websites, and publicly accessible APIs.  Some municipalities have online permit tracking systems where records can be queried. An in depth process and description of these portals is addressed in the following section.
 
-There are commercial software solution providers which specialize in building permit data tracking and management systems. The two biggest of which are Accela and eTRAKit. The standard products offerred by these companies provided a degree of consistency across municipalities which used them. For example, many permit data download sites provided a query section that allowed the user to search by 1. Record ID, 2. Start Date/End Date, 3. Parcel Number, 4. Street Number, 5. Street Name, 6. City. Differences most commonly ocurred with respect to the options for: 1. Permit Record Type, 2. Record Subtype, 3. Record Status, 4. Project Name, 6. License Type and State License Number, 7. The ability to download the datasets. This last point was very important because while many municipalities had the data we were looking for, they did not provide an option to download the data.
+There are commercial software solution providers which specialize in building permit data tracking and management systems. The two biggest of which are Accela and eTRAKit. The standard products offerred by these companies provided a degree of consistency across municipalities which used them. For example, many permit data download sites provided a query section that allowed the user to search by:
+
+- Record ID
+- Start Date/End Date
+- Parcel Number
+- Street Number
+- Street Name
+- City
+
+Differences most commonly ocurred with respect to the options for:
+
+- Permit Record Type
+- Record Subtype
+- Record Status
+- Project Name
+- License Type
+- State License Number
+- The ability to download the datasets
+
+This last point was very important because while many municipalities had the data we were looking for, they did not provide an option to download the data.
 
 Below describes the general process for searching for and downloading building permit data from a building permit tracking system:
 
@@ -56,9 +75,10 @@ If no open data or online building permit tracking system existed, then an unstr
 ### Summary Results
 
 Our sample consists of the cities and counties in California whose building permit data met the following criteria:
-   - Was able to be downloaded as .csv, .json, or .geojson
-   - Permit data included a project description
-   - Permit data included an address, APN, or coordinates
+
+- Was able to be downloaded as .csv, .json, or .geojson
+- Permit data included a project description
+- Permit data included an address, APN, or coordinates
 
 Overall, 162 municipalities were checked for publicly available building permit data. 56 municipalities met all of the aforementioned requirements (see table 1.). Nintey-four municipalities had building permit data but did not meet our requirements. Their data was either not possible to download (there was no “download” button), the query system required specific entries (only searchable by address, APN, complete permit number), the query system required an account, or there was an error downloading the records.  Lastly, twenty-five out of the nintey-four municipalities only had their building permit data available in PDF format. These municipalities are not included in our sample. Twelve municipalities did not have any type of permit data available on line.
 
