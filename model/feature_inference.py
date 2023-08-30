@@ -4,8 +4,10 @@ import pandas as pd
 import geopandas as gpd
 import sqlalchemy as sql
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
-
+from statsmodels.distributions.empirical_distribution import ECDF
+import random
 import os
 
 #%% Generate Dataset
@@ -30,87 +32,148 @@ query = ''' SELECT *
 mp = pd.read_sql(query, db_con)
 mp.set_index('megaparcelid', drop = True, inplace = True)
 
-#%%
+#%% Prep Fields
 
-'''Function to infer the existing panel size for a buildng that did not
+'''Routine to infer the existing panel size for a buildng that did not
 receive any previous permitted work. The inference model is based upon
 the empirical ECDF which relates the age of the home to the probability
 of permitted work by DAC status.'''
 
-# Filter Properties with no construction vintage data
-nan_ind = ~mp.loc[:,'YearBuilt'].isna()
-
 # Bin Properties by CES Score
-bins = np.arange(0,110,10)
-labels = [str(x) for x in np.arange(0,10,1)]
+bins = np.arange(0,105,5)
+classes = [str(x) for x in np.arange(0,20,1)]
 mp['ces_bin'] = pd.cut(
     mp['ciscorep'],
     bins = bins,
-    labels = labels)
+    labels = classes)
 
 # Filter Properties with Panel Upgrade Permits
-permit_ind = data.loc[:,'permitted_panel_upgrade'] == True
+permit_cols = [
+    'solar_pv_system',
+    'battery_storage_system',
+    'ev_charger',
+    'heat_pump',
+    'main_panel_upgrade',
+    'sub_panel_upgrade']
+mp[permit_cols] = mp[permit_cols].astype(bool)
+mp['permitted_panel_upgrade'] = mp.loc[:,permit_cols].any(axis = 1) == True
 
-# Extract Permit Issue Year
-permit_issue_year = data.loc[:,'permit_issue_date'].dt.year
+mp['issued_date'] = pd.to_datetime(
+    mp['issued_date'],
+    format = '%Y-%m-%d')
 
-# Extract Construction Vintage Year
-construction_year = data.loc[:,'YearBuilt'].dt.year
+ecdfs = {}
+
+#%% Enter ECDF Generation Loop
+
+# Generate figure axes
+fig, ax = plt.subplots(1,1, figsize=(7,7))
+
+# Allocate ECDF sample data array
+n = 100
+y = np.zeros((len(classes),n))
+
+# Generate color ramp for plotting by CES score bin
+palette = sns.color_palette('rainbow', len(classes))
+
+for i, c in enumerate(classes):
+
+    # Filter on CES bin value
+    subset_ind = mp['ces_bin'] == c
+
+    # Filter Properties with no construction vintage data
+    nan_ind = ~mp.loc[:,'YearBuilt'].isna()
+
+    # Filter Properties with permitted panel upgrades
+    perm_ind = mp['permitted_panel_upgrade'] == True
+
+    # Combine indices to master
+    master_ind = (subset_ind) & (nan_ind) & (perm_ind)
+
+    # Filter and copy subset data
+    data = mp.loc[master_ind,:].copy()
+
+    # Extract Permit Issue Year
+    permit_issue_year = data.loc[:,'issued_date'].dt.year
+
+    # Extract Construction Vintage Year
+    construction_year = data.loc[:,'YearBuilt']
 
     # Compute the Current Age of the Properties
-    current_age = 2022 - construction_year
+    current_year = 2022
+    current_age = current_year - construction_year
 
     # Compute the Age of the Properties in the Year in Which Permits were Issued (if any)
-    permit_age = current_age - (2022 - permit_issue_year)
+    permit_age = current_age - (current_year - permit_issue_year)
 
     # Generate ECDFS Based Upon the Age of Properties at the time Their Permits Were Issued for Permitted Properties
-    dac_ecdf = ECDF(permit_age.loc[nan_ind & dac_ind & permit_ind])
-    non_dac_ecdf = ECDF(permit_age.loc[nan_ind & non_dac_ind & permit_ind])
+    ecdfs[c] = ECDF(permit_age)
 
-    # Output DAC ECDF to File for LBNL
-    with open('/Users/edf/repos/la100es-panel-upgrades/data/ecdfs/{}_dac_ecdf.pkl'.format(sector), 'wb') as handle:
-        pickle.dump(dac_ecdf, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # Generate ECDF Sample Data
+    x = np.linspace(min(current_age), max(current_age), n)
+    y[i,:] = ecdfs[c](x)
 
-    # Output non-DAC ECDF to File for LBNL
-    with open('/Users/edf/repos/la100es-panel-upgrades/data/ecdfs/{}_non_dac_ecdf.pkl'.format(sector), 'wb') as handle:
-        pickle.dump(non_dac_ecdf, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # Test plot
+    ax.step(x, y[i,:], color = palette[i])
+    ax.set_xlim((0, 130))
 
-    # Seed the Random Number Generator to Create Deterministic Outputs
-    rs = 12345678
-    np.random.seed(rs)
+# Style figure
+ax.grid(True)
+ax.set_xlabel('Home Age')
+ax.set_ylabel('Cumulative Probability Density')
+ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
+
+#%% Iterate through each CDF and determininstically generate previous upgrade predictions
+
+# Seed random number generator for deterministic output
+random.seed(123456)
+mp['previous_upgrade'] = False
+
+# Iterate through ecdf dictionary
+for c, ecdf in ecdfs.items():
+
+    # Debug
+    print('CES Class: {}'.format(c))
+
+    # Filter on CES bin value
+    subset_ind = mp['ces_bin'] == c
+
+    # Filter Properties with no construction vintage data
+    nan_ind = ~mp.loc[:,'YearBuilt'].isna()
+
+    # Filter Properties without permitted panel upgrades
+    perm_ind = mp['permitted_panel_upgrade'] == False
+
+    # Combine indices to master
+    master_ind = (subset_ind) & (nan_ind) & (perm_ind)
 
     # Extract the Current Ages of the DAC Inference Group of Non-Permitted Properties
-    dac_x = current_age.loc[(nan_ind & dac_ind & ~permit_ind)]
+    data = mp.loc[master_ind,:].copy()
+
+    # Extract Construction Vintage Year
+    construction_year = data.loc[:,'YearBuilt']
+
+    # Compute the Current Age of the Properties
+    current_year = 2022
+    current_age = current_year - construction_year
 
     # Output the Probability of an Upgrade Based upon the DAC-ECDF
-    dac_y = dac_ecdf(dac_x)
-    dac_upgrade_list = []
+    prob = ecdfs[c](current_age)
 
-    # Infer Upgrade based Upon Pseudo-Random Choice Using the Output Probability
-    for pr in dac_y:
-        dac_upgrade_list.append(np.random.choice(np.array([False, True]), size = 1, p = [1.0-pr, pr])[0])
+    # Pre-allocate boolean choice output array
+    upgrade_choices = np.zeros((prob.shape[0])).astype(bool)
 
-    dac_x = dac_x.to_frame()
-    dac_x['previous_upgrade'] = dac_upgrade_list
+    # Iterate through all of the unpermitted properties and assign an inferred upgrade outcome
+    for i, p in enumerate(prob):
+        upgrade_choices[i] = np.random.choice(
+                np.array([False, True]),
+                size = 1,
+                p = [1.0-p, p])[0]
 
-    # Extract the Current Ages of the non-DAC Inference Group of Non-Permitted Properties
-    non_dac_x = current_age.loc[(nan_ind & non_dac_ind & ~permit_ind)]
+    # Write upgrade choices back to main dataframe
+    mp.loc[master_ind, 'previous_upgrade'] = upgrade_choices
 
-    # Output the Probability of an Upgrade Based upon the non-DAC-ECDF
-    non_dac_y = non_dac_ecdf(non_dac_x)
-    non_dac_upgrade_list = []
-
-    # Infer Upgrade based Upon Pseudo-Random Choice Using the Output Probability
-    for pr in non_dac_y:
-        non_dac_upgrade_list.append(np.random.choice(np.array([False, True]), size = 1, p = [1.0-pr, pr])[0])
-
-    non_dac_x = non_dac_x.to_frame()
-    non_dac_x['previous_upgrade'] = non_dac_upgrade_list
-
-    # Loop Through and Assess Upgrades for DAC and Non-DAC cohorts
-    upgrade_scale = []
-
-    if sector == 'single_family':
+#%% TODO: Complete Development of this section
 
         upgrade_scale = [   0.,
                             30.,
@@ -129,16 +192,6 @@ construction_year = data.loc[:,'YearBuilt'].dt.year
                             1200.,
                             1400.]
 
-    elif sector == 'multi_family':
-
-        upgrade_scale = [   0.,
-                            40.,
-                            60.,
-                            90.,
-                            150.,
-                            200.]
-
-    # DAC Loop
     data['inferred_panel_upgrade'] = False
 
     for ind, row in dac_x.iterrows():

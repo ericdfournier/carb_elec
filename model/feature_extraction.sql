@@ -98,7 +98,7 @@ WHERE A."GEOID" = B."GEOID";
 CREATE INDEX IF NOT EXISTS idx_fuel_geom_idx
 ON census.fuel_features USING GIST("geom");
 
--- Extract Relevant Parcel Attributes for LA Training Data
+-- Extract Relevant Parcel Attributes for Model Training Data
 SELECT  mp.*,
         dist."shorelinedistm",
         elev."elevationm",
