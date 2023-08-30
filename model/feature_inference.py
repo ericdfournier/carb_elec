@@ -6,6 +6,7 @@ import sqlalchemy as sql
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from tqdm import tqdm
 from statsmodels.distributions.empirical_distribution import ECDF
 import random
 import os
@@ -173,52 +174,46 @@ for c, ecdf in ecdfs.items():
     # Write upgrade choices back to main dataframe
     mp.loc[master_ind, 'previous_upgrade'] = upgrade_choices
 
-#%% TODO: Complete Development of this section
+#%% Loop through all records and assign existing panel size from upgrade choice and ladder value
 
-        upgrade_scale = [   0.,
-                            30.,
-                            40.,
-                            60.,
-                            100.,
-                            125.,
-                            150.,
-                            200.,
-                            225.,
-                            320.,
-                            400.,
-                            600.,
-                            800.,
-                            1000.,
-                            1200.,
-                            1400.]
+# NOTE: Long runtime on this due to the need to iterate through each of the
+# 3 million plus parcels in the dataset. Make sure to pickle output on
+# completion...
 
-    data['inferred_panel_upgrade'] = False
+upgrade_scale = [
+    0.,
+    30.,
+    40.,
+    60.,
+    100.,
+    125.,
+    150.,
+    200.,
+    225.,
+    320.,
+    400.,
+    600.,
+    800.,
+    1000.,
+    1200.,
+    1400.]
 
-    for ind, row in dac_x.iterrows():
+mp['inferred_panel_upgrade'] = False
 
-        as_built = data.loc[ind,'panel_size_as_built']
+with tqdm(total = mp.shape[0]) as pbar:
+
+    for i, row in mp.iterrows():
+
+        as_built = mp.loc[i,'panel_size_as_built']
         existing = as_built
 
-        if (row['previous_upgrade'] == True) & (data.loc[ind, 'permitted_panel_upgrade'] == False):
+        if (row['previous_upgrade'] == True) & (row['permitted_panel_upgrade'] == False):
             level = upgrade_scale.index(as_built)
             existing = upgrade_scale[level + 1]
-            data.loc[ind,'inferred_panel_upgrade'] = True
+            mp.loc[i,'inferred_panel_upgrade'] = True
+        else:
+            mp.loc[i,'panel_size_existing'] = existing
 
-        data.loc[ind,'panel_size_existing'] = existing
+        pbar.update(1)
 
-    # Non-DAC Loop
-    for ind, row in non_dac_x.iterrows():
-
-        as_built = data.loc[ind,'panel_size_as_built']
-        existing = as_built
-
-        if (row['previous_upgrade'] == True) & (data.loc[ind, 'permitted_panel_upgrade'] == False):
-            level = upgrade_scale.index(as_built)
-            existing = upgrade_scale[level + 1]
-            data.loc[ind,'inferred_panel_upgrade'] = True
-
-        data.loc[ind,'panel_size_existing'] = existing
-
-    data['panel_upgrade'] = data.loc[:,['permitted_panel_upgrade','inferred_panel_upgrade']].any(axis = 1)
-
-    return data
+mp['any_panel_upgrade'] = mp.loc[:,['permitted_panel_upgrade','inferred_panel_upgrade']].any(axis = 1)
