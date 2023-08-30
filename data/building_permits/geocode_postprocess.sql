@@ -57,3 +57,7 @@ JOIN census.acs_ca_2019_tr_geom AS E
     ON ST_INTERSECTS(A.centroid, E.geometry)
 JOIN ztrax.megaparcels AS F
     ON ST_INTERSECTS(A.centroid, F.geom);
+
+-- Index Geocoded Panel Upgrade table on Megaparcel ID Field
+CREATE INDEX IF NOT EXISTS idx_megaparcelid_idx
+ON permits.panel_upgrades_geocoded (megaparcelid);

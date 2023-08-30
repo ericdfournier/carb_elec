@@ -22,34 +22,40 @@ db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
 db_con = sql.create_engine(db_con_string)
 
 # Extract Single Family
-query = ''' SELECT A.*,
-            FROM ztrax.megaparcels AS A
-            WHERE ST_INTERSECTS(A.centroid, B.geom) AND
-                A.usetype = 'single_family';'''
-raw = pd.read_sql(query, db_con)
-raw.set_index('rowid', drop = True, inplace = True)
+query = ''' SELECT *
+            FROM ztrax.model_data
+            WHERE
+                usetype = 'single_family' AND
+                sampled = TRUE;'''
+mp = pd.read_sql(query, db_con)
+mp.set_index('megaparcelid', drop = True, inplace = True)
 
-return raw
+#%%
 
-    '''Function to infer the existing panel size for a buildng that did not
-    receive any previous permitted work. The inference model is based upon
-    the empirical ECDF which relates the age of the home to the probability
-    of permitted work by DAC status.'''
+'''Function to infer the existing panel size for a buildng that did not
+receive any previous permitted work. The inference model is based upon
+the empirical ECDF which relates the age of the home to the probability
+of permitted work by DAC status.'''
 
-    # Filter Properties with no construction vintage data
-    nan_ind = ~data.loc[:,'MedianYearBuilt'].isna()
+# Filter Properties with no construction vintage data
+nan_ind = ~mp.loc[:,'YearBuilt'].isna()
 
-    # Bin Properties by CES Score
+# Bin Properties by CES Score
+bins = np.arange(0,110,10)
+labels = [str(x) for x in np.arange(0,10,1)]
+mp['ces_bin'] = pd.cut(
+    mp['ciscorep'],
+    bins = bins,
+    labels = labels)
 
+# Filter Properties with Panel Upgrade Permits
+permit_ind = data.loc[:,'permitted_panel_upgrade'] == True
 
-    # Filter Properties with Panel Upgrade Permits
-    permit_ind = data.loc[:,'permitted_panel_upgrade'] == True
+# Extract Permit Issue Year
+permit_issue_year = data.loc[:,'permit_issue_date'].dt.year
 
-    # Extract Permit Issue Year
-    permit_issue_year = data.loc[:,'permit_issue_date'].dt.year
-
-    # Extract Construction Vintage Year
-    construction_year = data.loc[:,'MedianYearBuilt'].dt.year
+# Extract Construction Vintage Year
+construction_year = data.loc[:,'YearBuilt'].dt.year
 
     # Compute the Current Age of the Properties
     current_age = 2022 - construction_year

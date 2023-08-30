@@ -98,8 +98,6 @@ WHERE A."GEOID" = B."GEOID";
 CREATE INDEX IF NOT EXISTS idx_fuel_geom_idx
 ON census.fuel_features USING GIST("geom");
 
--- TODO: NEED TO FIGURE OUT THIS CROSS LATERAL JOIN THING GOING ON BELOW!!!
-
 -- Extract Relevant Parcel Attributes for LA Training Data
 SELECT  mp.*,
         dist."shorelinedistm",
@@ -124,7 +122,16 @@ SELECT  mp.*,
         fuel."elecheatinghouseholdspct",
         cz."bzone",
         ST_X(ST_GEOMETRYN(mp."centroid", 1)) AS "x",
-        ST_Y(ST_GEOMETRYN(mp."centroid", 1)) AS "y"
+        ST_Y(ST_GEOMETRYN(mp."centroid", 1)) AS "y",
+        permits.id AS permit_id,
+        permits.issued_date,
+        permits.solar_pv_system,
+        permits.battery_storage_system,
+        permits.ev_charger,
+        permits.heat_pump,
+        permits.main_panel_upgrade,
+        permits.sub_panel_upgrade,
+        permits.upgraded_panel_size
 INTO    ztrax.model_data
 FROM    ztrax.megaparcels AS mp
 INNER JOIN ztrax.distance AS dist
@@ -146,14 +153,16 @@ INNER JOIN cec.ca_building_climate_zones_2021 AS cz
 INNER JOIN census.housing_features AS housing
     ON ST_INTERSECTS(mp."centroid", housing."geom")
 INNER JOIN census.fuel_features AS fuel
-    ON ST_INTERSECTS(mp."centroid", fuel."geom");
+    ON ST_INTERSECTS(mp."centroid", fuel."geom")
+LEFT JOIN permits.panel_upgrades_geocoded AS permits
+    ON permits."megaparcelid" = mp."megaparcelid";
 
 -- Create Empty Panel Size Existing Field Before Passing to Inference Routine
 ALTER TABLE ztrax.model_data
 ADD COLUMN panel_size_existing NUMERIC DEFAULT NULL;
 
 -- Determine Missing Counties
-SELECT county."NAMELSAD", 
+SELECT county."NAMELSAD",
        county."geometry",
        COUNT(DISTINCT mp."megaparcelid") AS valid_megaparcels
 INTO ztrax.valid_counties
@@ -162,4 +171,3 @@ JOIN census.acs_ca_2019_county_geom AS county
     ON ST_INTERSECTS(mp."geom", county."geometry")
 WHERE mp.panel_size_as_built IS NOT NULL
 GROUP BY county."NAMELSAD", county."geometry";
-
