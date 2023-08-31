@@ -25,12 +25,31 @@ db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
 db_con = sql.create_engine(db_con_string)
 
 # Extract Single Family
-query = ''' SELECT *
+query = ''' SELECT megaparcelid,
+                   "YearBuilt",
+                   sampled,
+                   usetype,
+                   panel_size_as_built,
+                   ciscorep,
+                   permit_id,
+                   issued_date,
+                   solar_pv_system,
+                   battery_storage_system,
+                   ev_charger,
+                   heat_pump,
+                   main_panel_upgrade,
+                   sub_panel_upgrade,
+                   upgraded_panel_size
             FROM ztrax.model_data
             WHERE
                 usetype = 'single_family' AND
                 sampled = TRUE;'''
 mp = pd.read_sql(query, db_con)
+
+# Drop duplicates
+mp.drop_duplicates(keep = 'first', inplace = True)
+
+# Set megaparcelid as index
 mp.set_index('megaparcelid', drop = True, inplace = True)
 
 #%% Prep Fields
@@ -199,10 +218,13 @@ upgrade_scale = [
     1400.]
 
 mp['inferred_panel_upgrade'] = False
+valid_ind = ~mp['panel_size_as_built'].isna()
 
 with tqdm(total = mp.shape[0]) as pbar:
 
-    for i, row in mp.iterrows():
+    for i, row in mp[valid_ind].iterrows():
+
+        #TODO: Deal with Duplicates from Multiple Permit Occurences (i.e. multiple return rows)
 
         as_built = mp.loc[i,'panel_size_as_built']
         existing = as_built
@@ -217,3 +239,7 @@ with tqdm(total = mp.shape[0]) as pbar:
         pbar.update(1)
 
 mp['any_panel_upgrade'] = mp.loc[:,['permitted_panel_upgrade','inferred_panel_upgrade']].any(axis = 1)
+
+# Write output to pickle
+
+mp.to_pickle('/Users/edf/repos/carb_elec/model/model_data.pkl')

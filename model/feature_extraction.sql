@@ -157,6 +157,8 @@ INNER JOIN census.fuel_features AS fuel
 LEFT JOIN permits.panel_upgrades_geocoded AS permits
     ON permits."megaparcelid" = mp."megaparcelid";
 
+-- TODO: Need to think about dealing with the case where there are multiple permits effecting the same megaparcel, this will lead to what are effectively, duplicate records here...
+
 -- Create Empty Panel Size Existing Field Before Passing to Inference Routine
 ALTER TABLE ztrax.model_data
 ADD COLUMN panel_size_existing NUMERIC DEFAULT NULL;
