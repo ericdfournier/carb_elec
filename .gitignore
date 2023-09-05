@@ -2,5 +2,5 @@
 **/.DS_Store
 **/dump/*
 **/la100/*
-**/model/data/
-**/model/runs/
+**/model/data/*
+**/model/runs/*
