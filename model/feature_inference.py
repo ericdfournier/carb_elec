@@ -72,9 +72,17 @@ mp['issued_date'] = pd.to_datetime(
 
 def DeduplicateRecords(mp):
 
-    # Allocate cleaned array with unique mp id index
-    clean = pd.DataFrame(index = mp.index.unique(),
-        columns = mp.dtypes.to_dict())
+    # specify index and column names
+    index = mp.index.unique()
+    columns = mp.columns
+
+    # allocate cleaned array with unique mp id index
+    clean = pd.DataFrame(
+        index = index,
+        columns = columns)
+
+    # ensure consistent types in clean version
+    clean = clean.astype(mp.dtypes.to_dict())
 
     # Set up progress bar
     with tqdm(total = mp.shape[0]) as pbar:
@@ -111,12 +119,12 @@ def DeduplicateRecords(mp):
                 # coalesce permit id values if non null
                 if subset['permit_id'].any():
 
-                    clean.loc[i,'permit_id'] = subset.loc[i,'permit_id'].dropna().values
+                    clean.loc[i,'permit_id'] = ', '.join(map(str, subset['permit_id'].dropna().values ))
 
                 # coalesce panel size records if non null
                 if subset['upgraded_panel_size'].any():
 
-                    clean.loc[i,'upgraded_panel_size'] = subset.loc[i,'upgraded_panel_size'].dropna().max()
+                    clean.loc[i,'upgraded_panel_size'] = subset['upgraded_panel_size'].dropna().max()
 
             # if only record found, populate cleaned array and iterate
             else:
@@ -129,7 +137,7 @@ def DeduplicateRecords(mp):
     return clean
 
 # Run deduplication routine
-test = DeduplicateRecords(mp)
+mp = DeduplicateRecords(mp)
 
 #%% Generate ECDFS by CES Bin in Anticipate of Inference
 
@@ -156,7 +164,7 @@ palette = sns.color_palette('rainbow', len(classes))
 ecdfs = {}
 
 # Set up progress bar
-with tqdm(total = mp.shape[0]) as pbar:
+with tqdm(total = len(classes)) as pbar:
 
     # Iterate through CES classes
     for i, c in enumerate(classes):
@@ -216,7 +224,7 @@ random.seed(123456)
 mp['previous_upgrade'] = False
 
 # Set up progress bar
-with tqdm(total = mp.shape[0]) as pbar:
+with tqdm(total = len(ecdfs)) as pbar:
 
     # Iterate through ecdf dictionary
     for c, ecdf in ecdfs.items():
@@ -347,10 +355,13 @@ mp['inferred_panel_upgrade'] = False
 # limit valid indices to only where as_built panel sizes are known
 valid_ind = ~mp['panel_size_as_built'].isna()
 
+# set up progress bar
 with tqdm(total = mp.shape[0]) as pbar:
 
+    # iterate through valid megaparcel ids
     for i, row in mp[valid_ind].iterrows():
 
+        # get current as_built panel size for future reference
         as_built = mp.loc[i,'panel_size_as_built']
 
         # If the previous upgrade flag is true and no_permitted_panel_ugprade has
@@ -372,4 +383,4 @@ mp['any_panel_upgrade'] = mp.loc[:,['permitted_panel_upgrade','inferred_panel_up
 
 # Write output to pickle
 
-mp.to_pickle('/Users/edf/repos/carb_elec/model/model_data.pkl')
+mp.to_pickle('/Users/edf/repos/carb_elec/model/data/sf_model_data.pkl')
