@@ -28,6 +28,8 @@ db_con = sql.create_engine(db_con_string)
 # Extract Single Family
 query = ''' SELECT megaparcelid,
                    "YearBuilt",
+                   "TotalBuildingAreaSqFt",
+                   "TotalNoOfUnits",
                    sampled,
                    usetype,
                    panel_size_as_built,
