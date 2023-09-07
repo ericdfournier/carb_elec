@@ -44,7 +44,9 @@ SELECT DISTINCT ON (A.id)
         D.bufferlowincome AS buffer_low_income,
         D.bufferlih AS bufferlih,
         E."GEOID" AS tract_geoid_2019,
-        F."megaparcelid" AS megaparcelid
+        F."megaparcelid" AS megaparcelid,
+        G."name" AS air_basin,
+        H."name" AS air_district
 INTO permits.panel_upgrades_geocoded_geographies
 FROM permits.panel_upgrades_geocoded AS A
 JOIN census.acs_ca_2019_place_geom AS B
@@ -56,7 +58,11 @@ JOIN carb.priority_populations_ces4 AS D
 JOIN census.acs_ca_2019_tr_geom AS E
     ON ST_INTERSECTS(A.centroid, E.geometry)
 JOIN ztrax.megaparcels AS F
-    ON ST_INTERSECTS(A.centroid, F.geom);
+    ON ST_INTERSECTS(A.centroid, F.geom)
+JOIN carb.ca_air_basins AS G
+    ON ST_INTERSECTS(A.centroid, G.geom)
+JOIN carb.ca_air_districts AS H
+    ON ST_INTERSECTS(A.centroid, H.geom);
 
 -- Index Geocoded Panel Upgrade table on Megaparcel ID Field
 CREATE INDEX IF NOT EXISTS idx_megaparcelid_idx
