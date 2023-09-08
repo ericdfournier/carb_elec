@@ -6,13 +6,6 @@ from sqlalchemy import create_engine
 import numpy as np
 import os
 
-#%% Change Working Directory
-
-root = '/Users/edf/repos/carb_elec/analyses/building_permits/'
-out = 'fig/'
-
-os.chdir(root)
-
 #%% Get DB Connection Parameters
 
 user = os.environ['PGUSER']
@@ -174,7 +167,8 @@ mf_stats = mf.groupby(group_fields)[count_fields].agg('sum')
 
 #%% Output to File for Sharing
 
-output_dir = '/Users/edf/repos/carb_elec/analyses/building_permits/output/'
+root = '/Users/edf/repos/carb_elec/analyses/building_permits/output/'
+os.chdir(root)
 
-sf_stats.to_csv(output_dir + 'sf_stats.csv')
-mf_stats.to_csv(output_dir + 'mf_stats.csv')
+sf_stats.to_csv('sf_stats.csv')
+mf_stats.to_csv('mf_stats.csv')
