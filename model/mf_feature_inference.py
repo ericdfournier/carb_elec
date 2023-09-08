@@ -45,7 +45,7 @@ query = ''' SELECT megaparcelid,
                    upgraded_panel_size
             FROM ztrax.model_data
             WHERE
-                usetype = 'single_family' AND
+                usetype = 'multi_family' AND
                 sampled = TRUE;'''
 mp = pd.read_sql(query, db_con)
 
@@ -87,7 +87,7 @@ def DeduplicateRecords(mp):
     clean = clean.astype(mp.dtypes.to_dict())
 
     # Set up progress bar
-    with tqdm(total = mp.shape[0]) as pbar:
+    with tqdm(total = clean.shape[0]) as pbar:
 
         # Iterate over unique mp ids
         for i in clean.index:
@@ -114,7 +114,7 @@ def DeduplicateRecords(mp):
                 clean.loc[i, permit_cols] = subset[permit_cols].any()
 
                 # select most recent issue date if non null
-                if subset['issued_date'].any():
+                if pd.isnull(subset['issued_date']).all() == False:
 
                     clean.loc[i,'issued_date'] = subset['issued_date'].dropna().max()
 
@@ -215,7 +215,7 @@ with tqdm(total = len(classes)) as pbar:
 
 # Style figure elements
 ax.grid(True)
-ax.set_xlabel('Home Age')
+ax.set_xlabel('Property Age')
 ax.set_ylabel('Cumulative Probability Density')
 ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
 
@@ -282,47 +282,27 @@ def UpgradeFromAsBuilt(as_built):
     # specify target panel class size groups
     sm = [
         0.,
-        30.,
         40.,
-        60.
     ]
 
     med =  [
-        100.,
-        125.,
-        150.
+        60.0
     ]
 
     lg = [
-        200.,
-        225.
-    ]
-
-    xl = [
-        320.,
-        400.
-    ]
-
-    xxl = [
-        600.,
-        800.,
-        1000.,
-        1200.,
-        1400.
+        90.,
+        150.,
+        200.
     ]
 
     # switch on class size set intersection
     if as_built in sm:
-        existing = 100.
+        existing = 60.
     elif as_built in med:
-        existing = 200.
+        existing = 90.
     elif as_built in lg:
-        existing = 320.
-    elif as_built in xl:
-        existing = 600.
-    elif as_built in xxl:
-        level = xxl.index(as_built)
-        existing = xxl[level + 1]
+        level = lg.index(as_built)
+        existing = lg[level + 1]
     else:
         warnings.warn("Provided As-Built Panel Size Not Expected!")
         existing = np.nan
@@ -358,7 +338,7 @@ mp['inferred_panel_upgrade'] = False
 valid_ind = ~mp['panel_size_as_built'].isna()
 
 # set up progress bar
-with tqdm(total = mp.shape[0]) as pbar:
+with tqdm(total = valid_ind.shape[0]) as pbar:
 
     # iterate through valid megaparcel ids
     for i, row in mp[valid_ind].iterrows():
@@ -385,4 +365,4 @@ mp['any_panel_upgrade'] = mp.loc[:,['permitted_panel_upgrade','inferred_panel_up
 
 # Write output to pickle
 
-mp.to_pickle('/Users/edf/repos/carb_elec/model/data/sf_model_data.pkl')
+mp.to_pickle('/Users/edf/repos/carb_elec/model/data/mf_model_data.pkl')
