@@ -2,14 +2,8 @@
 
 import pandas as pd
 import geopandas as gpd
-import geoplot as gplt
-import geoplot.crs as gcrs
 from sqlalchemy import create_engine
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
-from tqdm import tqdm
 import os
 
 #%% Change Working Directory
