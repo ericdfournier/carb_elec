@@ -219,6 +219,10 @@ ax.set_xlabel('Property Age')
 ax.set_ylabel('Cumulative Probability Density')
 ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
 
+fig.savefig('/Users/edf/repos/carb_elec/model/fig/ecdfs.png',
+    bbox_inches = 'tight',
+    dpi = 300)
+
 #%% Iterate through each CDF and determininstically generate previous upgrade predictions
 
 # Seed random number generator for deterministic output
@@ -318,12 +322,13 @@ def UpgradeFromPermit(as_built, row):
         existing = row['upgraded_panel_size']
     # Where destination panel size was not specified
     else:
-        # If any of the upgrade categories are true set minimum size to 200 amps
-        if (row['solar_pv_system']) | (row['battery_storage_system']) | (row['ev_charger']) | (~row['main_panel_upgrade']):
-                existing = UpgradeFromAsBuilt(as_built)
-                if existing < 200.:
-                    existing = 200.
-        # Upgrade from as-built
+        # If any of the upgrade categories are true set minimum size to 150 amps
+        if (row['solar_pv_system']) | (row['battery_storage_system']) | (row['ev_charger']) | (row['main_panel_upgrade']):
+                if existing < 150.:
+                    existing = 150.
+                else:
+                    existing = UpgradeFromAsBuilt(as_built)
+        # If upgrade destination size
         else:
             existing = UpgradeFromAsBuilt(as_built)
 

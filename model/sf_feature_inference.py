@@ -312,9 +312,7 @@ def UpgradeFromAsBuilt(as_built):
     ]
 
     # switch on class size set intersection
-    if as_built in sm:
-        existing = 100.
-    elif as_built in med:
+    if (as_built in sm) or (as_built in med):
         existing = 200.
     elif as_built in lg:
         existing = 320.
@@ -339,11 +337,12 @@ def UpgradeFromPermit(as_built, row):
     # Where destination panel size was not specified
     else:
         # If any of the upgrade categories are true set minimum size to 200 amps
-        if (row['solar_pv_system']) | (row['battery_storage_system']) | (row['ev_charger']) | (~row['main_panel_upgrade']):
-                existing = UpgradeFromAsBuilt(as_built)
+        if (row['solar_pv_system']) | (row['battery_storage_system']) | (row['ev_charger']) | (row['main_panel_upgrade']):
                 if existing < 200.:
                     existing = 200.
-        # Upgrade from as-built
+                else:
+                    existing = UpgradeFromAsBuilt(as_built)
+        # If upgrade destination size
         else:
             existing = UpgradeFromAsBuilt(as_built)
 
@@ -358,7 +357,7 @@ mp['inferred_panel_upgrade'] = False
 valid_ind = ~mp['panel_size_as_built'].isna()
 
 # set up progress bar
-with tqdm(total = mp.shape[0]) as pbar:
+with tqdm(total = valid_ind.shape[0]) as pbar:
 
     # iterate through valid megaparcel ids
     for i, row in mp[valid_ind].iterrows():

@@ -314,6 +314,27 @@ def JointDistributionPlot(mp, sector, figure_dir):
 
     return
 
+#%% Generate Statistic Table
+
+def PrintStatsTable(mp, sector):
+
+    bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+    labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+    stats = mp[['panel_size_class','panel_size_existing']].groupby('panel_size_class').agg('count')
+    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    total = (~mp['panel_size_existing'].isna()).sum()
+    stats['pct'] = stats['count'].divide(total).multiply(100.0)
+
+    print(stats.to_markdown())
+
+    return stats
+
+stats = PrintStatsTable(mp, sector)
+
 #%% Plot Home Size Vintage Jointplot
 
 JointDistributionPlot(mp, sector, figure_dir)
@@ -555,3 +576,19 @@ def AreaNormalizedComparisonKDE(buildings_ces, sector, figure_dir):
         print(non_dacs.loc[non_upgrade_ind, 'existing_amps_per_sqft_log10'].mean())
 
     return
+
+#%% For Brennan Less
+
+test = mp.loc[~mp['upgraded_panel_size'].isna(), 'upgraded_panel_size']
+test.loc[test < 60.0] = 60.0
+
+fig, ax = plt.subplots(1,1,)
+
+bins = np.arange(0, 2000, 25)
+
+test.hist(ax = ax, bins = bins, edgecolor = 'k')
+ax.set_xlim(0, 600)
+ax.set_xlabel('Upgraded Panel Size')
+ax.set_ylabel('Upgrade Permit Count Frequency')
+
+fig.savefig('/Users/edf/Desktop/upgraded_panel_size_distribution.png', bbox_inches = 'tight', dpi = 300)
