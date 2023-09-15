@@ -3,6 +3,7 @@
 import pandas as pd
 import geopandas as gpd
 import numpy as np
+import sqlalchemy as sql
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -11,14 +12,37 @@ import seaborn as sns
 
 #%% Read Model Data Set from Pickle
 
-data_path = '/Users/edf/repos/carb_elec/model/data/sf_model_data.pkl'
-mp = pd.read_pickle(data_path)
+# Extract Database Connection Parameters from Environment
+host = os.getenv('PGHOST')
+user = os.getenv('PGUSER')
+password = os.getenv('PGPASS')
+port = os.getenv('PGPORT')
+db = 'carb'
 
-#%% Set DAC Status
+# Establish DB Connection
+db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
+db_con = sql.create_engine(db_con_string)
 
-mp['dac_status'] = 'Non-DAC'
-dac_ind = mp['ciscorep'] >= 75.0
-mp.loc[dac_ind,'dac_status'] = 'DAC'
+# TODO: There is a uniqueness issue with the product of the join below. Need
+# to think about whether the deduplication routine should be extracted from the
+# sf-inference workflow and run in isolation to clean the entire "model_data"
+# table prior to the inference process.
+
+# Extract Single Family Data from
+query = ''' SELECT  A.*,
+                    B.permitted_panel_upgrade,
+                    B.ces_bin,
+                    B.previous_upgrade,
+                    B.inferred_panel_upgrade,
+                    B.panel_size_existing,
+                    B.any_panel_upgrade
+            FROM ztrax.model_data AS A
+            JOIN ztrax.model_data_sf_inference AS B
+                ON A.megaparcelid = B.megaparcelid;'''
+mp = pd.read_sql(query, db_con)
+
+# Set megaparcelid as index
+mp.set_index('megaparcelid', drop = True, inplace = True)
 
 #%% Set Fixed Parameters
 
@@ -33,8 +57,8 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
 
     fig, ax = plt.subplots(1,2,figsize = (10,10), sharey = True)
 
-    dac_ind = mp['dac_status'] == 'DAC'
-    non_dac_ind = mp['dac_status'] == 'Non-DAC'
+    dac_ind = mp['dac'] == 'Yes'
+    non_dac_ind = mp['dac'] == 'No'
 
     dac_sample = mp.loc[dac_ind,:]
     non_dac_sample = mp.loc[non_dac_ind,:]
@@ -112,14 +136,14 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
     # Compute counts
 
     if sector == 'single_family':
-        counts = mp.groupby(['dac_status', 'panel_size_as_built'])['sampled'].agg('count')
+        counts = mp.groupby(['dac', 'panel_size_as_built'])['sampled'].agg('count')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
         ylabel = 'As-Built Panel Rating \n[Amps]'
         xlabel = 'Number of Properties'
     elif sector == 'multi_family':
         # NOTE: Units field missing in current MP structure
-        counts = mp.groupby(['dac_status', 'panel_size_as_built'])['units'].agg('sum')
+        counts = mp.groupby(['dac', 'panel_size_as_built'])['units'].agg('sum')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
         ylabel = 'Average As-Built Load Center Rating per Unit \n[Amps]'
@@ -129,7 +153,7 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
 
     fig, ax = plt.subplots(1,1, figsize = (5,5))
 
-    counts.plot.barh(ax = ax, color = ['tab:orange', 'tab:blue'])
+    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
 
     ax.grid(True)
     ax.set_ylabel(ylabel)
@@ -149,18 +173,18 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
 
 AsBuiltPanelRatingsBar(mp, sector, figure_dir)
 
-# Plot Cumulative Permit Counts
+#%% Plot Cumulative Permit Counts
 def PermitCountsBar(buildings_ces, sector, figure_dir):
 
-    upgrade_stats = mp.loc[mp['permitted_panel_upgrade'] == True].groupby('dac_status')['sampled'].agg('count')
+    upgrade_stats = mp.loc[mp['permitted_panel_upgrade'] == True].groupby('dac')['sampled'].agg('count')
     upgrade_stats = pd.DataFrame(upgrade_stats).reset_index()
 
     fig, ax = plt.subplots(1, 1, figsize = (5,5), sharex = True)
 
     sns.barplot(data = upgrade_stats,
         y = 'sampled',
-        x = 'dac_status',
-        order = ['Non-DAC','DAC'],
+        x = 'dac',
+        order = ['No','Yes'],
         ax = ax)
 
     if sector == 'single_family':
@@ -189,8 +213,8 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
     '''Function to plot a set of 2d histograms relating the frequency of
     existing panel sizes to vintage year by dac status'''
 
-    dac_ind = (mp['dac_status'] == 'DAC')
-    non_dac_ind = (mp['dac_status'] == 'Non-DAC')
+    dac_ind = (mp['dac'] == 'Yes')
+    non_dac_ind = (mp['dac'] == 'No')
 
     dac_sample = mp.loc[dac_ind,:]
     non_dac_sample = mp.loc[non_dac_ind,:]
@@ -273,9 +297,9 @@ def JointDistributionPlot(mp, sector, figure_dir):
         fig = sns.jointplot(data = mp,
             x = 'YearBuilt',
             y = 'log_building_sqft',
-            hue = 'dac_status',
+            hue = 'dac',
             palette = ['tab:blue', 'tab:orange'],
-            hue_order = ['Non-DAC', 'DAC'],
+            hue_order = ['No', 'Yes'],
             alpha = 0.05,
             marker = '.',
             linewidth = 0
@@ -294,9 +318,9 @@ def JointDistributionPlot(mp, sector, figure_dir):
         fig = sns.jointplot(data = mp,
             x = 'YearBuilt',
             y = 'log_building_sqft',
-            hue = 'dac_status',
+            hue = 'dac',
             palette = ['tab:blue', 'tab:orange'],
-            hue_order = ['Non-DAC', 'DAC'],
+            hue_order = ['No', 'Yes'],
             alpha = 0.05,
             marker = '.',
             linewidth = 0
@@ -314,6 +338,11 @@ def JointDistributionPlot(mp, sector, figure_dir):
 
     return
 
+#%% Plot Home Size Vintage Jointplot
+
+# CAUTION - Long run-time...
+JointDistributionPlot(mp, sector, figure_dir)
+
 #%% Generate Statistic Table
 
 def PrintStatsTable(mp, sector):
@@ -324,7 +353,8 @@ def PrintStatsTable(mp, sector):
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
-    stats = mp[['panel_size_class','panel_size_existing']].groupby('panel_size_class').agg('count')
+    stats = mp[['panel_size_class','panel_size_existing']].groupby('panel_size_class',
+        observed = False).agg('count')
     stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
     total = (~mp['panel_size_existing'].isna()).sum()
     stats['pct'] = stats['count'].divide(total).multiply(100.0)
@@ -333,13 +363,17 @@ def PrintStatsTable(mp, sector):
 
     return stats
 
+#%% Print Stats Table
+
+# LBNL Results for Comparison
+# Panel Amps	Count	Frequency
+# <100	        5,068	9%
+# 100	        15,090	26%
+# 101-199	    12,185	21%
+# 200	        19,109	33%
+# >200	        5,915	10%
+
 stats = PrintStatsTable(mp, sector)
-
-#%% Plot Home Size Vintage Jointplot
-
-JointDistributionPlot(mp, sector, figure_dir)
-
-#TODO: Stopping Point...
 
 #%% Plot Existing Panel Stats
 

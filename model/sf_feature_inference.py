@@ -12,7 +12,7 @@ from statsmodels.distributions.empirical_distribution import ECDF
 import random
 import os
 
-#%% Generate Dataset
+#%% Read Model Data Set from Pickle
 
 # Extract Database Connection Parameters from Environment
 host = os.getenv('PGHOST')
@@ -25,7 +25,7 @@ db = 'carb'
 db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
 db_con = sql.create_engine(db_con_string)
 
-# Extract Single Family
+# Extract Single Family Data from
 query = ''' SELECT megaparcelid,
                    "YearBuilt",
                    "TotalBuildingAreaSqFt",
@@ -34,7 +34,6 @@ query = ''' SELECT megaparcelid,
                    usetype,
                    panel_size_as_built,
                    ciscorep,
-                   permit_id,
                    issued_date,
                    solar_pv_system,
                    battery_storage_system,
@@ -44,9 +43,7 @@ query = ''' SELECT megaparcelid,
                    sub_panel_upgrade,
                    upgraded_panel_size
             FROM ztrax.model_data
-            WHERE
-                usetype = 'single_family' AND
-                sampled = TRUE;'''
+            WHERE usetype = 'single_family';'''
 mp = pd.read_sql(query, db_con)
 
 #%% Process Fields
@@ -69,77 +66,6 @@ mp['permitted_panel_upgrade'] = mp.loc[:,permit_cols].any(axis = 1) == True
 mp['issued_date'] = pd.to_datetime(
     mp['issued_date'],
     format = '%Y-%m-%d')
-
-#%% Deduplicate Based Upon Unique Megaparcel ID Values
-
-def DeduplicateRecords(mp):
-
-    # specify index and column names
-    index = mp.index.unique()
-    columns = mp.columns
-
-    # allocate cleaned array with unique mp id index
-    clean = pd.DataFrame(
-        index = index,
-        columns = columns)
-
-    # ensure consistent types in clean version
-    clean = clean.astype(mp.dtypes.to_dict())
-
-    # Set up progress bar
-    with tqdm(total = clean.shape[0]) as pbar:
-
-        # Iterate over unique mp ids
-        for i in clean.index:
-
-            # extract subset of records for mp id
-            subset = mp.loc[i,:]
-
-            # Where multiple records found for the same id
-            if len(subset.shape) > 1:
-
-                # initialize cleaned ouptut values as first entry in subset
-                clean.loc[i,:] = subset.iloc[0]
-
-                # specify permit columns
-                permit_cols = [
-                        'solar_pv_system',
-                        'battery_storage_system',
-                        'ev_charger',
-                        'heat_pump',
-                        'main_panel_upgrade',
-                        'sub_panel_upgrade']
-
-                # coalesce permit flag values across subset records
-                clean.loc[i, permit_cols] = subset[permit_cols].any()
-
-                # select most recent issue date if non null
-                if pd.isnull(subset['issued_date']).all() == False:
-
-                    clean.loc[i,'issued_date'] = subset['issued_date'].dropna().max()
-
-                # coalesce permit id values if non null
-                if subset['permit_id'].any():
-
-                    clean.loc[i,'permit_id'] = ', '.join(map(str, subset['permit_id'].dropna().values ))
-
-                # coalesce panel size records if non null
-                if subset['upgraded_panel_size'].any():
-
-                    clean.loc[i,'upgraded_panel_size'] = subset['upgraded_panel_size'].dropna().max()
-
-            # if only record found, populate cleaned array and iterate
-            else:
-
-                clean.loc[i,:] = subset
-
-            # Increment progress bar
-            pbar.update(1)
-
-    return clean
-
-# Run deduplication routine
-mp = DeduplicateRecords(mp)
 
 #%% Generate ECDFS by CES Bin in Anticipate of Inference
 
@@ -180,8 +106,11 @@ with tqdm(total = len(classes)) as pbar:
         # Filter Properties with permitted panel upgrades
         perm_ind = mp['permitted_panel_upgrade'] == True
 
+        # Filter Properties without a valid permit issue date
+        date_ind = ~mp['issued_date'].isna()
+
         # Combine indices to master
-        master_ind = (subset_ind) & (nan_ind) & (perm_ind)
+        master_ind = (subset_ind) & (nan_ind) & (perm_ind) & (date_ind)
 
         # Filter and copy subset data
         data = mp.loc[master_ind,:].copy()
@@ -203,12 +132,11 @@ with tqdm(total = len(classes)) as pbar:
         ecdfs[c] = ECDF(permit_age)
 
         # Generate ECDF Sample Data
-        x = np.linspace(min(current_age), max(current_age), n)
+        x = np.linspace(current_age.min(), current_age.max(), n)
         y[i,:] = ecdfs[c](x)
 
         # Test plot
         ax.step(x, y[i,:], color = palette[i])
-        ax.set_xlim((0, 130))
 
         # Increment progress bar
         pbar.update(1)
@@ -218,6 +146,13 @@ ax.grid(True)
 ax.set_xlabel('Home Age')
 ax.set_ylabel('Cumulative Probability Density')
 ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
+ax.set_xlim((0, 130))
+ax.legend()
+
+# Save figure to file
+fig.savefig('/Users/edf/repos/carb_elec/model/fig/sf_ecdfs.png',
+    bbox_inches = 'tight',
+    dpi = 300)
 
 #%% Iterate through each CDF and determininstically generate previous upgrade predictions
 
@@ -272,7 +207,6 @@ with tqdm(total = len(ecdfs)) as pbar:
         # Increment progress bar
         pbar.update(1)
 
-
 #%% Panel upgrade size step function
 
 def UpgradeFromAsBuilt(as_built):
@@ -312,10 +246,21 @@ def UpgradeFromAsBuilt(as_built):
     ]
 
     # switch on class size set intersection
-    if (as_built in sm) or (as_built in med):
-        existing = 200.
+    if as_built in sm:
+        # small size upgrades decided via random choice over three options
+        # since the timing of the upgrade is unknown and requirements will vary
+        # in time
+        existing = np.random.choice(
+            [100., 150., 200.], # Choice options
+            p = [0.25, 0.25, 0.5]) # Choice probabilities
+    elif as_built in med:
+        # medium size upgrades decided via random choice over two options since
+        # 225 Amp panels have been growing in popularity recently
+        existing = np.random.choice(
+            [200., 225.],
+            p = [0.75, 0.25])
     elif as_built in lg:
-        existing = 320.
+        existing = 400.
     elif as_built in xl:
         existing = 600.
     elif as_built in xxl:
@@ -338,7 +283,7 @@ def UpgradeFromPermit(as_built, row):
     else:
         # If any of the upgrade categories are true set minimum size to 200 amps
         if (row['solar_pv_system']) | (row['battery_storage_system']) | (row['ev_charger']) | (row['main_panel_upgrade']):
-                if existing < 200.:
+                if as_built < 200.:
                     existing = 200.
                 else:
                     existing = UpgradeFromAsBuilt(as_built)
@@ -360,7 +305,7 @@ valid_ind = ~mp['panel_size_as_built'].isna()
 with tqdm(total = valid_ind.shape[0]) as pbar:
 
     # iterate through valid megaparcel ids
-    for i, row in mp[valid_ind].iterrows():
+    for i, row in mp.loc[valid_ind,:].iterrows():
 
         # get current as_built panel size for future reference
         as_built = mp.loc[i,'panel_size_as_built']
@@ -382,6 +327,19 @@ with tqdm(total = valid_ind.shape[0]) as pbar:
 
 mp['any_panel_upgrade'] = mp.loc[:,['permitted_panel_upgrade','inferred_panel_upgrade']].any(axis = 1)
 
-# Write output to pickle
+# Write Output to PostGIS
 
-mp.to_pickle('/Users/edf/repos/carb_elec/model/data/sf_model_data.pkl')
+output_cols = [
+    'permitted_panel_upgrade',
+    'ces_bin',
+    'previous_upgrade',
+    'inferred_panel_upgrade',
+    'panel_size_existing',
+    'any_panel_upgrade']
+
+mp.loc[:,output_cols].to_sql(
+    name = 'model_data_sf_inference',
+    con = db_con,
+    if_exists = 'replace',
+    schema = 'ztrax',
+    index = True)

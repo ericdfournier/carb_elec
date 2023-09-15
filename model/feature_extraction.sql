@@ -98,8 +98,24 @@ WHERE A."GEOID" = B."GEOID";
 CREATE INDEX IF NOT EXISTS idx_fuel_geom_idx
 ON census.fuel_features USING GIST("geom");
 
+-- Coalesce Permit Records by Unique Megaparcel ID
+SELECT  megaparcelid,
+        ARRAY_AGG(id) AS permit_id,
+        MAX(issued_date) AS issued_date,
+        bool_or(solar_pv_system) AS solar_pv_system, 
+        bool_or(battery_storage_system) AS battery_storage_system,
+        bool_or(ev_charger) AS ev_charger,
+        bool_or(heat_pump) AS heat_pump,
+        bool_or(main_panel_upgrade) AS main_panel_upgrade,
+        bool_or(sub_panel_upgrade) AS sub_panel_upgrade,
+        MAX(upgraded_panel_size) AS upgraded_panel_size
+INTO permits.panel_upgrades_geocoded_deduplicated
+FROM permits.panel_upgrades_geocoded
+GROUP BY megaparcelid;
+
 -- Extract Relevant Parcel Attributes for Model Training Data
-SELECT  mp.*,
+SELECT  DISTINCT ON (mp."megaparcelid")
+        mp.*,
         dist."shorelinedistm",
         elev."elevationm",
         slope."slopepct",
@@ -123,15 +139,15 @@ SELECT  mp.*,
         cz."bzone",
         ST_X(ST_GEOMETRYN(mp."centroid", 1)) AS "x",
         ST_Y(ST_GEOMETRYN(mp."centroid", 1)) AS "y",
-        permits.id AS permit_id,
-        permits.issued_date,
-        permits.solar_pv_system,
-        permits.battery_storage_system,
-        permits.ev_charger,
-        permits.heat_pump,
-        permits.main_panel_upgrade,
-        permits.sub_panel_upgrade,
-        permits.upgraded_panel_size
+        permits."permit_id",
+        permits."issued_date",
+        permits."solar_pv_system",
+        permits."battery_storage_system",
+        permits."ev_charger",
+        permits."heat_pump",
+        permits."main_panel_upgrade",
+        permits."sub_panel_upgrade",
+        permits."upgraded_panel_size"
 INTO    ztrax.model_data
 FROM    ztrax.megaparcels AS mp
 INNER JOIN ztrax.distance AS dist
@@ -154,10 +170,8 @@ INNER JOIN census.housing_features AS housing
     ON ST_INTERSECTS(mp."centroid", housing."geom")
 INNER JOIN census.fuel_features AS fuel
     ON ST_INTERSECTS(mp."centroid", fuel."geom")
-LEFT JOIN permits.panel_upgrades_geocoded AS permits
+LEFT JOIN permits.panel_upgrades_geocoded_deduplicated AS permits
     ON permits."megaparcelid" = mp."megaparcelid";
-
--- TODO: Need to think about dealing with the case where there are multiple permits effecting the same megaparcel, this will lead to what are effectively, duplicate records here...
 
 -- Create Empty Panel Size Existing Field Before Passing to Inference Routine
 ALTER TABLE ztrax.model_data
