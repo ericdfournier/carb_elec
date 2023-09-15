@@ -15,11 +15,48 @@ def ImportRaw(sector):
     '''Function to import pre-processed buildind permit training data from
     local postgres database'''
 
-    # Switch on Sector
-    if sector == 'single_family':
-        query = ''' SELECT * FROM la100.sf_training_full;'''
-    elif sector == 'multi_family':
-        query = '''SELECT * FROM la100.mf_training_full;'''
+    # Extract Single Family Data from
+    query = ''' SELECT
+                A.megaparcelid,
+                A."YearBuilt",
+                A."TotalNoOfBuildings",
+                A."LotSizeSquareFeet",
+                A."TotalBuildingAreaSqFt",
+                A."TotalNoOfUnits",
+                A."TotalNoOfBedrooms",
+                A."TotalLandAssessedValue",
+                A."TotalImprovementAssessedValue",
+                A."HeatingTypeorSystemStndCode",
+                A."AirConditioningTypeorSystemStndCode",
+                A.shorelinedistm,
+                A.elevationm,
+                A.slopepct,
+                A.aspectdeg,
+                A.ciscorep,
+                A.dac,
+                A.lowincome,
+                A.nondesignated,
+                A.bufferlowincome,
+                A.bufferlih,
+                A.peopcolorpct,
+                A.lowincpct,
+                A.unemppct,
+                A.lingisopct,
+                A.lesshspct,
+                A.under5pct,
+                A.over64pct,
+                A.lifeexppct,
+                A.renterhouseholdspct,
+                A.elecheatinghouseholdspct,
+                A.bzone,
+                A.x,
+                A.y,
+                A.panel_size_as_built,
+                B.panel_size_existing
+            FROM ztrax.model_data AS A
+            JOIN ztrax.model_data_sf_inference AS B
+                ON A.megaparcelid = B.megaparcelid
+            WHERE A.usetype = '{}';'''.format(sector)
 
     endpoint='postgresql://{}:{}@{}?port={}&dbname={}'.format(
         os.getenv('PGUSER'),
@@ -28,7 +65,7 @@ def ImportRaw(sector):
         os.getenv('PGPORT'),
         'carb')
 
-    data = pd.read_sql(query, endpoint, index_col = 'rowid')
+    data = pd.read_sql(query, endpoint, index_col = 'megaparcelid')
 
     return data
 
@@ -37,20 +74,22 @@ def ImportRaw(sector):
 sector = 'single_family'
 data = ImportRaw(sector)
 
-# Imput Missing Values
+#%% Data Pre-processing
 
-data = data.dropna(axis = 0, subset = 'panel_size_existing')
+# TODO: Continue modifying below for recently update "ztrax.model_data" input
+# table.
 
-data.loc[:,'panel_size_existing'] = data.loc[:,'panel_size_existing'].astype(str)
-
+# Impute Missing Values
 median_cols = [
-    'LotSizeSquareFeet',
-    'NoOfBuildings',
-    'NoOfUnits',
     'YearBuilt',
-    'TotalBedrooms',
-    'LandAssessedValue',
-    'ImprovementAssessedValue',
+    'TotalNoOfBuildings',
+    'LotSizeSquareFeet',
+    'TotalBuildingAreaSqFt',
+    'TotalNoOfUnits',
+    'TotalNoOfBedrooms',
+    'TotalLandAssessedValue',
+    'TotalImprovementAssessedValue',
+    'shorelinedistm',
     'elevationm',
     'slopepct',
     'aspectdeg',
@@ -68,6 +107,7 @@ for col in fill_cols:
     nan_ind = data[col].isna()
     data.loc[nan_ind, col] = 'NA'
 
+# Specify labels for target feature
 labels = {
     '30.0': '0',
     '40.0': '1',
@@ -86,7 +126,13 @@ labels = {
     '1400.0': '14'
 }
 
-# Relabel target features
+# Drop records with missing values for target feature
+data = data.dropna(axis = 0, subset = 'panel_size_existing')
+
+# Recast target feature column to prepare for labeling
+data.loc[:,'panel_size_existing'] = data.loc[:,'panel_size_existing'].astype(str)
+
+# Label target features
 data.replace({'panel_size_existing':labels}, inplace = True)
 
 # Cast numeric types as int32
@@ -314,9 +360,23 @@ def encode_inputs(inputs, use_embedding = False):
 
     return all_features
 
-#%% Create Baseline Model
+#%% Create Random Forest Model
 
-def create_baseline_model():
+# TODO: Create Random Forest Model as new experimental architecture to
+# consolidate workflow
+
+def create_random_forest_model():
+
+    inputs = create_model_inputs()
+    features = encode_inputs(inputs)
+
+    model = tfdf.keras.RandomForestModel(inputs = inputs, outputs = )
+
+    return model
+
+#%% Create RNN Model
+
+def create_rnn_model():
     inputs = create_model_inputs()
     features = encode_inputs(inputs)
 
@@ -390,7 +450,7 @@ keras.utils.plot_model(deep_and_cross_model, show_shapes=True, rankdir='LR')
 
 #%% Run Baseline Experiment
 
-run_experiment(baseline_model)
+run_experiment(rnn_model)
 
 #%% Run Wide and Deep Model
 
