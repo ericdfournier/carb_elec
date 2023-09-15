@@ -90,6 +90,7 @@ median_cols = [
     'TotalLandAssessedValue',
     'TotalImprovementAssessedValue',
     'shorelinedistm',
+    'ciscorep',
     'elevationm',
     'slopepct',
     'aspectdeg',
@@ -135,10 +136,14 @@ data.loc[:,'panel_size_existing'] = data.loc[:,'panel_size_existing'].astype(str
 # Label target features
 data.replace({'panel_size_existing':labels}, inplace = True)
 
-# Cast numeric types as int32
+# # Cast numeric types as int32
 num_columns = data.select_dtypes(include=np.number).columns.tolist()
 for col in num_columns:
-    data[col] = data[col].astype(np.int32)
+     data[col] = data[col].astype(np.int32)
+
+#%% Verify No Null Values
+
+data.isna().any()
 
 #%% Training Test Split
 
@@ -158,8 +163,8 @@ print(f'Test split size: {len(test_data.index)}')
 
 #%% Output to Files
 
-train_data_file = 'train_data.csv'
-test_data_file = 'test_data.csv'
+train_data_file = './data/train_data.csv'
+test_data_file = './data/test_data.csv'
 
 train_data.to_csv(train_data_file, index=False)
 test_data.to_csv(test_data_file, index=False)
@@ -167,22 +172,21 @@ test_data.to_csv(test_data_file, index=False)
 #%% Define Metadata
 
 CSV_HEADER = [
-    'panel_size_existing',
-    'LotSizeSquareFeet',
-    'NoOfBuildings',
-    'NoOfUnits',
-    'PropertyLandUseStndCode',
     'YearBuilt',
-    'TotalBedrooms',
+    'TotalNoOfBuildings',
+    'LotSizeSquareFeet',
+    'TotalBuildingAreaSqFt',
+    'TotalNoOfUnits',
+    'TotalNoOfBedrooms',
+    'TotalLandAssessedValue',
+    'TotalImprovementAssessedValue',
     'HeatingTypeorSystemStndCode',
     'AirConditioningTypeorSystemStndCode',
-    'BuildingAreaSqFt',
-    'LandAssessedValue',
-    'ImprovementAssessedValue',
     'shorelinedistm',
     'elevationm',
     'slopepct',
     'aspectdeg',
+    'ciscorep',
     'dac',
     'lowincome',
     'nondesignated',
@@ -200,7 +204,9 @@ CSV_HEADER = [
     'elecheatinghouseholdspct',
     'bzone',
     'x',
-    'y'
+    'y',
+    'panel_size_as_built',
+    'panel_size_existing'
 ]
 
 TARGET_FEATURE_NAME = 'panel_size_existing'
@@ -208,14 +214,14 @@ TARGET_FEATURE_NAME = 'panel_size_existing'
 TARGET_FEATURE_LABELS = list(labels.values())
 
 NUMERIC_FEATURE_NAMES = [
-    'LotSizeSquareFeet',
-    'NoOfBuildings',
-    'NoOfUnits',
     'YearBuilt',
-    'TotalBedrooms',
-    'BuildingAreaSqFt',
-    'LandAssessedValue',
-    'ImprovementAssessedValue',
+    'TotalNoOfBuildings',
+    'LotSizeSquareFeet',
+    'TotalBuildingAreaSqFt',
+    'TotalNoOfUnits',
+    'TotalNoOfBedrooms',
+    'TotalLandAssessedValue',
+    'TotalImprovementAssessedValue',
     'shorelinedistm',
     'elevationm',
     'slopepct',
@@ -231,11 +237,11 @@ NUMERIC_FEATURE_NAMES = [
     'renterhouseholdspct',
     'elecheatinghouseholdspct',
     'x',
-    'y'
+    'y',
+    'panel_size_as_built'
 ]
 
 CATEGORICAL_FEATURES_WITH_VOCABULARY = {
-    'PropertyLandUseStndCode': list(data['PropertyLandUseStndCode'].unique()),
     'HeatingTypeorSystemStndCode': list(data['HeatingTypeorSystemStndCode'].unique()),
     'AirConditioningTypeorSystemStndCode': list(data['AirConditioningTypeorSystemStndCode'].unique()),
     'dac': list(data['dac'].unique()),
@@ -273,13 +279,15 @@ def get_dataset_from_csv(csv_file_path, batch_size, shuffle=False):
     )
     return dataset.cache()
 
-#%% Run Experiment
+#%% Set Fixed Model Hyperparameters
 
 learning_rate = 0.001
 dropout_rate = 0.1
 batch_size = 265
 num_epochs = 50
 hidden_units = [64, 64, 64]
+
+#%% Run Experiment
 
 def run_experiment(model):
 
@@ -300,7 +308,6 @@ def run_experiment(model):
     print(f'Test accuracy: {round(accuracy * 100, 2)}%')
 
     return
-
 
 #%% Create Model Inputs
 
@@ -391,8 +398,8 @@ def create_rnn_model():
 
     return model
 
-baseline_model = create_baseline_model()
-keras.utils.plot_model(baseline_model, show_shapes=True, rankdir='LR')
+rnn_model = create_rnn_model()
+keras.utils.plot_model(rnn_model, show_shapes=True, rankdir='LR')
 
 #%% Create Wide and Deep Model
 
