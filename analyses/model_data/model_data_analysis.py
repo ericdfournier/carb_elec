@@ -23,11 +23,6 @@ db = 'carb'
 db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
 db_con = sql.create_engine(db_con_string)
 
-# TODO: There is a uniqueness issue with the product of the join below. Need
-# to think about whether the deduplication routine should be extracted from the
-# sf-inference workflow and run in isolation to clean the entire "model_data"
-# table prior to the inference process.
-
 # Extract Single Family Data from
 query = ''' SELECT  A.*,
                     B.permitted_panel_upgrade,
@@ -174,6 +169,7 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
 AsBuiltPanelRatingsBar(mp, sector, figure_dir)
 
 #%% Plot Cumulative Permit Counts
+
 def PermitCountsBar(buildings_ces, sector, figure_dir):
 
     upgrade_stats = mp.loc[mp['permitted_panel_upgrade'] == True].groupby('dac')['sampled'].agg('count')
@@ -199,7 +195,7 @@ def PermitCountsBar(buildings_ces, sector, figure_dir):
 
     fig.tight_layout()
 
-    fig.savefig(figure_dir + 'sampled_{}_cumulative_permit_count_barplot.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+    fig.savefig(figure_dir + '{}_cumulative_permit_count_barplot.png'.format(sector), bbox_inches = 'tight', dpi = 300)
 
     return
 
@@ -278,7 +274,7 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
     fig.tight_layout()
     fig.patch.set_facecolor('white')
 
-    fig.savefig(figure_dir + 'sampled_{}_existing_panel_ratings_hist.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+    fig.savefig(figure_dir + '{}_existing_panel_ratings_hist.png'.format(sector), bbox_inches = 'tight', dpi = 300)
 
     return
 
@@ -334,7 +330,7 @@ def JointDistributionPlot(mp, sector, figure_dir):
         fig.ax_joint.set_xlabel('Construction Vintage\n(Year)')
         plt.grid()
 
-    fig.savefig(figure_dir + 'sampled_{}_home_size_vintage_jointplot.png'.format(sector), dpi = 500, bbox_inches = 'tight')
+    fig.savefig(figure_dir + '{}_home_size_vintage_jointplot.png'.format(sector), dpi = 500, bbox_inches = 'tight')
 
     return
 
@@ -377,18 +373,18 @@ stats = PrintStatsTable(mp, sector)
 
 #%% Plot Existing Panel Stats
 
-def ExistingPanelRatingsBar(buildings_ces, sector, figure_dir):
+def ExistingPanelRatingsBar(mp, sector, figure_dir):
     '''Simple barplot of existing panel ratings separated by DAC status'''
 
     # Compute counts
     if sector == 'single_family':
-        counts = buildings_ces.groupby(['dac_status', 'panel_size_existing'])['apn'].agg('count')
+        counts = mp.groupby(['dac', 'panel_size_existing'])['sampled'].agg('count')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
         ylabel = 'Existing Panel Rating \n[Amps]'
         xlabel = 'Number of Properties'
     elif sector == 'multi_family':
-        counts = buildings_ces.groupby(['dac_status', 'panel_size_existing'])['units'].agg('sum')
+        counts = mp.groupby(['dac', 'panel_size_existing'])['units'].agg('sum')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
         ylabel = 'Existing Average Load Center Rating \n[Amps]'
@@ -397,7 +393,7 @@ def ExistingPanelRatingsBar(buildings_ces, sector, figure_dir):
     # Plot Counts
     fig, ax = plt.subplots(1,1, figsize = (5,5))
 
-    counts.plot.barh(ax = ax, color = ['tab:orange', 'tab:blue'])
+    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
 
     ax.grid(True)
     ax.set_ylabel(ylabel)
@@ -409,26 +405,30 @@ def ExistingPanelRatingsBar(buildings_ces, sector, figure_dir):
     fig.patch.set_facecolor('white')
     fig.tight_layout()
 
-    fig.savefig(figure_dir + 'ladwp_{}_existing_panel_ratings_barchart.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+    fig.savefig(figure_dir + '{}_existing_panel_ratings_barchart.png'.format(sector), bbox_inches = 'tight', dpi = 300)
 
     return
 
+#%% Generate Existing Panel Ratings Bar Chart
+
+ExistingPanelRatingsBar(mp, sector, figure_dir)
+
 #%% Plot Normalized Amps per Sqft for Upgraded and Non-Upgraded Subsets
 
-def AreaNormalizedComparisonKDE(buildings_ces, sector, figure_dir):
+def AreaNormalizedComparisonKDE(mp, sector, figure_dir):
 
     if sector == 'single_family':
 
         # SF plot data
 
-        buildings_ces['building_sqft_log10'] = np.log10(buildings_ces['building_sqft'])
-        buildings_ces['existing_amps_per_sqft_log10'] = np.log10(buildings_ces['panel_size_existing'] / buildings_ces['building_sqft'])
+        mp['building_sqft_log10'] = np.log10(mp['TotalBuildingAreaSqFt'])
+        mp['existing_amps_per_sqft_log10'] = np.log10(mp['panel_size_existing'] / mp['TotalBuildingAreaSqFt'])
 
-        non_dacs_ind = buildings_ces['dac_status'] == 'Non-DAC'
-        dacs_ind = buildings_ces['dac_status'] == 'DAC'
+        non_dacs_ind = mp['dac'] == 'No'
+        dacs_ind = mp['dac'] == 'Yes'
 
-        non_dacs = buildings_ces.loc[non_dacs_ind,:]
-        dacs = buildings_ces.loc[dacs_ind,:]
+        non_dacs = mp.loc[non_dacs_ind,:]
+        dacs = mp.loc[dacs_ind,:]
 
         # Generate SF Plot
 
@@ -496,8 +496,8 @@ def AreaNormalizedComparisonKDE(buildings_ces, sector, figure_dir):
         fig2.ax_marg_y.set_yticklabels(ytick_labels)
         fig2.ax_joint.set_ylabel('Rated Panel Capacity\n [$Amps / ft^2$]')
 
-        fig1.savefig(figure_dir + 'ladwp_{}_non_dac_permitted_upgrade_amps_per_sqft_jointplot.png'.format(sector), bbox_inches = 'tight', dpi = 500)
-        fig2.savefig(figure_dir + 'ladwp_{}_dac_permitted_upgrade_amps_per_sqft_jointplot.png'.format(sector), bbox_inches = 'tight', dpi = 500)
+        fig1.savefig(figure_dir + '{}_non_dac_permitted_upgrade_amps_per_sqft_jointplot.png'.format(sector), bbox_inches = 'tight', dpi = 500)
+        fig2.savefig(figure_dir + '{}_dac_permitted_upgrade_amps_per_sqft_jointplot.png'.format(sector), bbox_inches = 'tight', dpi = 500)
 
         # Print SF Stats
 
@@ -518,7 +518,7 @@ def AreaNormalizedComparisonKDE(buildings_ces, sector, figure_dir):
         # MF plot data
 
         buildings_ces['avg_unit_sqft_log10'] = np.log10(buildings_ces['avg_unit_sqft'])
-        buildings_ces['existing_amps_per_sqft_log10'] = np.log10(buildings_ces['panel_size_existing'] / buildings_ces['avg_unit_sqft'])
+        buildings_ces['existing_amps_per_sqft_log10'] = np.log10(buildings_ces['panel_size_existing'] / mp['avg_unit_sqft'])
 
         non_dacs_ind = buildings_ces['dac_status'] == 'Non-DAC'
         dacs_ind = buildings_ces['dac_status'] == 'DAC'
@@ -611,18 +611,71 @@ def AreaNormalizedComparisonKDE(buildings_ces, sector, figure_dir):
 
     return
 
-#%% For Brennan Less
+#%% Generate Area Normalized KDE and Stats
 
-test = mp.loc[~mp['upgraded_panel_size'].isna(), 'upgraded_panel_size']
-test.loc[test < 60.0] = 60.0
+# CAUTION - Long run time...
+AreaNormalizedComparisonKDE(mp, sector, figure_dir)
 
-fig, ax = plt.subplots(1,1,)
+#%% Distribution of Destination Panel Sizes for Permitted Upgrades
 
-bins = np.arange(0, 2000, 25)
+def PermittedUpgradePanelSizeDistribution(mp, sector, figure_dir):
 
-test.hist(ax = ax, bins = bins, edgecolor = 'k')
-ax.set_xlim(0, 600)
-ax.set_xlabel('Upgraded Panel Size')
-ax.set_ylabel('Upgrade Permit Count Frequency')
+    perm_ind = ~mp['upgraded_panel_size'].isna()
 
-fig.savefig('/Users/edf/Desktop/upgraded_panel_size_distribution.png', bbox_inches = 'tight', dpi = 300)
+    data = mp.loc[perm_ind, ['dac','upgraded_panel_size']]
+    data.loc[data['upgraded_panel_size'] < 60.0, ['upgraded_panel_size']] = 60.0
+
+    counts = data.groupby(['dac','upgraded_panel_size'])['upgraded_panel_size'].agg('count')
+    counts = counts.unstack(level= 0)
+    counts.index = counts.index.astype(int)
+
+    fig, ax = plt.subplots(1,1,figsize=(7,7))
+
+    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
+
+    ax.set_ylabel('Upgraded Panel Size')
+    ax.set_xlabel('Upgrade Permit Count Frequency')
+    ax.grid(True)
+    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+
+    plt.xticks(rotation = 45)
+
+    fig.savefig('{}_permitted_upgrade_panel_size_distribution.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+
+    return
+
+#%% Generate Permitted Panel Upgrade Distribution Plot
+
+PermittedUpgradePanelSizeDistribution(mp, sector, figure_dir)
+
+#%% Distribution of Destination Panel Sizes for Inferred Upgrades
+
+def InferredUpgradePanelSizeDistribution(mp, sector, figure_dir):
+
+    infer_ind = mp['inferred_panel_upgrade'] == True
+
+    data = mp.loc[infer_ind, ['dac','panel_size_existing']]
+    data.loc[data['panel_size_existing'] < 60.0, ['panel_size_existing']] = 60.0
+
+    counts = data.groupby(['dac','panel_size_existing'])['panel_size_existing'].agg('count')
+    counts = counts.unstack(level= 0)
+    counts.index = counts.index.astype(int)
+
+    fig, ax = plt.subplots(1,1,figsize=(7,7))
+
+    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
+
+    ax.set_ylabel('Upgraded Panel Size')
+    ax.set_xlabel('Inferred Upgrade Count Frequency')
+    ax.grid(True)
+    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+
+    plt.xticks(rotation = 45)
+
+    fig.savefig('{}_inferred_upgrade_panel_size_distribution.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+
+    return
+
+#%% Generate Inferred Panel Upgrade Distribution Plot
+
+InferredUpgradePanelSizeDistribution(mp, sector, figure_dir)

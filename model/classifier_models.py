@@ -263,6 +263,23 @@ COLUMN_DEFAULTS = [
 
 NUM_CLASSES = len(TARGET_FEATURE_LABELS)
 
+#%% Random Forest Hyperparamters
+
+# Target column name.
+TARGET_FEATURE_NAME = 'panel_size_existing'
+# Maximum number of decision trees. The effective number of trained trees can be smaller if early stopping is enabled.
+NUM_TREES = 250
+# Minimum number of examples in a node.
+MIN_EXAMPLES = 6
+# Maximum depth of the tree. max_depth=1 means that all trees will be roots.
+MAX_DEPTH = 5
+# Ratio of the dataset (sampling without replacement) used to train individual trees for the random sampling method.
+SUBSAMPLE = 0.65
+# Control the sampling of the datasets used to train individual trees.
+SAMPLING_METHOD = "RANDOM"
+# Ratio of the training dataset used to monitor the training. Require to be >0 if early stopping is enabled.
+VALIDATION_RATIO = 0.1
+
 #%% Get Data from CSV
 
 def get_dataset_from_csv(csv_file_path, batch_size, shuffle=False):
@@ -370,7 +387,8 @@ def encode_inputs(inputs, use_embedding = False):
 #%% Create Random Forest Model
 
 # TODO: Create Random Forest Model as new experimental architecture to
-# consolidate workflow
+# consolidate workflow using the following as guide:
+# https://keras.io/examples/structured_data/classification_with_tfdf/
 
 def create_random_forest_model():
 
