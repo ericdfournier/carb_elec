@@ -91,7 +91,7 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         ax = ax[0],
         bins = bins,
         legend = True,
-        label =
+        label = 'Priority Population',
         cbar = True,
         cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
         vmin=0, vmax=50000)
@@ -102,7 +102,7 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         ax = ax[1],
         bins = bins,
         legend = True,
-        label = 'Non-DAC',
+        label = 'Non-Priority Population',
         cbar = True,
         cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
         vmin=0, vmax=50000)
@@ -118,8 +118,8 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
     ax[0].set_xlabel('Vintage \n[Year]')
     ax[1].set_xlabel('Vintage \n[Year]')
 
-    ax[0].set_title('DAC')
-    ax[1].set_title('Non-DAC')
+    ax[0].set_title('Priority Population')
+    ax[1].set_title('Non-Priority Population')
 
     ax[0].set_ylim(ylim)
     ax[1].set_ylim(ylim)
@@ -169,6 +169,7 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     plt.xticks(rotation = 45)
+    ax.legend(title = 'Priority Population')
 
     ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
 
@@ -196,6 +197,7 @@ def PermitCountsBar(buildings_ces, sector, figure_dir):
         y = 'sampled',
         x = 'dac',
         order = ['No','Yes'],
+        label = ['No','Yes'],
         ax = ax)
 
     if sector == 'single_family':
@@ -205,7 +207,7 @@ def PermitCountsBar(buildings_ces, sector, figure_dir):
 
     ax.grid(True)
     ax.set_ylabel(ylabel)
-    ax.set_xlabel('DAC Status')
+    ax.set_xlabel('Priority Population')
     ax.yaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
 
     fig.tight_layout()
@@ -250,7 +252,7 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
         ax = ax[0],
         bins = bins,
         legend = True,
-        label = 'DAC',
+        label = 'Yes',
         cbar = True,
         cbar_kws = {'label': 'Number of Properties', 'orientation':'horizontal'},
         vmin=0, vmax=50000)
@@ -261,7 +263,7 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
         ax = ax[1],
         bins = bins,
         legend = True,
-        label = 'Non-DAC',
+        label = 'No',
         cbar = True,
         cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
         vmin=0, vmax=50000)
@@ -277,8 +279,8 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
     ax[0].set_xlabel('Vintage \n[Year]')
     ax[1].set_xlabel('Vintage \n[Year]')
 
-    ax[0].set_title('DAC')
-    ax[1].set_title('Non-DAC')
+    ax[0].set_title('Priority Population')
+    ax[1].set_title('Non-Priority Population')
 
     ax[0].set_ylim(ylim)
     ax[1].set_ylim(ylim)
@@ -315,7 +317,7 @@ def JointDistributionPlot(mp, sector, figure_dir):
             marker = '.',
             linewidth = 0
             )
-        plt.legend(loc='upper left')
+        plt.legend(title = 'Priority Population', loc='upper left')
         plt.xlim([1830, 2025])
         plt.ylim([2.0, 5.0])
         plt.yticks([2,3,4,5])
@@ -336,7 +338,7 @@ def JointDistributionPlot(mp, sector, figure_dir):
             marker = '.',
             linewidth = 0
             )
-        plt.legend(loc='upper left')
+        plt.legend(title = 'Priority Population', loc='upper left')
         plt.xlim([1860, 2025])
         plt.ylim([2.0, 6.0])
         plt.yticks([2,3,4,5,6])
@@ -414,6 +416,7 @@ def ExistingPanelRatingsBar(mp, sector, figure_dir):
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     plt.xticks(rotation = 45)
+    ax.legend(title = 'Priority Population')
 
     ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
 
@@ -644,7 +647,7 @@ def PermittedUpgradePanelSizeDistribution(mp, sector, figure_dir):
     counts = counts.unstack(level= 0)
     counts.index = counts.index.astype(int)
 
-    fig, ax = plt.subplots(1,1,figsize=(7,7))
+    fig, ax = plt.subplots(1,1,figsize=(5,5))
 
     counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
 
@@ -652,6 +655,7 @@ def PermittedUpgradePanelSizeDistribution(mp, sector, figure_dir):
     ax.set_xlabel('Upgrade Permit Count Frequency')
     ax.grid(True)
     ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+    ax.legend(title = 'Priority Population')
 
     plt.xticks(rotation = 45)
 
@@ -676,7 +680,7 @@ def InferredUpgradePanelSizeDistribution(mp, sector, figure_dir):
     counts = counts.unstack(level= 0)
     counts.index = counts.index.astype(int)
 
-    fig, ax = plt.subplots(1,1,figsize=(7,7))
+    fig, ax = plt.subplots(1,1,figsize=(5,5))
 
     counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
 
@@ -684,6 +688,7 @@ def InferredUpgradePanelSizeDistribution(mp, sector, figure_dir):
     ax.set_xlabel('Inferred Upgrade Count Frequency')
     ax.grid(True)
     ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+    ax.legend(title = 'Priority Population')
 
     plt.xticks(rotation = 45)
 
@@ -738,6 +743,8 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
     # Generate plot elements
 
     fig, ax = plt.subplots(1,2, figsize = (15,15))
+    fs = 6
+
 
     air_districts.boundary.plot(
         ax = ax[0],
@@ -778,7 +785,8 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
         text=x['counts'],
         xy=x['coords'],
         ha='center',
-        color = 'black'), axis=1)
+        color = 'black',
+        fontsize = fs), axis=1)
 
     ax[0].axis('Off')
 
@@ -823,7 +831,8 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
         text=x['counts'],
         xy=x['coords'],
         ha='center',
-        color = 'black'), axis=1)
+        color = 'black',
+        fontsize = fs), axis=1)
 
     ax[1].axis('Off')
 
@@ -878,6 +887,7 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
     # Generate plot elements
 
     fig, ax = plt.subplots(1,2, figsize = (15,15))
+    fs = 6
 
     counties.boundary.plot(
         ax = ax[0],
@@ -918,7 +928,8 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
         text=x['counts'],
         xy=x['coords'],
         ha='center',
-        color = 'black'), axis=1)
+        color = 'black',
+        fontsize = fs), axis=1)
 
     ax[0].axis('Off')
 
@@ -963,7 +974,8 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
         text=x['counts'],
         xy=x['coords'],
         ha='center',
-        color = 'black'), axis=1)
+        color = 'black',
+        fontsize = fs), axis=1)
 
     ax[1].axis('Off')
 
@@ -971,6 +983,6 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
 
     return county_upgrade_requirements
 
-#%%
+#%% Generate County Level Upgrade Requirements Map
 
 county_upgrade_requirements = PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir)

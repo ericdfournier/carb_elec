@@ -78,7 +78,7 @@ mp['ces_bin'] = pd.cut(
     labels = classes)
 
 # Generate figure axes
-fig, ax = plt.subplots(1,1, figsize=(7,7))
+fig, ax = plt.subplots(1,1, figsize=(5,5))
 
 # Allocate ECDF sample data array
 n = 100

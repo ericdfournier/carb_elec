@@ -50,7 +50,7 @@ GROUP BY main.geom;
 ALTER TABLE ztrax.megaparcels
 ADD COLUMN MegaParcelID SERIAL;
 
--- Index the Ztrax centroid geometry field
+-- Index the megaparcel id field
 CREATE INDEX IF NOT EXISTS idx_megaparcelid_idx
 ON ztrax.megaparcels (megaparcelid);
 
@@ -105,6 +105,10 @@ JOIN carb.ca_air_basins AS G
     ON ST_INTERSECTS(A.centroid, G.geom)
 JOIN carb.ca_air_districts AS H
     ON ST_INTERSECTS(A.centroid, H.geom);
+
+-- Index the megaparcel id field
+CREATE INDEX IF NOT EXISTS idx_gg_megaparcelid_idx
+ON ztrax.megaparcels_geocoded_geographies (megaparcelid);
 
 -- Index sampled territory geometries prior to spatial join
 CREATE INDEX IF NOT EXISTS idx_sampled_territories_geometry ON permits.sampled_territories USING GIST(geometry);
