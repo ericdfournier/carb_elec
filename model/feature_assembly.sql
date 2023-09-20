@@ -50,6 +50,10 @@ GROUP BY main.geom;
 ALTER TABLE ztrax.megaparcels
 ADD COLUMN MegaParcelID SERIAL;
 
+-- Index the Ztrax centroid geometry field
+CREATE INDEX IF NOT EXISTS idx_megaparcelid_idx
+ON ztrax.megaparcels (megaparcelid);
+
 -- Assign permits to megaparcels
 ALTER TABLE permits.panel_upgrades_geocoded
 ADD COLUMN MegaParcelID NUMERIC;
@@ -71,6 +75,36 @@ ADD COLUMN centroid GEOMETRY(POINT, 3310);
 -- Update Centroid Geometries for Megaparcel Layer
 UPDATE ztrax.megaparcels
 SET centroid = ST_CENTROID(geom);
+
+-- Join County, Place, and Other Attributes Based Upon Megaparcel Centroid Intersections
+SELECT DISTINCT ON (A.megaparcelid)
+        A.megaparcelid,
+        B."NAMELSAD" AS place_name,
+        C."NAMELSAD" AS county_name,
+        D.dac AS dac,
+        D.lowincome AS low_income,
+        D.nondesignated AS non_designated,
+        D.bufferlowincome AS buffer_low_income,
+        D.bufferlih AS bufferlih,
+        E."GEOID" AS tract_geoid_2019,
+        G."name" AS air_basin,
+        H."name" AS air_district
+INTO ztrax.megaparcels_geocoded_geographies
+FROM ztrax.megaparcels AS A
+JOIN census.acs_ca_2019_place_geom AS B
+    ON ST_INTERSECTS(A.centroid, B.geometry)
+JOIN census.acs_ca_2019_county_geom AS C
+    ON ST_INTERSECTS(A.centroid, C.geometry)
+JOIN carb.priority_populations_ces4 AS D
+    ON ST_INTERSECTS(A.centroid, D.geom)
+JOIN census.acs_ca_2019_tr_geom AS E
+    ON ST_INTERSECTS(A.centroid, E.geometry)
+JOIN ztrax.megaparcels AS F
+    ON ST_INTERSECTS(A.centroid, F.geom)
+JOIN carb.ca_air_basins AS G
+    ON ST_INTERSECTS(A.centroid, G.geom)
+JOIN carb.ca_air_districts AS H
+    ON ST_INTERSECTS(A.centroid, H.geom);
 
 -- Index sampled territory geometries prior to spatial join
 CREATE INDEX IF NOT EXISTS idx_sampled_territories_geometry ON permits.sampled_territories USING GIST(geometry);
