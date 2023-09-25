@@ -44,6 +44,7 @@ query = ''' SELECT megaparcelid,
                    upgraded_panel_size
             FROM ztrax.model_data
             WHERE usetype = 'single_family';'''
+
 mp = pd.read_sql(query, db_con)
 
 #%% Process Fields
@@ -88,7 +89,6 @@ y = np.zeros((len(classes),n))
 palette = sns.color_palette('rainbow', len(classes))
 
 #Enter ECDF Generation Loop
-
 ecdfs = {}
 
 # Set up progress bar

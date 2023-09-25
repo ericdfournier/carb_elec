@@ -64,9 +64,13 @@ def ImportRaw(sector):
 
     # Switch on Sector
     if sector == 'single_family':
-        query = ''' SELECT * FROM la100.sf_training_full;'''
+        query = ''' SELECT *
+                    FROM ztrax.model_data
+                    WHERE usetype = 'single_family;'''
     elif sector == 'multi_family':
-        query = '''SELECT * FROM la100.mf_training_full;'''
+        query = ''' SELECT * FROM
+                    FROM ztrax.model_data
+                    WHERE usetype = 'multi_family';'''
     else:
         raise Exception("Sector must be either 'single-family' or multi_family'")
 

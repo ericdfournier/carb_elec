@@ -43,8 +43,7 @@ query = ''' SELECT megaparcelid,
                    sub_panel_upgrade,
                    upgraded_panel_size
             FROM ztrax.model_data
-            WHERE
-                usetype = 'multi_family';'''
+            WHERE usetype = 'multi_family';'''
 
 mp = pd.read_sql(query, db_con)
 
@@ -90,7 +89,6 @@ y = np.zeros((len(classes),n))
 palette = sns.color_palette('rainbow', len(classes))
 
 #Enter ECDF Generation Loop
-
 ecdfs = {}
 
 # Set up progress bar
@@ -149,6 +147,8 @@ ax.grid(True)
 ax.set_xlabel('Property Age')
 ax.set_ylabel('Cumulative Probability Density')
 ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
+ax.set_xlim((0, 130))
+ax.legend()
 
 fig.savefig('/Users/edf/repos/carb_elec/model/fig/mf_ecdfs.png',
     bbox_inches = 'tight',
