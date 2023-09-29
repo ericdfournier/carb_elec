@@ -15,6 +15,12 @@ def ImportRaw(sector):
     '''Function to import pre-processed buildind permit training data from
     local postgres database'''
 
+    # Switch on sector
+    if sector == 'single_family':
+        s = 'sf'
+    elif sector == 'multi_family':
+        s = 'mf'
+
     # Extract Single Family Data from
     query = ''' SELECT
                 A.megaparcelid,
@@ -54,9 +60,8 @@ def ImportRaw(sector):
                 A.panel_size_as_built,
                 B.panel_size_existing
             FROM ztrax.model_data AS A
-            JOIN ztrax.model_data_sf_inference AS B
-                ON A.megaparcelid = B.megaparcelid
-            WHERE A.usetype = '{}';'''.format(sector)
+            JOIN ztrax.model_data_{}_inference AS B
+                ON A.megaparcelid = B.megaparcelid;'''.format(s)
 
     endpoint='postgresql://{}:{}@{}?port={}&dbname={}'.format(
         os.getenv('PGUSER'),

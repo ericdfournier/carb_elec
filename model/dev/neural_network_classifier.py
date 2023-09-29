@@ -79,27 +79,62 @@ def ImportRaw(sector):
     '''Function to import pre-processed buildind permit training data from
     local postgres database'''
 
-    # Extract Database Connection Parameters from Environment
-    host = os.getenv('PGHOST')
-    user = os.getenv('PGUSER')
-    password = os.getenv('PGPASS')
-    port = os.getenv('PGPORT')
-    db = 'carb'
-
-    # Establish DB Connection
-    db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
-    db_con = sql.create_engine(db_con_string)
-
-    # Switch on Sector
+    # Switch on sector
     if sector == 'single_family':
-        query = ''' SELECT * FROM la100.sf_training_full;'''
+        s = 'sf'
     elif sector == 'multi_family':
-        query = '''SELECT * FROM la100.mf_training_full;'''
-    else:
-        raise Exception("Sector must be 'single-family' or multi_family'")
+        s = 'mf'
 
-    raw = pd.read_sql(query, db_con)
-    raw.set_index('rowid', drop = True, inplace = True)
+    # Extract Single Family Data from
+    query = ''' SELECT
+                A.megaparcelid,
+                A."YearBuilt",
+                A."TotalNoOfBuildings",
+                A."LotSizeSquareFeet",
+                A."TotalBuildingAreaSqFt",
+                A."TotalNoOfUnits",
+                A."TotalNoOfBedrooms",
+                A."TotalLandAssessedValue",
+                A."TotalImprovementAssessedValue",
+                A."HeatingTypeorSystemStndCode",
+                A."AirConditioningTypeorSystemStndCode",
+                A.shorelinedistm,
+                A.elevationm,
+                A.slopepct,
+                A.aspectdeg,
+                A.ciscorep,
+                A.dac,
+                A.lowincome,
+                A.nondesignated,
+                A.bufferlowincome,
+                A.bufferlih,
+                A.peopcolorpct,
+                A.lowincpct,
+                A.unemppct,
+                A.lingisopct,
+                A.lesshspct,
+                A.under5pct,
+                A.over64pct,
+                A.lifeexppct,
+                A.renterhouseholdspct,
+                A.elecheatinghouseholdspct,
+                A.bzone,
+                A.x,
+                A.y,
+                A.panel_size_as_built,
+                B.panel_size_existing
+            FROM ztrax.model_data AS A
+            JOIN ztrax.model_data_{}_inference AS B
+                ON A.megaparcelid = B.megaparcelid;'''.format(s)
+
+    endpoint='postgresql://{}:{}@{}?port={}&dbname={}'.format(
+        os.getenv('PGUSER'),
+        os.getenv('PGPASS'),
+        os.getenv('PGHOST'),
+        os.getenv('PGPORT'),
+        'carb')
+
+    raw = pd.read_sql(query, endpoint, index_col = 'megaparcelid')
 
     return raw
 

@@ -27,7 +27,7 @@ import pickle
 
 #%% Set Output Environment
 
-root = '/Users/edf/repos/carb_elec/model/saved/'
+root = '/Users/edf/repos/carb_elec/model/runs/'
 os.chdir(root)
 
 #%% Class Definitions
@@ -62,17 +62,44 @@ def ImportRaw(sector):
     db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
     db_con = sql.create_engine(db_con_string)
 
-    # Switch on Sector
-    if sector == 'single_family':
-        query = ''' SELECT *
-                    FROM ztrax.model_data
-                    WHERE usetype = 'single_family;'''
-    elif sector == 'multi_family':
-        query = ''' SELECT * FROM
-                    FROM ztrax.model_data
-                    WHERE usetype = 'multi_family';'''
-    else:
-        raise Exception("Sector must be either 'single-family' or multi_family'")
+    query = ''' SELECT  A.megaparcelid,
+                        A."YearBuilt",
+                        A."LotSizeSquareFeet",
+                        A."TotalBuildingAreaSqFt",
+                        A."TotalNoOfBedrooms",
+                        A."TotalLandAssessedValue",
+                        A."TotalImprovementAssessedValue",
+                        A."HeatingTypeorSystemStndCode",
+                        A."AirConditioningTypeorSystemStndCode",
+                        A.sampled,
+                        A.usetype,
+                        A.shorelinedistm,
+                        A.elevationm,
+                        A.slopepct,
+                        A.aspectdeg,
+                        A.ciscorep,
+                        A.dac,
+                        A.lowincome,
+                        A.nondesignated,
+                        A.bufferlowincome,
+                        A.bufferlih,
+                        A.peopcolorpct,
+                        A.lowincpct,
+                        A.unemppct,
+                        A.lingisopct,
+                        A.lesshspct,
+                        A.under5pct,
+                        A.over64pct,
+                        A.lifeexppct,
+                        A.renterhouseholdspct,
+                        A.elecheatinghouseholdspct,
+                        A.bzone,
+                        A.panel_size_as_built,
+                        B.panel_size_existing
+                FROM ztrax.model_data AS A
+                JOIN ztrax.model_data_sf_inference AS B
+                    ON A.megaparcelid = B.megaparcelid
+                WHERE A.usetype = '{}';'''.format(sector)
 
     raw = pd.read_sql(query, db_con)
 
@@ -82,7 +109,16 @@ def ImportRaw(sector):
 
 sector = 'single_family'
 data = ImportRaw(sector)
-data.set_index('rowid', drop = True, inplace = True)
+data.set_index('megaparcelid', drop = True, inplace = True)
+
+#%% Drop Corrupt Records and Check Null Counts
+
+data.dropna(
+    subset = ['panel_size_as_built', 'panel_size_existing'],
+    inplace = True
+    )
+
+data.isna().sum(axis = 0)
 
 #%% Get Training Feature Types
 
@@ -186,8 +222,8 @@ y_test = y_test.ravel()
 rnd_clf = RandomForestClassifier(
     n_estimators = 500,
     max_depth = 50,
-    n_iter = 5,
-    cv = 10)
+    verbose = 1,
+    warm_start = True)
 
 #%% Model Fit with Best Parameters
 
@@ -195,8 +231,8 @@ rnd_clf.fit(X_train, y_train)
 
 #%% Predict and Evaluate Accuracy on Test Set
 
-predict_train = best_rnd_clf.predict(X_train)
-predict_test = best_rnd_clf.predict(X_test)
+predict_train = rnd_clf.predict(X_train)
+predict_test = rnd_clf.predict(X_test)
 
 #%% Print Accuracy, Confusion Matrix, and Classificaiton Report
 
@@ -217,15 +253,31 @@ n4 = list(categorical_pipeline['one_hot_encoder'].get_feature_names_out())
 
 class_names = n1 + n2 + n3 + n4
 
-#%% Export the first three decision trees from the forest
+#%% Plot Confusion Matrix
 
-for i in range(3):
-    tree = rnd_clf.estimators_[i]
-    dot_data = export_graphviz(tree,
-                               feature_names=field_names,
-                               filled=True,
-                               max_depth=2,
-                               impurity=False,
-                               proportion=True)
-    graph = graphviz.Source(dot_data)
-    display(graph)
+np.set_printoptions(precision=2)
+
+# Plot non-normalized confusion matrix
+titles_options = [
+    ("Confusion matrix, without normalization", None),
+    ("Normalized confusion matrix", "true"),
+]
+
+fig, ax = plt.subplots(1,1,figsize = (10,10))
+
+for title, normalize in titles_options:
+    disp = ConfusionMatrixDisplay.from_estimator(
+        rnd_clf,
+        X_test,
+        y_test,
+        display_labels=class_names,
+        cmap=plt.cm.Blues,
+        normalize=normalize,
+        ax = ax
+    )
+    disp.ax_.set_title(title)
+
+    print(title)
+    print(disp.confusion_matrix)
+
+plt.show()
