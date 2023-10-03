@@ -11,6 +11,7 @@ cd $dir
 # Creates tables:
 # - carb.ca_air_basins
 # - carb.ca_air_districts
+# - carb.ca_county_air_basin_districts
 #
 # Converts SRS to EPSG:3310 (NAD83 / California Albers).
 ################################################################################
@@ -54,6 +55,22 @@ ogr2ogr -f $format $dst \
     -lco DESCRIPTION=$table \
     --debug ON
 
+# Import county air basin districts
+file='CoAbDis.shp'
+table='ca_county_air_basin_districts'
+
+ogr2ogr -f $format $dst \
+    $src$file \
+    -lco SCHEMA=$schema \
+    -nln $table  \
+    -nlt MULTIPOLYGON \
+    -t_srs EPSG:3310 \
+    -lco GEOMETRY_NAME=geom \
+    -unsetFieldWidth \
+    -emptyStrAsNull \
+    -lco DESCRIPTION=$table \
+    --debug ON
+
 # Postprocess tables
 psql -d carb -a -f 'postprocess.sql'
 
@@ -62,6 +79,9 @@ table='ca_air_districts'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 table='ca_air_basins'
+ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
+
+table='ca_county_air_basin_districts'
 ogrinfo -so -ro $dst $schema.$table > $out$table'_orginfo.txt'
 
 # Export CSV Outputs to File

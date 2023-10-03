@@ -125,7 +125,11 @@ def ImportRaw(sector):
                 B.panel_size_existing
             FROM ztrax.model_data AS A
             JOIN ztrax.model_data_{}_inference AS B
-                ON A.megaparcelid = B.megaparcelid;'''.format(s)
+                ON A.megaparcelid = B.megaparcelid
+            WHERE B.observed_panel_upgrade = TRUE;'''.format(s)
+
+            # TODO: Rerun after restricting only to observations
+            # where ugpraded panel sizes are not NULL
 
     endpoint='postgresql://{}:{}@{}?port={}&dbname={}'.format(
         os.getenv('PGUSER'),

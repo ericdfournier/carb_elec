@@ -79,7 +79,7 @@ mp['ces_bin'] = pd.cut(
     labels = classes)
 
 # Generate figure axes
-fig, ax = plt.subplots(1,1, figsize=(7,7))
+fig, ax = plt.subplots(1,1, figsize=(5,5))
 
 # Allocate ECDF sample data array
 n = 100
@@ -248,9 +248,13 @@ def UpgradeFromAsBuilt(as_built):
 
 def UpgradeFromPermit(as_built, row):
 
+    # Set observed to false as default
+    observed = False
+
     # If permited upgrade and destination panel size was specified in permit
     if ~np.isnan(row['upgraded_panel_size']):
         existing = row['upgraded_panel_size']
+        observed = True
     # Where destination panel size was not specified
     else:
         # If any of the upgrade categories are true set minimum size to 150 amps
@@ -263,12 +267,13 @@ def UpgradeFromPermit(as_built, row):
         else:
             existing = UpgradeFromAsBuilt(as_built)
 
-    return existing
+    return existing, observed
 
 #%% Loop through all records and assign existing panel size from upgrade choice and ladder value
 
 # Allocate output fields
 mp['inferred_panel_upgrade'] = False
+mp['observed_panel_upgrade'] = False
 
 # limit valid indices to only where as_built panel sizes are known
 valid_ind = ~mp['panel_size_as_built'].isna()
@@ -290,7 +295,9 @@ with tqdm(total = valid_ind.shape[0]) as pbar:
             mp.loc[i,'inferred_panel_upgrade'] = True
         elif row['permitted_panel_upgrade'] == True:
             # Set existing panel size to as_built if no inferred upgrade has occured
-            existing = UpgradeFromPermit(as_built, row)
+            existing, observed = UpgradeFromPermit(as_built, row)
+            mp.loc[i,'panel_size_existing'] = existing
+            mp.loc[i,'observed_panel_upgrade'] = observed
         else:
             mp.loc[i,'panel_size_existing'] = as_built
 
@@ -302,12 +309,12 @@ mp['any_panel_upgrade'] = mp.loc[:,['permitted_panel_upgrade','inferred_panel_up
 # Write Output to PostGIS
 
 output_cols = [
-    'permitted_panel_upgrade',
     'ces_bin',
-    'previous_upgrade',
+    'permitted_panel_upgrade',
+    'observed_panel_upgrade',
     'inferred_panel_upgrade',
-    'panel_size_existing',
-    'any_panel_upgrade']
+    'any_panel_upgrade',
+    'panel_size_existing']
 
 mp.loc[:,output_cols].to_sql(
     name = 'model_data_mf_inference',
