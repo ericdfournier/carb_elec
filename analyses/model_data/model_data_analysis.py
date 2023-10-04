@@ -31,13 +31,13 @@ db_con = sql.create_engine(db_con_string)
 
 query = ''' SELECT  A.*,
                     B.permitted_panel_upgrade,
-                    B.ces_bin,
-                    B.previous_upgrade,
+                    B.observed_panel_upgrade,
                     B.inferred_panel_upgrade,
-                    B.panel_size_existing,
                     B.any_panel_upgrade,
+                    B.panel_size_existing,
                     C.air_district,
                     C.county_name,
+                    C.county_air_basin_district_id,
                     C.tract_geoid_2019
             FROM ztrax.model_data AS A
             JOIN ztrax.model_data_sf_inference AS B
@@ -56,13 +56,13 @@ sf['priority_populatio']
 
 query = ''' SELECT  A.*,
                     B.permitted_panel_upgrade,
-                    B.ces_bin,
-                    B.previous_upgrade,
+                    B.observed_panel_upgrade,
                     B.inferred_panel_upgrade,
-                    B.panel_size_existing,
                     B.any_panel_upgrade,
+                    B.panel_size_existing,
                     C.air_district,
                     C.county_name,
+                    C.county_air_basin_district_id,
                     C.tract_geoid_2019
             FROM ztrax.model_data AS A
             JOIN ztrax.model_data_mf_inference AS B
@@ -85,6 +85,11 @@ air_districts = gpd.read_postgis(query, db_con, geom_col = 'geom')
 query = '''SELECT * FROM census.acs_ca_2019_county_geom;'''
 counties = gpd.read_postgis(query, db_con, geom_col = 'geometry')
 
+#%% Extract County Air Basin District Geographic Boundaries
+
+query = ''' SELECT  * FROM carb.ca_county_air_basin_districts;'''
+county_air_basin_districts = gpd.read_postgis(query, db_con, geom_col = 'geom')
+
 #%% Extract Census Boundaries
 
 query = '''SELECT * FROM census.acs_ca_2019_tr_geom;'''
@@ -94,8 +99,13 @@ tracts = gpd.read_postgis(query, db_con, geom_col = 'geometry')
 
 def PrintStatsTable(mp, sector):
 
-    bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-    labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+    if sector == 'single_family':
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+    elif sector == 'multi_family':
+        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
         labels = labels,
@@ -120,14 +130,20 @@ def PrintStatsTable(mp, sector):
 # 200	        19,109	33%
 # >200	        5,915	10%
 
-stats = PrintStatsTable(sf, 'single_family')
+sf_stats = PrintStatsTable(sf, 'single_family')
+mf_stats = PrintStatsTable(mf, 'multi_family')
 
 #%% Generate Statistic Table
 
 def PrintDACStatsTable(mp, sector):
 
-    bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-    labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+    if sector == 'single_family':
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+    elif sector == 'multi_family':
+        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
         labels = labels,
@@ -144,9 +160,8 @@ def PrintDACStatsTable(mp, sector):
 
 #%% Print DAC Stats Table
 
-stats = PrintDACStatsTable(sf, 'single_family')
-
-# TODO: Continue migration from "mp" to "sf"/"mf" in the following...
+sf_stats = PrintDACStatsTable(sf, 'single_family')
+mf_stats = PrintDACStatsTable(mf, 'multi_family')
 
 #%% Plot SF as built panel size ratings
 
@@ -225,7 +240,8 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
 
 #%% Generate As Built Panel Rating Hist
 
-AsBuiltPanelRatingsHist(sf, sector, figure_dir)
+AsBuiltPanelRatingsHist(sf, 'single_family', figure_dir)
+AsBuiltPanelRatingsHist(mf, 'multi_family', figure_dir)
 
 #%% Plot As-Built Panel Stats
 
@@ -235,14 +251,14 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
     # Compute counts
 
     if sector == 'single_family':
-        counts = mp.groupby(['dac', 'panel_size_as_built'])['sampled'].agg('count')
+        counts = mp.groupby(['dac', 'panel_size_as_built'])['panel_size_as_built'].agg('count')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
         ylabel = 'As-Built Panel Rating \n[Amps]'
         xlabel = 'Number of Properties'
     elif sector == 'multi_family':
         # NOTE: Units field missing in current MP structure
-        counts = mp.groupby(['dac', 'panel_size_as_built'])['units'].agg('sum')
+        counts = mp.groupby(['dac', 'panel_size_as_built'])['TotalNoOfUnits'].agg('sum')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
         ylabel = 'Average As-Built Load Center Rating per Unit \n[Amps]'
@@ -271,19 +287,20 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
 
 #%% Generate As-Built Panel Ratings Bar Chart
 
-AsBuiltPanelRatingsBar(sf, sector, figure_dir)
+AsBuiltPanelRatingsBar(sf, 'single_family', figure_dir)
+AsBuiltPanelRatingsBar(mf, 'multi_family', figure_dir)
 
 #%% Plot Cumulative Permit Counts
 
-def PermitCountsBar(buildings_ces, sector, figure_dir):
+def PermitCountsBar(mp, sector, figure_dir):
 
-    upgrade_stats = mp.loc[mp['permitted_panel_upgrade'] == True].groupby('dac')['sampled'].agg('count')
+    upgrade_stats = mp.loc[mp['permitted_panel_upgrade'] == True].groupby('dac')['panel_size_existing'].agg('count')
     upgrade_stats = pd.DataFrame(upgrade_stats).reset_index()
 
     fig, ax = plt.subplots(1, 1, figsize = (5,5), sharex = True)
 
     sns.barplot(data = upgrade_stats,
-        y = 'sampled',
+        y = 'panel_size_existing',
         x = 'dac',
         order = ['No','Yes'],
         label = ['No','Yes'],
@@ -307,7 +324,8 @@ def PermitCountsBar(buildings_ces, sector, figure_dir):
 
 #%% Generate Permit Count Barchart
 
-PermitCountsBar(sf, sector, figure_dir)
+PermitCountsBar(sf, 'single_family', figure_dir)
+PermitCountsBar(mf, 'multi_family', figure_dir)
 
 #%% Plot Existing panel size ratings
 
@@ -322,7 +340,7 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
     non_dac_sample = mp.loc[non_dac_ind,:]
 
     if sector == 'single_family':
-        yticks = [30,60,100, 125, 150, 200, 225, 320, 400, 600, 800, 1000, 1200]
+        yticks = [30, 60, 100, 125, 150, 200, 225, 320, 400, 600, 800, 1000, 1200]
         ylim = (0, 1220)
         ylabel = 'Existing Panel Rating \n[Amps]'
         bins = 80
@@ -386,7 +404,8 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
 
 #%% Generate Existing Panel Size Rating 2D-Histogram
 
-ExistingPanelRatingsHist(sf, sector, figure_dir)
+ExistingPanelRatingsHist(sf, 'single_family', figure_dir)
+ExistingPanelRatingsHist(mf, 'multi_family', figure_dir)
 
 #%% Joint Distribution Plot
 
