@@ -24,6 +24,10 @@ FROM permits.panel_upgrades AS A
 LEFT JOIN permits.panel_upgrades_geocode_arcgis AS B
     ON A.id::TEXT = B.id;
 
+-- Index Geocoded Panel Upgrade table on Megaparcel ID Field
+CREATE INDEX IF NOT EXISTS idx_megaparcelid_idx
+ON permits.panel_upgrades_geocoded (megaparcelid);
+
 -- Create Spatial Index on Coalesced Centroid Fields
 CREATE INDEX idx_centroid_panel_upgrades_geocode ON permits.panel_upgrades_geocoded USING gist (centroid);
 
@@ -46,7 +50,8 @@ SELECT DISTINCT ON (A.id)
         E."GEOID" AS tract_geoid_2019,
         F."megaparcelid" AS megaparcelid,
         G."name" AS air_basin,
-        H."name" AS air_district
+        H."name" AS air_district,
+        I."coabdis_id" AS county_air_basin_district_id
 INTO permits.panel_upgrades_geocoded_geographies
 FROM permits.panel_upgrades_geocoded AS A
 JOIN census.acs_ca_2019_place_geom AS B
@@ -62,8 +67,10 @@ JOIN ztrax.megaparcels AS F
 JOIN carb.ca_air_basins AS G
     ON ST_INTERSECTS(A.centroid, G.geom)
 JOIN carb.ca_air_districts AS H
-    ON ST_INTERSECTS(A.centroid, H.geom);
+    ON ST_INTERSECTS(A.centroid, H.geom)
+JOIN carb.ca_county_air_basin_districts AS I
+    ON ST_INTERSECTS(A.centroid, I.geom);
 
--- Index Geocoded Panel Upgrade table on Megaparcel ID Field
-CREATE INDEX IF NOT EXISTS idx_megaparcelid_idx
-ON permits.panel_upgrades_geocoded (megaparcelid);
+-- Index Geocoded Geographies Table on Megaparcel ID Field
+CREATE INDEX IF NOT EXISTS idx_gg_megaparcelid_idx
+ON permits.panel_upgrades_geocoded_geographies (megaparcelid);
