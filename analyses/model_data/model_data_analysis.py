@@ -50,8 +50,6 @@ sf = pd.read_sql(query, db_con)
 # Set megaparcelid as index
 sf.set_index('megaparcelid', drop = True, inplace = True)
 
-sf['priority_populatio']
-
 #%% Extract Multi-Family Model Data
 
 query = ''' SELECT  A.*,
@@ -95,9 +93,47 @@ county_air_basin_districts = gpd.read_postgis(query, db_con, geom_col = 'geom')
 query = '''SELECT * FROM census.acs_ca_2019_tr_geom;'''
 tracts = gpd.read_postgis(query, db_con, geom_col = 'geometry')
 
-#%% Generate Statistic Table
+#%% Generate Housing Statistics Table
 
-def PrintStatsTable(mp, sector):
+def PrintHousingStatsTable(mp, sector):
+
+    if sector == 'single_family':
+        size_bins = [0, 1000, 2000, 3000, 4000, 5000, 8000, 10000, 20000, 1000000]
+        year_bins = [0, 1950, 1978, 2010, 2023]
+        data = mp.loc[:,['YearBuilt','TotalBuildingAreaSqFt']]
+        data['size_bin'] = pd.cut(mp['TotalBuildingAreaSqFt'],
+            bins = size_bins,
+            ordered = True)
+        data['year_bin'] = pd.cut(mp['YearBuilt'],
+            bins = year_bins,
+            ordered = True)
+        stats = data.groupby(['year_bin', 'size_bin'],
+            observed = True)['YearBuilt'].agg('count').unstack(level = 0)
+    elif sector == 'multi-family':
+        year_bins = [0, 1950, 1978, 2010, 2023]
+        units_bins = [0, 10, 25, 50, 100, 250, 500, 1000, 10000]
+        data = mp.loc[:,['YearBuilt','TotalNoOfUnits']]
+        data['year_bin'] = pd.cut(mp['YearBuilt'],
+            bins = year_bins,
+            ordered = True)
+        data['units_bin'] = pd.cut(mp['TotalNoOfUnits'],
+            bins = units_bins,
+            ordered = True)
+        stats = data.groupby(['year_bin', 'units_bin'],
+            observed = True)['YearBuilt'].agg('count').unstack(level = 0)
+
+    print(stats)
+
+    return stats
+
+#%% Generate Housing Statistics Tables
+
+PrintHousingStatsTable(sf, 'single_family')
+PrintHousingStatsTable(mf, 'multi_family')
+
+#%% Generate Panel Statistics Table
+
+def PrintPanelStatsTable(mp, sector):
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
@@ -120,7 +156,7 @@ def PrintStatsTable(mp, sector):
 
     return stats
 
-#%% Print Stats Table
+#%% Print Panel Statistics Tables
 
 # LBNL Results for Comparison
 # Panel Amps	Count	Frequency
@@ -130,12 +166,12 @@ def PrintStatsTable(mp, sector):
 # 200	        19,109	33%
 # >200	        5,915	10%
 
-sf_stats = PrintStatsTable(sf, 'single_family')
-mf_stats = PrintStatsTable(mf, 'multi_family')
+sf_stats = PrintPanelStatsTable(sf, 'single_family')
+mf_stats = PrintPanelStatsTable(mf, 'multi_family')
 
-#%% Generate Statistic Table
+#%% Generate DAC Panel Statistics Table
 
-def PrintDACStatsTable(mp, sector):
+def PrintDACPanelStatsTable(mp, sector):
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
@@ -158,10 +194,10 @@ def PrintDACStatsTable(mp, sector):
 
     return stats
 
-#%% Print DAC Stats Table
+#%% Print DAC Panel Statistics Tables
 
-sf_stats = PrintDACStatsTable(sf, 'single_family')
-mf_stats = PrintDACStatsTable(mf, 'multi_family')
+sf_stats = PrintDACPanelStatsTable(sf, 'single_family')
+mf_stats = PrintDACPanelStatsTable(mf, 'multi_family')
 
 #%% Plot SF as built panel size ratings
 
@@ -248,7 +284,7 @@ AsBuiltPanelRatingsHist(mf, 'multi_family', figure_dir)
 def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
     '''Simple barplot of as-built panel ratings separated by DAC status'''
 
-    # Compute counts
+    # Compute counts by sector
 
     if sector == 'single_family':
         counts = mp.groupby(['dac', 'panel_size_as_built'])['panel_size_as_built'].agg('count')
@@ -257,7 +293,6 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
         ylabel = 'As-Built Panel Rating \n[Amps]'
         xlabel = 'Number of Properties'
     elif sector == 'multi_family':
-        # NOTE: Units field missing in current MP structure
         counts = mp.groupby(['dac', 'panel_size_as_built'])['TotalNoOfUnits'].agg('sum')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
@@ -328,8 +363,6 @@ PermitCountsBar(sf, 'single_family', figure_dir)
 PermitCountsBar(mf, 'multi_family', figure_dir)
 
 #%% Plot Existing panel size ratings
-
-# TODO: There is an issue with the MF side of this here below...
 
 def ExistingPanelRatingsHist(mp, sector, figure_dir):
     '''Function to plot a set of 2d histograms relating the frequency of
@@ -427,12 +460,12 @@ def JointDistributionPlot(mp, sector, figure_dir):
             marker = '.',
             linewidth = 0
             )
-        plt.legend(title = 'Priority Population', loc='upper left')
+        plt.legend(title = 'DAC', loc='upper left')
         plt.xlim([1830, 2025])
         plt.ylim([2.0, 5.0])
         plt.yticks([2,3,4,5])
         fig.ax_joint.set_yticklabels(['100', '1,000', '10,000', '100,000'])
-        fig.ax_joint.set_ylabel('Building Size\n($ft^2$)')
+        fig.ax_joint.set_ylabel('Total Floor Area\n($ft^2$)')
         fig.ax_joint.set_xlabel('Construction Vintage\n(Year)')
         plt.grid()
 
@@ -448,12 +481,12 @@ def JointDistributionPlot(mp, sector, figure_dir):
             marker = '.',
             linewidth = 0
             )
-        plt.legend(title = 'Priority Population', loc='upper left')
+        plt.legend(title = 'DAC', loc='upper left')
         plt.xlim([1860, 2025])
         plt.ylim([2.0, 6.0])
         plt.yticks([2,3,4,5,6])
         fig.ax_joint.set_yticklabels(['100', '1,000', '10,000', '100,000','1,000,000'])
-        fig.ax_joint.set_ylabel('Building Size\n($ft^2$)')
+        fig.ax_joint.set_ylabel('Total Floor Area\n($ft^2$)')
         fig.ax_joint.set_xlabel('Construction Vintage\n(Year)')
         plt.grid()
 
@@ -463,8 +496,8 @@ def JointDistributionPlot(mp, sector, figure_dir):
 
 #%% Plot Home Size Vintage Jointplot
 
-# CAUTION - Long run-time...
-JointDistributionPlot(sf, sector, figure_dir)
+JointDistributionPlot(sf, 'single_family', figure_dir)
+JointDistributionPlot(mf, 'multi_family', figure_dir)
 
 #%% Plot Existing Panel Stats
 
