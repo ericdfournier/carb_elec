@@ -119,7 +119,7 @@ CREATE INDEX IF NOT EXISTS idx_sampled_territories_geometry ON permits.sampled_t
 -- Index megaparcel centroids prior to spatial join
 CREATE INDEX IF NOT EXISTS idx_megaparcels_centroid ON ztrax.megaparcels USING GIST(centroid);
 
--- Index megaparcel geometry field 
+-- Index megaparcel geometry field
 CREATE INDEX IF NOT EXISTS idx_megaparcels_geom ON ztrax.megaparcels USING GIST(geom);
 
 -- Mark Sampled Megaparcels Based Upon Sampled Territory Intersection

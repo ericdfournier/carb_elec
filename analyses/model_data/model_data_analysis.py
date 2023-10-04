@@ -329,6 +329,8 @@ PermitCountsBar(mf, 'multi_family', figure_dir)
 
 #%% Plot Existing panel size ratings
 
+# TODO: There is an issue with the MF side of this here below...
+
 def ExistingPanelRatingsHist(mp, sector, figure_dir):
     '''Function to plot a set of 2d histograms relating the frequency of
     existing panel sizes to vintage year by dac status'''
