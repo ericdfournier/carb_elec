@@ -106,7 +106,7 @@ data = permits[cols].sum(axis=0)
 
 xtick_labels = [x.replace('_', ' ').title() for x in cols]
 
-fig, ax = plt.subplots(1,1, figsize=(7,7))
+fig, ax = plt.subplots(1,1, figsize=(7,5))
 
 sns.barplot(x = data.index, y = data.values, order = cols)
 ax.grid(True)
