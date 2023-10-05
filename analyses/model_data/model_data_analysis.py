@@ -131,6 +131,46 @@ def PrintHousingStatsTable(mp, sector):
 PrintHousingStatsTable(sf, 'single_family')
 PrintHousingStatsTable(mf, 'multi_family')
 
+#%% Generate DAC Housing Statistics Table
+
+def PrintDACHousingStatsTable(mp, sector):
+
+    if sector == 'single_family':
+        size_bins = [0, 1000, 2000, 3000, 4000, 5000, 8000, 10000, 20000, 1000000]
+        year_bins = [0, 1950, 1978, 2010, 2023]
+        data = mp.loc[:,['dac', 'YearBuilt', 'TotalBuildingAreaSqFt']]
+        data['size_bin'] = pd.cut(mp['TotalBuildingAreaSqFt'],
+            bins = size_bins,
+            ordered = True)
+        data['year_bin'] = pd.cut(mp['YearBuilt'],
+            bins = year_bins,
+            ordered = True)
+        stats_init = data.groupby(['dac','year_bin', 'size_bin'],
+            observed = True)['YearBuilt'].agg('count')
+        stats = stats_init.unstack(level = [1, 0]).sort_index(level = [2,1])
+    elif sector == 'multi_family':
+        year_bins = [0, 1950, 1978, 2010, 2023]
+        units_bins = [0, 10, 25, 50, 100, 250, 500, 1000, 10000]
+        data = mp.loc[:,['dac', 'YearBuilt', 'TotalNoOfUnits']]
+        data['year_bin'] = pd.cut(mp['YearBuilt'],
+            bins = year_bins,
+            ordered = True)
+        data['units_bin'] = pd.cut(mp['TotalNoOfUnits'],
+            bins = units_bins,
+            ordered = True)
+        stats_init = data.groupby(['dac','year_bin', 'units_bin'],
+            observed = True)['YearBuilt'].agg('count')
+        stats = stats_init.unstack(level = [1, 0]).sort_index(level = [2,1])
+
+    print(stats)
+
+    return stats
+
+#%% Print DAC Housing Statistics Tables
+
+sf_dac_stats = PrintDACHousingStatsTable(sf, 'single_family')
+mf_dac_stats = PrintDACHousingStatsTable(mf, 'multi_family')
+
 #%% Generate Panel Statistics Table
 
 def PrintPanelStatsTable(mp, sector):
