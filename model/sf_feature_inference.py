@@ -282,8 +282,18 @@ def UpgradeFromPermit(as_built, row):
 
     # If permited upgrade and destination panel size was specified in permit
     if ~np.isnan(row['upgraded_panel_size']):
+
         existing = row['upgraded_panel_size']
+        valid_panels = [30, 60, 100, 125, 150, 200, 225, 320, 400, 600, 800, 1000, 1200]
         observed = True
+
+        # If the existing panel size is not in the valid set, take the closest
+        # value and mark it as the product of inference
+        if existing not in valid_panels:
+
+            existing = min(valid_panels, key=lambda x:abs(x - existing))
+            observed = False
+
     # Where destination panel size was not specified
     else:
         # If any of the upgrade categories are true set minimum size to 200 amps

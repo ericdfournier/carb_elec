@@ -653,6 +653,7 @@ def ExistingPanelRatingsBar(mp, sector, figure_dir):
         counts.index = counts.index.astype(int)
         ylabel = 'Existing Panel Rating \n[Amps]'
         xlabel = 'Number of Properties'
+
     elif sector == 'multi_family':
         counts = mp.groupby(['dac', 'panel_size_existing'])['TotalNoOfUnits'].agg('sum')
         counts = counts.unstack(level= 0)
