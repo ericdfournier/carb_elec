@@ -73,6 +73,13 @@ mf = pd.read_sql(query, db_con)
 # Set megaparcelid as index
 mf.set_index('megaparcelid', drop = True, inplace = True)
 
+#%% DEBUG
+
+fig, ax = plt.subplots(1,2, figsize = (5,5))
+
+test = mf.loc[:,['dac','TotalNoOfUnits']].sort_values(by = 'TotalNoOfUnits', ascending = False)
+test.hist(by = 'dac', bins = 100, ax = ax)
+
 #%% Extract Air District Geographic Boundaries
 
 query = ''' SELECT  * FROM carb.ca_air_districts;'''
@@ -109,7 +116,7 @@ def PrintHousingStatsTable(mp, sector):
             ordered = True)
         stats = data.groupby(['year_bin', 'size_bin'],
             observed = True)['YearBuilt'].agg('count').unstack(level = 0)
-    elif sector == 'multi-family':
+    elif sector == 'multi_family':
         year_bins = [0, 1950, 1978, 2010, 2023]
         units_bins = [0, 10, 25, 50, 100, 250, 500, 1000, 10000]
         data = mp.loc[:,['YearBuilt','TotalNoOfUnits']]
@@ -128,7 +135,7 @@ def PrintHousingStatsTable(mp, sector):
 
 #%% Generate Housing Statistics Tables
 
-PrintHousingStatsTable(sf, 'single_family')
+#PrintHousingStatsTable(sf, 'single_family')
 PrintHousingStatsTable(mf, 'multi_family')
 
 #%% Generate DAC Housing Statistics Table

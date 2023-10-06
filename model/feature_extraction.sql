@@ -68,10 +68,6 @@ ON census.acs_ca_2019_tr_housing ("GEOID");
 CREATE INDEX IF NOT EXISTS idx_fuel_geoid_idx
 ON census.acs_ca_2019_tr_fuel ("GEOID");
 
--- Create Spatial Index on Ztrax Mepaparcel Centroids
-CREATE INDEX IF NOT EXISTS idx_mp_centroid_idx
-ON ztrax.megaparcels USING GIST("centroid");
-
 -- Extract housing features
 SELECT A."GEOID",
        A."DP04_0047PE" / 100.0 AS "renterhouseholdspct",

@@ -247,12 +247,13 @@ def UpgradeFromAsBuilt(as_built):
 
     # switch on class size set intersection
     if as_built in sm:
-        # small size upgrades decided via random choice over three options
+        # Small size upgrades decided via random choice over three options
         # since the timing of the upgrade is unknown and requirements will vary
-        # in time
+        # in time. The probabilities are weighted based upon the size
+        # distribution of observed panel upgrades in the permit database.
         existing = np.random.choice(
-            [100., 150., 200.], # Choice options
-            p = [0.25, 0.25, 0.5]) # Choice probabilities
+            [100., 125., 150., 200.], # Choice options
+            p = [0.14, 0.10, 0.01, 0.75]) # Choice probabilities
     elif as_built in med:
         # medium size upgrades decided via random choice over two options since
         # 225 Amp panels have been growing in popularity recently

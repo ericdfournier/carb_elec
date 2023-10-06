@@ -30,7 +30,7 @@ SELECT  main.geom,
         SUM(main."NoOfBuildings") AS "TotalNoOfBuildings",
         MODE() WITHIN GROUP(ORDER BY main."LotSizeSquareFeet") AS "LotSizeSquareFeet",
         SUM(areas."BuildingAreaSqFt") AS "TotalBuildingAreaSqFt",
-        SUM(building."NoOfUnits") AS "TotalNoOfUnits",
+        MODE() WITHIN GROUP (ORDER BY building."NoOfUnits") AS "TotalNoOfUnits",
         SUM(building."TotalBedrooms") AS "TotalNoOfBedrooms",
         SUM(value."LandAssessedValue"::NUMERIC) AS "TotalLandAssessedValue",
         SUM(value."ImprovementAssessedValue"::NUMERIC) AS "TotalImprovementAssessedValue",
@@ -76,6 +76,10 @@ ADD COLUMN centroid GEOMETRY(POINT, 3310);
 UPDATE ztrax.megaparcels
 SET centroid = ST_CENTROID(geom);
 
+-- Index megaparcel centroids prior to spatial join
+CREATE INDEX IF NOT EXISTS idx_megaparcels_centroid 
+ON ztrax.megaparcels USING GIST(centroid);
+
 -- Join County, Place, and Other Attributes Based Upon Megaparcel Centroid Intersections
 SELECT DISTINCT ON (A.megaparcelid)
         A.megaparcelid,
@@ -114,13 +118,12 @@ CREATE INDEX IF NOT EXISTS idx_gg_megaparcelid_idx
 ON ztrax.megaparcels_geocoded_geographies (megaparcelid);
 
 -- Index sampled territory geometries prior to spatial join
-CREATE INDEX IF NOT EXISTS idx_sampled_territories_geometry ON permits.sampled_territories USING GIST(geometry);
-
--- Index megaparcel centroids prior to spatial join
-CREATE INDEX IF NOT EXISTS idx_megaparcels_centroid ON ztrax.megaparcels USING GIST(centroid);
+CREATE INDEX IF NOT EXISTS idx_sampled_territories_geometry 
+ON permits.sampled_territories USING GIST(geometry);
 
 -- Index megaparcel geometry field
-CREATE INDEX IF NOT EXISTS idx_megaparcels_geom ON ztrax.megaparcels USING GIST(geom);
+CREATE INDEX IF NOT EXISTS idx_megaparcels_geom 
+ON ztrax.megaparcels USING GIST(geom);
 
 -- Mark Sampled Megaparcels Based Upon Sampled Territory Intersection
 UPDATE ztrax.megaparcels
@@ -174,18 +177,18 @@ ADD COLUMN panel_size_as_built NUMERIC DEFAULT NULL;
 -- Estimate As-Built Panel Size from Vintage Year and Size Combination for Single Family Megaparcels
 UPDATE ztrax.megaparcels
 SET panel_size_as_built = CASE
-    -- Pre-1883
-    WHEN "YearBuilt" <= 1883 THEN 0
-    -- 1883-1950
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 30
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 40
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 60
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 100
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 125
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 150
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 200
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 320
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 400
+    -- Pre-1879
+    WHEN "YearBuilt" <= 1879 THEN 0
+    -- 1879-1950
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 30
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 40
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 60
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 100
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 125
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 5000 AND "TotalBuildingAreaSqFt" <= 8000) THEN 150
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 8000 AND "TotalBuildingAreaSqFt" <= 10000) THEN 200
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 320
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 400
     -- 1950-1978
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 40
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 60
@@ -222,10 +225,10 @@ WHERE usetype = 'single_family';
 -- Estimate As-Built Panel Size from Vintage Year for Multi Family Megaparcels
 UPDATE ztrax.megaparcels
 SET panel_size_as_built = CASE
-    -- Pre-1883
-    WHEN "YearBuilt" <= 1883 THEN 0
-    -- 1883-1950
-    WHEN ("YearBuilt" > 1883 AND "YearBuilt" <= 1950) THEN 40
+    -- Pre-1879
+    WHEN "YearBuilt" <= 1879 THEN 0
+    -- 1879-1950
+    WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) THEN 40
     -- 1950-1978
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) THEN 60
     -- 1978-2010

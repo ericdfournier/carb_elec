@@ -255,7 +255,7 @@ def UpgradeFromPermit(as_built, row):
     if ~np.isnan(row['upgraded_panel_size']):
 
         existing = row['upgraded_panel_size']
-        valid_panels = [30., 40., 60., 90., 100., 125., 150., 200.]
+        valid_panels = [40., 60., 90., 150., 200.]
         observed = True
 
         # If the existing panel size is not in the valid set, take the closest
