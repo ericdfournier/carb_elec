@@ -169,10 +169,6 @@ INNER JOIN census.fuel_features AS fuel
 LEFT JOIN permits.panel_upgrades_geocoded_deduplicated AS permits
     ON permits."megaparcelid" = mp."megaparcelid";
 
--- Create Empty Panel Size Existing Field Before Passing to Inference Routine
-ALTER TABLE ztrax.model_data
-ADD COLUMN panel_size_existing NUMERIC DEFAULT NULL;
-
 -- Determine Missing Counties
 SELECT county."NAMELSAD",
        county."geometry",

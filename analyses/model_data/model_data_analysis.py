@@ -115,7 +115,7 @@ def PrintHousingStatsTable(mp, sector):
             bins = year_bins,
             ordered = True)
         stats = data.groupby(['year_bin', 'size_bin'],
-            observed = True)['YearBuilt'].agg('count').unstack(level = 0)
+            observed = True)['YearBuilt'].agg('count').unstack(level = [0])
     elif sector == 'multi_family':
         year_bins = [0, 1950, 1978, 2010, 2023]
         units_bins = [0, 10, 25, 50, 100, 250, 500, 1000, 10000]
@@ -127,7 +127,7 @@ def PrintHousingStatsTable(mp, sector):
             bins = units_bins,
             ordered = True)
         stats = data.groupby(['year_bin', 'units_bin'],
-            observed = True)['YearBuilt'].agg('count').unstack(level = 0)
+            observed = True)['YearBuilt'].agg('count').unstack(level = [0])
 
     print(stats)
 
@@ -135,8 +135,8 @@ def PrintHousingStatsTable(mp, sector):
 
 #%% Generate Housing Statistics Tables
 
-#PrintHousingStatsTable(sf, 'single_family')
-PrintHousingStatsTable(mf, 'multi_family')
+sf_housing_stats = PrintHousingStatsTable(sf, 'single_family')
+mf_housing_stats = PrintHousingStatsTable(mf, 'multi_family')
 
 #%% Generate DAC Housing Statistics Table
 
@@ -157,7 +157,7 @@ def PrintDACHousingStatsTable(mp, sector):
         stats = stats_init.unstack(level = [1, 0]).sort_index(level = [2,1])
     elif sector == 'multi_family':
         year_bins = [0, 1950, 1978, 2010, 2023]
-        units_bins = [0, 10, 25, 50, 100, 250, 500, 1000, 10000]
+        units_bins = [0, 3, 5, 10, 25, 50, 100, 250, 500, 1000]
         data = mp.loc[:,['dac', 'YearBuilt', 'TotalNoOfUnits']]
         data['year_bin'] = pd.cut(mp['YearBuilt'],
             bins = year_bins,
@@ -240,13 +240,108 @@ def PrintDACPanelStatsTable(mp, sector):
     print(stats)
 
     return stats
-
 #%% Print DAC Panel Statistics Tables
 
 sf_stats = PrintDACPanelStatsTable(sf, 'single_family')
 mf_stats = PrintDACPanelStatsTable(mf, 'multi_family')
 
-#%% Plot SF as built panel size ratings
+#%% Plot Inferred Upgrades
+
+def ObservedUpgradeRatingsBar(mp, sector, figure_dir):
+
+    fig, ax = plt.subplots(1,1, figsize = (5,5))
+
+    # Compute counts by sector
+
+    if sector == 'single_family':
+        obs_ind = mp['observed_panel_upgrade'] == True
+        data = mp.loc[obs_ind,:]
+        sm = data['panel_size_existing'] < 60.0
+        data.loc[sm,'panel_size_existing'] = 60.0
+        counts = data.groupby(['dac','panel_size_existing'])['observed_panel_upgrade'].agg('count')
+        counts = counts.unstack(level= 0)
+        counts.index = counts.index.astype(int)
+        ylabel = 'Existing Panel Rating \n[Amps]'
+        xlabel = 'Number of Properties'
+    elif sector == 'multi_family':
+        obs_ind = mp['observed_panel_upgrade'] == True
+        data = mp.loc[obs_ind,:]
+        counts = data.groupby(['dac', 'panel_size_existing'])['TotalNoOfUnits'].agg('sum')
+        counts = counts.unstack(level= 0)
+        counts.index = counts.index.astype(int)
+        ylabel = 'Existing Load Center Rating per Unit \n[Amps]'
+        xlabel = 'Number of Units'
+
+    # Plot Counts
+
+    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
+
+    ax.grid(True)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    plt.xticks(rotation = 45)
+    ax.legend(title = 'DAC')
+
+    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+
+    fig.patch.set_facecolor('white')
+    fig.tight_layout()
+
+    fig.savefig(figure_dir + '{}_observed_upgrade_panel_ratings_barchart.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+
+#%% Plot Inferred Upgrade Panel Ratings
+
+ObservedUpgradeRatingsBar(sf, 'single_family', figure_dir)
+ObservedUpgradeRatingsBar(mf, 'multi_family', figure_dir)
+
+#%% Plot Inferred Upgrades
+
+def InferredUpgradeRatingsBar(mp, sector, figure_dir):
+
+    # Compute counts by sector
+
+    if sector == 'single_family':
+        inferred_ind = mp['inferred_panel_upgrade'] == True
+        data = mp.loc[inferred_ind,:]
+        counts = data.groupby(['dac','panel_size_existing'])['inferred_panel_upgrade'].agg('count')
+        counts = counts.unstack(level= 0)
+        counts.index = counts.index.astype(int)
+        ylabel = 'Existing Panel Rating \n[Amps]'
+        xlabel = 'Number of Properties'
+    elif sector == 'multi_family':
+        inferred_ind = mp['inferred_panel_upgrade'] == True
+        data = mp.loc[inferred_ind,:]
+        counts = data.groupby(['dac', 'panel_size_existing'])['TotalNoOfUnits'].agg('sum')
+        counts = counts.unstack(level= 0)
+        counts.index = counts.index.astype(int)
+        ylabel = 'Existing Load Center Rating per Unit \n[Amps]'
+        xlabel = 'Number of Units'
+
+    # Plot Counts
+
+    fig, ax = plt.subplots(1,1, figsize = (5,5))
+
+    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
+
+    ax.grid(True)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    plt.xticks(rotation = 45)
+    ax.legend(title = 'DAC')
+
+    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+
+    fig.patch.set_facecolor('white')
+    fig.tight_layout()
+
+    fig.savefig(figure_dir + '{}_inferred_upgrade_panel_ratings_barchart.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+
+#%% Plot Inferred Upgrade Panel Ratings
+
+InferredUpgradeRatingsBar(sf, 'single_family', figure_dir)
+InferredUpgradeRatingsBar(mf, 'multi_family', figure_dir)
+
+#%% Plot as built panel size ratings
 
 def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
     '''Paired DAC / Non-DAC 2D histogram of panel sizes by building
@@ -559,7 +654,7 @@ def ExistingPanelRatingsBar(mp, sector, figure_dir):
         ylabel = 'Existing Panel Rating \n[Amps]'
         xlabel = 'Number of Properties'
     elif sector == 'multi_family':
-        counts = mp.groupby(['dac', 'panel_size_existing'])['units'].agg('sum')
+        counts = mp.groupby(['dac', 'panel_size_existing'])['TotalNoOfUnits'].agg('sum')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
         ylabel = 'Existing Average Load Center Rating \n[Amps]'
@@ -574,7 +669,7 @@ def ExistingPanelRatingsBar(mp, sector, figure_dir):
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     plt.xticks(rotation = 45)
-    ax.legend(title = 'Priority Population')
+    ax.legend(title = 'DAC')
 
     ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
 
@@ -587,7 +682,8 @@ def ExistingPanelRatingsBar(mp, sector, figure_dir):
 
 #%% Generate Existing Panel Ratings Bar Chart
 
-ExistingPanelRatingsBar(mp, sector, figure_dir)
+ExistingPanelRatingsBar(sf, 'single_family', figure_dir)
+ExistingPanelRatingsBar(mf, 'multi_family', figure_dir)
 
 #%% Plot Normalized Amps per Sqft for Upgraded and Non-Upgraded Subsets
 
