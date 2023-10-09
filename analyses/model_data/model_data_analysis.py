@@ -651,7 +651,7 @@ def ExistingPanelRatingsBar(mp, sector, figure_dir):
         counts = mp.groupby(['dac', 'panel_size_existing'])['TotalNoOfUnits'].agg('sum')
         counts = counts.unstack(level= 0)
         counts.index = counts.index.astype(int)
-        ylabel = 'Existing Average Load Center Rating \n[Amps]'
+        ylabel = 'Existing Panel Rating per Unit \n[Amps]'
         xlabel = 'Number of Units'
 
     # Plot Counts
@@ -880,7 +880,8 @@ def AreaNormalizedComparisonKDE(mp, sector, figure_dir):
 #%% Generate Area Normalized KDE and Stats
 
 # CAUTION - Long run time...
-AreaNormalizedComparisonKDE(mp, sector, figure_dir)
+AreaNormalizedComparisonKDE(sf, 'single_family', figure_dir)
+AreaNormalizedComparisonKDE(mf, 'multi_family', figure_dir)
 
 #%% Distribution of Destination Panel Sizes for Permitted Upgrades
 
@@ -888,41 +889,7 @@ def PermittedUpgradePanelSizeDistribution(mp, sector, figure_dir):
 
     perm_ind = ~mp['upgraded_panel_size'].isna()
 
-    data = mp.loc[perm_ind, ['dac','upgraded_panel_size']]
-    data.loc[data['upgraded_panel_size'] < 60.0, ['upgraded_panel_size']] = 60.0
-
-    counts = data.groupby(['dac','upgraded_panel_size'])['upgraded_panel_size'].agg('count')
-    counts = counts.unstack(level= 0)
-    counts.index = counts.index.astype(int)
-
-    fig, ax = plt.subplots(1,1,figsize=(5,5))
-
-    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
-
-    ax.set_ylabel('Upgraded Panel Size')
-    ax.set_xlabel('Upgrade Permit Count Frequency')
-    ax.grid(True)
-    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
-    ax.legend(title = 'Priority Population')
-
-    plt.xticks(rotation = 45)
-
-    fig.savefig(figure_dir + '{}_permitted_upgrade_panel_size_distribution.png'.format(sector), bbox_inches = 'tight', dpi = 300)
-
-    return
-
-#%% Generate Permitted Panel Upgrade Distribution Plot
-
-PermittedUpgradePanelSizeDistribution(mp, sector, figure_dir)
-
-#%% Distribution of Destination Panel Sizes for Inferred Upgrades
-
-def InferredUpgradePanelSizeDistribution(mp, sector, figure_dir):
-
-    infer_ind = mp['inferred_panel_upgrade'] == True
-
-    data = mp.loc[infer_ind, ['dac','panel_size_existing']]
-    data.loc[data['panel_size_existing'] < 60.0, ['panel_size_existing']] = 60.0
+    data = mp.loc[perm_ind, ['dac','panel_size_existing']]
 
     counts = data.groupby(['dac','panel_size_existing'])['panel_size_existing'].agg('count')
     counts = counts.unstack(level= 0)
@@ -933,10 +900,43 @@ def InferredUpgradePanelSizeDistribution(mp, sector, figure_dir):
     counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
 
     ax.set_ylabel('Upgraded Panel Size')
-    ax.set_xlabel('Inferred Upgrade Count Frequency')
+    ax.set_xlabel('Number of Properties')
     ax.grid(True)
     ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
-    ax.legend(title = 'Priority Population')
+    ax.legend(title = 'DAC')
+
+    plt.xticks(rotation = 45)
+
+    fig.savefig(figure_dir + '{}_permitted_upgrade_panel_size_distribution.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+
+    return
+
+#%% Generate Permitted Panel Upgrade Distribution Plot
+
+PermittedUpgradePanelSizeDistribution(sf, 'single_family', figure_dir)
+PermittedUpgradePanelSizeDistribution(mf, 'multi_family', figure_dir)
+
+#%% Distribution of Destination Panel Sizes for Inferred Upgrades
+
+def InferredUpgradePanelSizeDistribution(mp, sector, figure_dir):
+
+    infer_ind = mp['inferred_panel_upgrade'] == True
+
+    data = mp.loc[infer_ind, ['dac','panel_size_existing']]
+
+    counts = data.groupby(['dac','panel_size_existing'])['panel_size_existing'].agg('count')
+    counts = counts.unstack(level= 0)
+    counts.index = counts.index.astype(int)
+
+    fig, ax = plt.subplots(1,1,figsize=(5,5))
+
+    counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
+
+    ax.set_ylabel('Upgraded Panel Size')
+    ax.set_xlabel('Number of Properties')
+    ax.grid(True)
+    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+    ax.legend(title = 'DAC')
 
     plt.xticks(rotation = 45)
 
@@ -946,7 +946,8 @@ def InferredUpgradePanelSizeDistribution(mp, sector, figure_dir):
 
 #%% Generate Inferred Panel Upgrade Distribution Plot
 
-InferredUpgradePanelSizeDistribution(mp, sector, figure_dir)
+InferredUpgradePanelSizeDistribution(sf, 'single_family', figure_dir)
+InferredUpgradePanelSizeDistribution(mf, 'multi_family', figure_dir)
 
 #%% Generate Maps by Air District
 
