@@ -1310,7 +1310,7 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
             'labels': labels,
             'loc':'best'})
 
-    ax[0].set_title('Count of DAC\n {} Properties \n Likely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[0].set_title('Count of DAC\n {} Properties \n Likely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = dac_cdb_data[['geom','counts']].copy()
     centroids['geom'] = dac_cdb_data['geom'].centroid
@@ -1356,7 +1356,7 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
             'labels': labels,
             'loc':'best'})
 
-    ax[1].set_title('Percentage of DAC\n {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[1].set_title('Percentage of DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = dac_cdb_data[['geom','percentage']].copy()
     centroids['geom'] = dac_cdb_data['geom'].centroid
@@ -1402,7 +1402,7 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
             'labels': labels,
             'loc':'best'})
 
-    ax[2].set_title('Count of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[2].set_title('Count of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = non_dac_cdb_data[['geom','counts']].copy()
     centroids['geom'] = non_dac_cdb_data['geom'].centroid
@@ -1448,7 +1448,7 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
             'labels': labels,
             'loc':'best'})
 
-    ax[3].set_title('Percentage of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[3].set_title('Percentage of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = non_dac_cdb_data[['geom','percentage']].copy()
     centroids['geom'] = non_dac_cdb_data['geom'].centroid
@@ -1571,7 +1571,7 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
             'labels': labels,
             'loc':'best'})
 
-    ax[0].set_title('Total Count of {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[0].set_title('Total Count of {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
     ax[0].axis('Off')
 
     # Plot Percentage
@@ -1603,7 +1603,7 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
             'labels':labels,
             'loc':'best'})
 
-    ax[1].set_title('Total Percentage of {} Properties \nLikely Requiring Panel Upgrade (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[1].set_title('Total Percentage of {} Properties \nLikely Requiring Panel Upgrade'.format(sector.replace('_',' ').title()))
     ax[1].axis('Off')
 
     fig.savefig(figure_dir + '{}_likely_panel_ugprade_requirements_by_tract.png'.format(sector), bbox_inches = 'tight', dpi = 300)
