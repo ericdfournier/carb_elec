@@ -73,13 +73,6 @@ mf = pd.read_sql(query, db_con)
 # Set megaparcelid as index
 mf.set_index('megaparcelid', drop = True, inplace = True)
 
-#%% DEBUG
-
-fig, ax = plt.subplots(1,2, figsize = (5,5))
-
-test = mf.loc[:,['dac','TotalNoOfUnits']].sort_values(by = 'TotalNoOfUnits', ascending = False)
-test.hist(by = 'dac', bins = 100, ax = ax)
-
 #%% Extract Air District Geographic Boundaries
 
 query = ''' SELECT  * FROM carb.ca_air_districts;'''
@@ -957,7 +950,7 @@ InferredUpgradePanelSizeDistribution(mp, sector, figure_dir)
 
 #%% Generate Maps by Air District
 
-def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
+def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_districts):
 
     # Mask counties with insufficient counts
     mask = mp.groupby('air_district')['panel_size_existing'].agg('count')
@@ -974,15 +967,31 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
     drop_ind = air_district_stats.loc[air_district_stats['air_district'].isin(mask)].index
     air_district_stats.drop(drop_ind, inplace = True)
 
-    bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-    labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+    if sector == 'single_family':
+
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+
     air_district_stats['panel_size_class'] = pd.cut(air_district_stats['panel_size_existing'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    bins = [0, 99, 199, 2000]
-    labels = ['Likely', 'Potentially', 'Unlikely']
+    if sector == 'single_family':
+
+        bins = [0, 99, 199, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 149, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
     air_district_stats['upgrade_required'] = pd.cut(air_district_stats['panel_size_existing'],
         bins = bins,
         labels = labels,
@@ -1037,7 +1046,7 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[0].set_title('Count of Priority Population\n Single Family Homes \n Likely Requiring Panel Upgrades (<100 Amps)')
+    ax[0].set_title('Count of DAC\n {} Properties \n Likely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = dac_air_district_data[['geom','counts']].copy()
     centroids['geom'] = dac_air_district_data['geom'].centroid
@@ -1065,8 +1074,8 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
         hatch = '////',
         zorder= 0)
 
-    bins = [5, 10, 15, 20, 25, 30, 35, 40]
-    labels = ['0 - 5', '5 - 10', '10 - 15', '15 - 20', '20 - 25', '25 - 30', '30 - 35', '35 - 40']
+    bins = [10, 20, 30, 40]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40']
 
     dac_air_district_data.plot(ax = ax[1],
         column = 'percentage',
@@ -1083,7 +1092,7 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[1].set_title('Percentage of Priority Population\n Single Family Homes \nLikely Requiring Panel Upgrades (<100 Amps)')
+    ax[1].set_title('Percentage of DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = dac_air_district_data[['geom','percentage']].copy()
     centroids['geom'] = dac_air_district_data['geom'].centroid
@@ -1129,7 +1138,7 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[2].set_title('Count of Non-Priority Population\n Single Family Homes \nLikely Requiring Panel Upgrades (<100 Amps)')
+    ax[2].set_title('Count of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = non_dac_air_district_data[['geom','counts']].copy()
     centroids['geom'] = non_dac_air_district_data['geom'].centroid
@@ -1157,8 +1166,8 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
         hatch = '////',
         zorder= 0)
 
-    bins = [5, 10, 15, 20, 25, 30, 35, 40]
-    labels = ['0 - 5', '5 - 10', '10 - 15', '15 - 20', '20 - 25', '25 - 30', '30 - 35', '35 - 40']
+    bins = [10, 20, 30, 40]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40']
 
     non_dac_air_district_data.plot(ax = ax[3],
         column = 'percentage',
@@ -1175,7 +1184,7 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[3].set_title('Percentage of Non-Priority Population\n Single Family Homes \nLikely Requiring Panel Upgrades (<100 Amps)')
+    ax[3].set_title('Percentage of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = non_dac_air_district_data[['geom','percentage']].copy()
     centroids['geom'] = non_dac_air_district_data['geom'].centroid
@@ -1199,11 +1208,415 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir):
 
 #%% Generate Upgrade Requirements
 
-air_district_upgrade_requirements = PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir)
+sf_air_district_upgrade_requirements = PlotLikelyUpgradeRequirementsByAirDistrict(sf, 'single_family', figure_dir, air_districts)
+mf_air_district_upgrade_requirements = PlotLikelyUpgradeRequirementsByAirDistrict(sf, 'multi_family', figure_dir, air_districts)
+
+#%% Plot Total Counts and Percentages by County District Basin Boundaries
+
+def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_districts):
+
+    # Mask counties with insufficient counts
+    mask = mp.groupby( 'county_air_basin_district_id')['panel_size_existing'].agg('count')
+    mask.loc[mask < 1000] = np.nan
+    mask = mask[mask.isna()].index.values
+
+    # Generate Air District Upgrade Needs Map
+    cdb_stats = mp.groupby(['county_air_basin_district_id','panel_size_existing', 'dac'])['panel_size_existing'].agg('count')
+    cdb_stats = cdb_stats.to_frame()
+    cdb_stats.rename(columns = {'panel_size_existing':'counts'}, inplace = True)
+    cdb_stats.reset_index(inplace = True)
+
+    # Drop masked counties
+    drop_ind = cdb_stats.loc[cdb_stats['county_air_basin_district_id'].isin(mask)].index
+    cdb_stats.drop(drop_ind, inplace = True)
+
+    if sector == 'single_family':
+
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+
+    cdb_stats['panel_size_class'] = pd.cut(cdb_stats['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+
+    if sector == 'single_family':
+
+        bins = [0, 99, 199, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 149, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
+    cdb_stats['upgrade_required'] = pd.cut(cdb_stats['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+
+    # Compute Upgrade Requirement Stats
+
+    cdb_upgrade_requirements = cdb_stats.groupby(['county_air_basin_district_id','dac','upgrade_required'])['counts'].agg('sum').to_frame()
+    cdb_upgrade_requirements['percentage'] = cdb_upgrade_requirements.divide(cdb_upgrade_requirements.groupby(['county_air_basin_district_id', 'dac']).agg('sum')).multiply(100.).round(2)
+
+    # Merge Stats with Air District Boundaries
+
+    dac_cdb_likely_upgrades = cdb_upgrade_requirements.loc(axis=0)[:,'Yes','Likely'].reset_index()
+    non_dac_cdb_likely_upgrades = cdb_upgrade_requirements.loc(axis=0)[:,'No','Likely'].reset_index()
+
+    # Merge on Spatial Data
+
+    dac_cdb_data = county_air_basin_districts[['geom','coabdis_id',]].merge(dac_cdb_likely_upgrades, left_on = 'coabdis_id', right_on = 'county_air_basin_district_id')
+    non_dac_cdb_data = county_air_basin_districts[['geom','coabdis_id',]].merge(non_dac_cdb_likely_upgrades, left_on = 'coabdis_id', right_on = 'county_air_basin_district_id')
+
+    # Generate plot elements
+
+    fig, ax = plt.subplots(2,2, figsize = (30,30))
+    ax = ax.ravel()
+    fs = 8
+
+    # Plot DAC Counts
+
+    county_air_basin_districts.boundary.plot(
+        ax = ax[0],
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        facecolor = 'darkgrey',
+        hatch = '////',
+        zorder= 0)
+
+    bins = [100, 1000, 10000, 100000, 1000000]
+    labels = ['0 - 100', '100 - 1,000', '1,000 - 10,000', '10,000 - 100,000','100,000 - 1,000,000']
+
+    dac_cdb_data.plot(ax = ax[0],
+        column = 'counts',
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        zorder = 1,
+        cmap = 'RdYlGn_r',
+        k = 10,
+        scheme = 'user_defined',
+        classification_kwds = {'bins': bins},
+        legend = True,
+        legend_kwds = {
+            'title':'Counts',
+            'labels': labels,
+            'loc':'best'})
+
+    ax[0].set_title('Count of DAC\n {} Properties \n Likely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+
+    centroids = dac_cdb_data[['geom','counts']].copy()
+    centroids['geom'] = dac_cdb_data['geom'].centroid
+
+    centroids['coords'] = centroids['geom'].apply(lambda x: x.representative_point().coords[:])
+    centroids['coords'] = [coords[0] for coords in centroids['coords']]
+    centroids['counts'] = centroids['counts'].map(str)
+
+    centroids.apply(lambda x: ax[0].annotate(
+        text=x['counts'],
+        xy=x['coords'],
+        ha='center',
+        color = 'black',
+        fontsize = fs), axis=1)
+
+    ax[0].axis('Off')
+
+    # Plot DAC Percentages
+
+    county_air_basin_districts.boundary.plot(
+        ax = ax[1],
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        facecolor = 'darkgrey',
+        hatch = '////',
+        zorder= 0)
+
+    bins = [10, 20, 30, 40, 50, 60, 70, 80]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80']
+
+    dac_cdb_data.plot(ax = ax[1],
+        column = 'percentage',
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        zorder = 1,
+        cmap = 'RdYlGn_r',
+        k = 10,
+        scheme = 'user_defined',
+        classification_kwds = {'bins': bins},
+        legend = True,
+        legend_kwds = {
+            'title':'Percentages',
+            'labels': labels,
+            'loc':'best'})
+
+    ax[1].set_title('Percentage of DAC\n {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+
+    centroids = dac_cdb_data[['geom','percentage']].copy()
+    centroids['geom'] = dac_cdb_data['geom'].centroid
+
+    centroids['coords'] = centroids['geom'].apply(lambda x: x.representative_point().coords[:])
+    centroids['coords'] = [coords[0] for coords in centroids['coords']]
+    centroids['percentage'] = centroids['percentage'].map(str)
+
+    centroids.apply(lambda x: ax[1].annotate(
+        text=x['percentage'],
+        xy=x['coords'],
+        ha='center',
+        color = 'black',
+        fontsize = fs), axis=1)
+
+    ax[1].axis('Off')
+
+    # Plot Non-DAC Counts
+
+    county_air_basin_districts.boundary.plot(
+        ax = ax[2],
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        facecolor = 'darkgrey',
+        hatch = '////',
+        zorder= 0)
+
+    bins = [100, 1000, 10000, 100000, 1000000]
+    labels = ['0 - 100', '100 - 1,000', '1,000 - 10,000', '10,000 - 100,000','100,000 - 1,000,000']
+
+    non_dac_cdb_data.plot(ax = ax[2],
+        column = 'counts',
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        zorder = 1,
+        cmap = 'RdYlGn_r',
+        k = 10,
+        scheme = 'user_defined',
+        classification_kwds = {'bins': bins},
+        legend = True,
+        legend_kwds = {
+            'title':'Counts',
+            'labels': labels,
+            'loc':'best'})
+
+    ax[2].set_title('Count of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+
+    centroids = non_dac_cdb_data[['geom','counts']].copy()
+    centroids['geom'] = non_dac_cdb_data['geom'].centroid
+
+    centroids['coords'] = centroids['geom'].apply(lambda x: x.representative_point().coords[:])
+    centroids['coords'] = [coords[0] for coords in centroids['coords']]
+    centroids['counts'] = centroids['counts'].map(str)
+
+    centroids.apply(lambda x: ax[2].annotate(
+        text=x['counts'],
+        xy=x['coords'],
+        ha='center',
+        color = 'black',
+        fontsize = fs), axis=1)
+
+    ax[2].axis('Off')
+
+    # Plot Non-DAC Percentages
+
+    county_air_basin_districts.boundary.plot(
+        ax = ax[3],
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        facecolor = 'darkgrey',
+        hatch = '////',
+        zorder= 0)
+
+    bins = [10, 20, 30, 40, 50, 60, 70, 80]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80']
+
+    non_dac_cdb_data.plot(ax = ax[3],
+        column = 'percentage',
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        zorder = 1,
+        cmap = 'RdYlGn_r',
+        k = 10,
+        scheme = 'user_defined',
+        classification_kwds = {'bins': bins},
+        legend = True,
+        legend_kwds = {
+            'title':'Percentages',
+            'labels': labels,
+            'loc':'best'})
+
+    ax[3].set_title('Percentage of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+
+    centroids = non_dac_cdb_data[['geom','percentage']].copy()
+    centroids['geom'] = non_dac_cdb_data['geom'].centroid
+
+    centroids['coords'] = centroids['geom'].apply(lambda x: x.representative_point().coords[:])
+    centroids['coords'] = [coords[0] for coords in centroids['coords']]
+    centroids['percentage'] = centroids['percentage'].map(str)
+
+    centroids.apply(lambda x: ax[3].annotate(
+        text=x['percentage'],
+        xy=x['coords'],
+        ha='center',
+        color = 'black',
+        fontsize = fs), axis=1)
+
+    ax[3].axis('Off')
+
+    fig.savefig(figure_dir + '{}_likely_panel_ugprade_requirements_by_county_air_basin_district.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+
+    return cdb_upgrade_requirements
+
+#%% Generate County Air Basin District Level Overview Map
+
+sf_cdb_upgrade_requirements = PlotLikelyUpgradeRequirementsByCDB(sf, 'single_family', figure_dir, county_air_basin_districts)
+mf_cdb_upgrade_requirements = PlotLikelyUpgradeRequirementsByCDB(mf, 'multi_family', figure_dir, county_air_basin_districts)
+
+#%% Plot Total Counts and Percentages by Census Tract
+
+def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
+
+    # Mask counties with insufficient counts
+    mask = mp.groupby('tract_geoid_2019')['panel_size_existing'].agg('count')
+    mask.loc[mask < 100] = np.nan
+    mask = mask[mask.isna()].index.values
+
+    # Generate Tract Upgrade Needs Map data
+    tr_stats = mp.groupby(['tract_geoid_2019','panel_size_existing'])['panel_size_existing'].agg('count')
+    tr_stats = tr_stats.to_frame()
+    tr_stats.rename(columns = {'panel_size_existing':'counts'}, inplace = True)
+    tr_stats.reset_index(inplace = True)
+
+    # Drop masked tracts
+    drop_ind = tr_stats.loc[tr_stats['tract_geoid_2019'].isin(mask)].index
+    tr_stats.drop(drop_ind, inplace = True)
+
+    if sector == 'single_family':
+
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+
+    tr_stats['panel_size_class'] = pd.cut(tr_stats['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+
+    if sector == 'single_family':
+
+        bins = [0, 99, 199, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 149, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
+    tr_stats['upgrade_required'] = pd.cut(tr_stats['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+
+    # Compute Upgrade Requirement Stats
+
+    tr_upgrade_requirements = tr_stats.groupby(['tract_geoid_2019','upgrade_required'])['counts'].agg('sum').to_frame()
+    tr_upgrade_requirements['percentage'] = tr_upgrade_requirements.divide(tr_upgrade_requirements.groupby(['tract_geoid_2019',]).agg('sum')).multiply(100.).round(2)
+
+    # Merge Stats with tract Boundaries
+
+    tr_likely_upgrades = tr_upgrade_requirements.loc(axis=0)[:,'Likely'].reset_index()
+
+    # Merge on Spatial Data
+
+    tr_data = tracts[['geometry','GEOID']].merge(tr_likely_upgrades, left_on = 'GEOID', right_on = 'tract_geoid_2019')
+
+    # Generate plot elements
+
+    fig, ax = plt.subplots(2,2, figsize = (30,30))
+    ax = ax.ravel()
+    fs = 4
+
+    # Plot Counts
+
+    tracts.boundary.plot(
+        ax = ax[0],
+        edgecolor = 'lightgrey',
+        linewidth = 1,
+        facecolor = 'darkgrey',
+        hatch = '////',
+        zorder= 0)
+
+    bins = [250, 500, 750, 1000, 1250, 1500, 1750]
+    labels = ['0 - 250', '250 - 500', '500 - 750', '750 - 1,000', '1,000 - 1,250', '1,250 - 1,500', '1,500 - 1,750']
+
+    tr_data.plot(ax = ax[0],
+        column = 'counts',
+        edgecolor = 'lightgrey',
+        linewidth = 0.01,
+        zorder = 1,
+        cmap = 'RdYlGn_r',
+        k = 10,
+        scheme = 'user_defined',
+        classification_kwds = {'bins': bins},
+        legend = True,
+        legend_kwds = {
+            'title':'Counts',
+            'labels': labels,
+            'loc':'best'})
+
+    ax[0].set_title('Total Count of {} Properties \nLikely Requiring Panel Upgrades (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[0].axis('Off')
+
+    # Plot Percentage
+
+    tracts.boundary.plot(
+        ax = ax[1],
+        edgecolor = 'lightgrey',
+        linewidth = 1.0,
+        facecolor = 'darkgrey',
+        hatch = '////',
+        zorder= 0
+    )
+
+    bins = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 90', '90 - 100']
+
+    tr_data.plot(ax = ax[1],
+        column = 'percentage',
+        edgecolor = 'lightgrey',
+        linewidth = 0.01,
+        zorder = 1,
+        cmap = 'RdYlGn_r',
+        k = 10,
+        scheme = 'user_defined',
+        classification_kwds = {'bins': bins},
+        legend = True,
+        legend_kwds = {
+            'title':'Percentage',
+            'labels':labels,
+            'loc':'best'})
+
+    ax[1].set_title('Total Percentage of {} Properties \nLikely Requiring Panel Upgrade (<100 Amps)'.format(sector.replace('_',' ').title()))
+    ax[1].axis('Off')
+
+    fig.savefig(figure_dir + '{}_likely_panel_ugprade_requirements_by_tract.png'.format(sector), bbox_inches = 'tight', dpi = 300)
+
+    return tr_upgrade_requirements
+
+#%% Plot Upgrade Requirements by Tract
+
+sf_tr_upgrade_requirements = PlotLikelyUpgradeRequirementsByTract(sf, 'single_family', figure_dir, tracts)
+mf_tr_upgrade_requirements = PlotLikelyUpgradeRequirementsByTract(mf, 'multi_family', figure_dir, tracts)
 
 #%% Generate Maps by County
 
-def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
+def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir, counties):
 
     # Mask counties with insufficient counts
     mask = mp.groupby('county_name')['panel_size_existing'].agg('count')
@@ -1220,15 +1633,31 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
     drop_ind = county_stats.loc[county_stats['county_name'].isin(mask)].index
     county_stats.drop(drop_ind, inplace = True)
 
-    bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-    labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+    if sector == 'single_family':
+
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+
     county_stats['panel_size_class'] = pd.cut(county_stats['panel_size_existing'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    bins = [0, 99, 199, 2000]
-    labels = ['Likely', 'Potentially', 'Unlikely']
+    if sector == 'single_family':
+
+        bins = [0, 99, 199, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
+    elif sector == 'multi_family':
+
+        bins = [0, 89, 149, 2000]
+        labels = ['Likely', 'Potentially', 'Unlikely']
+
     county_stats['upgrade_required'] = pd.cut(county_stats['panel_size_existing'],
         bins = bins,
         labels = labels,
@@ -1283,7 +1712,7 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[0].set_title('Count of Priority Population\n Single Family Homes \nLikely Requiring Panel Upgrades (<100 Amps)')
+    ax[0].set_title('Count of DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = dac_county_data[['geometry','counts']].copy()
     centroids['geometry'] = dac_county_data['geometry'].centroid
@@ -1312,8 +1741,8 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
         hatch = '////',
         zorder= 0)
 
-    bins = [5, 10, 15, 20, 25, 30, 35, 40]
-    labels = ['0 - 5', '5 - 10', '10 - 15', '15 - 20', '20 - 25', '25 - 30', '30 - 35', '35 - 40']
+    bins = [10, 20, 30, 40, 50, 60, 70, 80]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80']
 
     dac_county_data.plot(ax = ax[1],
         column = 'percentage',
@@ -1330,7 +1759,7 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[1].set_title('Percentage of Priority Population\n Single Family Homes \nLikely Requiring Panel Upgrade (<100 Amps)')
+    ax[1].set_title('Percentage of DAC\n {} Properties \nLikely Requiring Panel Upgrade'.format(sector.replace('_',' ').title()))
 
     centroids = dac_county_data[['geometry','percentage']].copy()
     centroids['geometry'] = dac_county_data['geometry'].centroid
@@ -1377,7 +1806,7 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[2].set_title('Count of Non-Priority Population\n Single Family Homes \nLikely Requiring Panel Upgrades (<100 Amps)')
+    ax[2].set_title('Count of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
 
     centroids = non_dac_county_data[['geometry','counts']].copy()
     centroids['geometry'] = non_dac_county_data['geometry'].centroid
@@ -1406,8 +1835,8 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
         hatch = '////',
         zorder= 0)
 
-    bins = [5, 10, 15, 20, 25, 30, 35, 40]
-    labels = ['0 - 5', '5 - 10', '10 - 15', '15 - 20', '20 - 25', '25 - 30', '30 - 35', '35 - 40']
+    bins = [10, 20, 30, 40, 50, 60, 70, 80]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80']
 
     non_dac_county_data.plot(ax = ax[3],
         column = 'percentage',
@@ -1424,7 +1853,7 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
             'labels': labels,
             'loc':'best'})
 
-    ax[3].set_title('Percentage of Non-Priority Population\n Single Family Homes \nLikely Requiring Panel Upgrade (<100 Amps)')
+    ax[3].set_title('Percentage of Non-DAC\n {} Properties \nLikely Requiring Panel Upgrade'.format(sector.replace('_',' ').title()))
 
     centroids = non_dac_county_data[['geometry','percentage']].copy()
     centroids['geometry'] = non_dac_county_data['geometry'].centroid
@@ -1449,127 +1878,5 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir):
 
 #%% Generate County Level Upgrade Requirements Map
 
-county_upgrade_requirements = PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir)
-
-#%% Plot Total Counts and Percentages by Census Tract
-
-def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir):
-
-    # Mask counties with insufficient counts
-    mask = mp.groupby('tract_geoid_2019')['panel_size_existing'].agg('count')
-    mask.loc[mask < 100] = np.nan
-    mask = mask[mask.isna()].index.values
-
-    # Generate Tract Upgrade Needs Map data
-    tr_stats = mp.groupby(['tract_geoid_2019','panel_size_existing'])['panel_size_existing'].agg('count')
-    tr_stats = tr_stats.to_frame()
-    tr_stats.rename(columns = {'panel_size_existing':'counts'}, inplace = True)
-    tr_stats.reset_index(inplace = True)
-
-    # Drop masked tracts
-    drop_ind = tr_stats.loc[tr_stats['tract_geoid_2019'].isin(mask)].index
-    tr_stats.drop(drop_ind, inplace = True)
-
-    bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-    labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
-    tr_stats['panel_size_class'] = pd.cut(tr_stats['panel_size_existing'],
-        bins = bins,
-        labels = labels,
-        ordered = False).to_frame()
-
-    bins = [0, 99, 199, 2000]
-    labels = ['Likely', 'Potentially', 'Unlikely']
-    tr_stats['upgrade_required'] = pd.cut(tr_stats['panel_size_existing'],
-        bins = bins,
-        labels = labels,
-        ordered = False).to_frame()
-
-    # Compute Upgrade Requirement Stats
-
-    tr_upgrade_requirements = tr_stats.groupby(['tract_geoid_2019','upgrade_required'])['counts'].agg('sum').to_frame()
-    tr_upgrade_requirements['percentage'] = tr_upgrade_requirements.divide(tr_upgrade_requirements.groupby(['tract_geoid_2019',]).agg('sum')).multiply(100.).round(2)
-
-    # Merge Stats with tract Boundaries
-
-    tr_likely_upgrades = tr_upgrade_requirements.loc(axis=0)[:,'Likely'].reset_index()
-
-    # Merge on Spatial Data
-
-    tr_data = tracts[['geometry','GEOID']].merge(tr_likely_upgrades, left_on = 'GEOID', right_on = 'tract_geoid_2019')
-
-    # Generate plot elements
-
-    fig, ax = plt.subplots(2,2, figsize = (30,30))
-    ax = ax.ravel()
-    fs = 4
-
-    # Plot Counts
-
-    tracts.boundary.plot(
-        ax = ax[0],
-        edgecolor = 'lightgrey',
-        linewidth = 1,
-        facecolor = 'darkgrey',
-        hatch = '////',
-        zorder= 0)
-
-    bins = [250, 500, 750, 1000, 1250, 1500, 1750]
-    labels = ['0 - 250', '250 - 500', '500 - 750', '750 - 1,000', '1,000 - 1,250', '1,250 - 1,500', '1,500 - 1,750']
-
-    tr_data.plot(ax = ax[0],
-        column = 'counts',
-        edgecolor = 'lightgrey',
-        linewidth = 0.01,
-        zorder = 1,
-        cmap = 'RdYlGn_r',
-        k = 10,
-        scheme = 'user_defined',
-        classification_kwds = {'bins': bins},
-        legend = True,
-        legend_kwds = {
-            'title':'Counts',
-            'labels': labels,
-            'loc':'best'})
-
-    ax[0].set_title('Total Count of Single Family Homes \nLikely Requiring Panel Upgrades (<100 Amps)')
-    ax[0].axis('Off')
-
-    # Plot Percentage
-
-    tracts.boundary.plot(
-        ax = ax[1],
-        edgecolor = 'lightgrey',
-        linewidth = 1.0,
-        facecolor = 'darkgrey',
-        hatch = '////',
-        zorder= 0
-    )
-
-    bins = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 90']
-
-    tr_data.plot(ax = ax[1],
-        column = 'percentage',
-        edgecolor = 'lightgrey',
-        linewidth = 0.01,
-        zorder = 1,
-        cmap = 'RdYlGn_r',
-        k = 10,
-        scheme = 'user_defined',
-        classification_kwds = {'bins': bins},
-        legend = True,
-        legend_kwds = {
-            'title':'Percentage',
-            'labels':labels,
-            'loc':'best'})
-
-    ax[1].set_title('Total Percentage of Single Family Homes \nLikely Requiring Panel Upgrade (<100 Amps)')
-    ax[1].axis('Off')
-
-    fig.savefig(figure_dir + '{}_likely_panel_ugprade_requirements_by_tract.png'.format(sector), bbox_inches = 'tight', dpi = 300)
-
-    return tr_upgrade_requirements
-
-#%% Generate Tract Level Overview Map
-
-tr_upgrade_requirements = PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir)
+sf_county_upgrade_requirements = PlotLikelyUpgradeRequirementsByCounty(sf, 'single_family', figure_dir, counties)
+mf_county_upgrade_requirements = PlotLikelyUpgradeRequirementsByCounty(mf, 'multi_family', figure_dir, counties)
