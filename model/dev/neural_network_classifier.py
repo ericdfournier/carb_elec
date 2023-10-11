@@ -126,7 +126,7 @@ def ImportRaw(sector):
             FROM ztrax.model_data AS A
             JOIN ztrax.model_data_{}_inference AS B
                 ON A.megaparcelid = B.megaparcelid
-            WHERE B.observed_panel_upgrade = TRUE;'''.format(s)
+            WHERE A.sampled = TRUE;'''.format(s)
 
             # TODO: Rerun after restricting only to observations
             # where ugpraded panel sizes are not NULL
@@ -651,13 +651,23 @@ precision, recall, average_precision = PRStats(
 # Generate Diagnostic Plots
 fig1, ax1 = PlotROCAverages(
     tpr, fpr, roc_auc, output_directory)
+
+#%%
 fig2, ax2 = PlotROCOneVsRest(
     y_test_binary, predict_test_score, class_names, n_classes, output_directory)
+
+#%%
 fig3, ax3 = PlotPRMicroAverages(
     recall, precision, average_precision, y_test, output_directory)
+
+#%%
 fig4, ax4 = PlotPRClassLevel(
     recall, precision, average_precision, n_classes, output_directory)
+
+#%%
 fig5, ax5 = PlotWithinClassNormalizedCM(
     mlp_clf, X_test, y_test, class_names, output_directory)
+
+#%%
 fig6, ax6 = PlotAcrossClassCountNormalizedCM(
     mlp_clf, X_test, y_test, class_names, output_directory)

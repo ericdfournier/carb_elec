@@ -99,7 +99,7 @@ def ImportRaw(sector):
                 FROM ztrax.model_data AS A
                 JOIN ztrax.model_data_sf_inference AS B
                     ON A.megaparcelid = B.megaparcelid
-                WHERE A.usetype = '{}';'''.format(sector)
+                WHERE A.sampled = TRUE;'''.format(sector)
 
     raw = pd.read_sql(query, db_con)
 
@@ -251,33 +251,50 @@ n2 = list(fill_pipeline['one_hot_encoder'].get_feature_names_out())
 n3 = numeric_pipeline['selector'].attribute_names
 n4 = list(categorical_pipeline['one_hot_encoder'].get_feature_names_out())
 
-class_names = n1 + n2 + n3 + n4
+feature_names = n1 + n2 + n3 + n4
+
+class_names = np.sort(data.loc[:,output_attrib[0]].unique()).astype(int)
 
 #%% Plot Confusion Matrix
 
 np.set_printoptions(precision=2)
 
 # Plot non-normalized confusion matrix
-titles_options = [
-    ("Confusion matrix, without normalization", None),
-    ("Normalized confusion matrix", "true"),
-]
 
-fig, ax = plt.subplots(1,1,figsize = (10,10))
+fig, ax = plt.subplots(1,1,figsize = (15,15))
 
-for title, normalize in titles_options:
-    disp = ConfusionMatrixDisplay.from_estimator(
-        rnd_clf,
-        X_test,
-        y_test,
-        display_labels=class_names,
-        cmap=plt.cm.Blues,
-        normalize=normalize,
-        ax = ax
-    )
-    disp.ax_.set_title(title)
+ConfusionMatrixDisplay.from_estimator(
+    rnd_clf,
+    X_test,
+    y_test,
+    display_labels=class_names,
+    cmap=plt.cm.Reds,
+    normalize = None,
+    ax = ax
+)
 
-    print(title)
-    print(disp.confusion_matrix)
+ax.set_title("Confusion Matrix, without Normalization\n", fontsize = 20)
+ax.set_ylabel("True Label\n", fontsize = 18)
+ax.set_xlabel("\nPredicted Label", fontsize = 18)
 
-plt.show()
+#%% Print Normalized Confusion Matrix
+
+np.set_printoptions(precision=2)
+
+# Plot non-normalized confusion matrix
+
+fig, ax = plt.subplots(1,1,figsize = (15,15))
+
+ConfusionMatrixDisplay.from_estimator(
+    rnd_clf,
+    X_test,
+    y_test,
+    display_labels=class_names,
+    cmap=plt.cm.Blues,
+    normalize='true',
+    ax = ax
+)
+
+ax.set_title("Confusion Matrix, with Normalization\n", fontsize = 20)
+ax.set_ylabel("True Label\n", fontsize = 18)
+ax.set_xlabel("\nPredicted Label", fontsize = 18)
