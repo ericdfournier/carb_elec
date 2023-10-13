@@ -371,7 +371,8 @@ fig, ax = plt.subplots(1,1, figsize = (5,8))
 data.plot(column = 'permit_counts',
     ax = ax,
     cmap = 'rainbow',
-    scheme = 'fisher_jenks')
+    scheme = 'fisher_jenks',
+    legend = True)
 counties.boundary.plot(ax=ax, edgecolor = 'black', linewidth = 0.5)
 ax.set_axis_off()
 
@@ -391,7 +392,8 @@ counties.dissolve().plot(ax = ax, facecolor = 'white', edgecolor = 'black', line
 data.plot(column = 'permit_counts',
     ax = ax,
     cmap = 'rainbow',
-    scheme = 'fisher_jenks')
+    scheme = 'fisher_jenks',
+    legend = True)
 places.boundary.plot(ax=ax, edgecolor = 'black', linewidth = 0.1)
 ax.set_axis_off()
 

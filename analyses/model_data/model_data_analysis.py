@@ -192,6 +192,13 @@ def PrintPanelStatsTable(mp, sector):
     total = (~mp['panel_size_existing'].isna()).sum()
     stats['pct'] = stats['count'].divide(total).multiply(100.0)
 
+    if sector == 'multi_family':
+        units = mp[['panel_size_class','panel_size_existing','TotalNoOfUnits']].groupby('panel_size_class',
+            observed = False)['TotalNoOfUnits'].agg('sum').to_frame()
+        total_units = mp.loc[(~mp['panel_size_existing'].isna()), 'TotalNoOfUnits'].sum()
+        units['pct'] = units['TotalNoOfUnits'].divide(total_units).multiply(100.0)
+        stats = pd.merge(stats, units, left_index = True, right_index = True)
+
     print(stats)
 
     return stats
@@ -517,7 +524,7 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
     elif sector == 'multi_family':
         yticks = [30, 40, 60, 90, 100, 125, 150, 200]
         ylim = (0, 220)
-        ylabel = 'Existing Average Load Center Rating per Unit \n[Amps]'
+        ylabel = 'Existing Panel Rating per Unit \n[Amps]'
         bins = 40
 
     fig, ax = plt.subplots(1,2,figsize = (10,10), sharey = True, sharex = True)
@@ -556,8 +563,8 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
     ax[0].set_xlabel('Vintage \n[Year]')
     ax[1].set_xlabel('Vintage \n[Year]')
 
-    ax[0].set_title('Priority Population')
-    ax[1].set_title('Non-Priority Population')
+    ax[0].set_title('DAC')
+    ax[1].set_title('Non-DAC')
 
     ax[0].set_ylim(ylim)
     ax[1].set_ylim(ylim)
