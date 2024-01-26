@@ -13,6 +13,7 @@ import seaborn as sns
 #%% Set Fixed Parameters
 
 figure_dir = '/Users/edf/repos/carb_elec/analyses/model_data/fig/'
+output_dir = '/Users/edf/repos/carb_elec/analyses/model_data/output/'
 
 #%% Read Model Data Set from Pickle
 
