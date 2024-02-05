@@ -42,7 +42,7 @@ query = ''' SELECT megaparcelid,
                    main_panel_upgrade,
                    sub_panel_upgrade,
                    upgraded_panel_size
-            FROM ztrax.model_data
+            FROM corelogic.model_data
             WHERE usetype = 'multi_family';'''
 
 mp = pd.read_sql(query, db_con)
@@ -150,7 +150,7 @@ ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
 ax.set_xlim((0, 130))
 ax.legend()
 
-fig.savefig('/Users/edf/repos/carb_elec/model/fig/mf_ecdfs.png',
+fig.savefig('/Users/edf/repos/carb_elec/model/corelogic/fig/mf_ecdfs.png',
     bbox_inches = 'tight',
     dpi = 300)
 
@@ -330,5 +330,5 @@ mp.loc[:,output_cols].to_sql(
     name = 'model_data_mf_inference',
     con = db_con,
     if_exists = 'replace',
-    schema = 'ztrax',
+    schema = 'corelogic',
     index = True)

@@ -10,14 +10,14 @@ SELECT DISTINCT megaparcels."megaparcelid",
         ORDER BY
             megaparcels.centroid <-> shoreline.geom
         LIMIT  1) AS shorelinedistm
-INTO ztrax.distance
-FROM ztrax.megaparcels AS megaparcels;
+INTO corelogic.distance
+FROM corelogic.megaparcels AS megaparcels;
 
 -- Compute the elevation of each parcel centroid using a cross lateral join
 SELECT DISTINCT megaparcels."megaparcelid",
        elevation.elevationm
-INTO    ztrax.elevation
-FROM    ztrax.megaparcels AS megaparcels
+INTO    corelogic.elevation
+FROM    corelogic.megaparcels AS megaparcels
 CROSS JOIN LATERAL
     (SELECT FLOOR(ST_Value(rast, megaparcels.centroid))::INTEGER AS elevationm
         FROM srtm.ca_elevation
@@ -26,8 +26,8 @@ CROSS JOIN LATERAL
 -- Compute the slope at each parcel centroid using a cross lateral join
 SELECT DISTINCT megaparcels."megaparcelid",
        slope.slopepct
-INTO    ztrax.slope
-FROM    ztrax.megaparcels AS megaparcels
+INTO    corelogic.slope
+FROM    corelogic.megaparcels AS megaparcels
 CROSS JOIN LATERAL
     (SELECT FLOOR(ST_Value(rast, megaparcels.centroid))::INTEGER AS slopepct
         FROM srtm.ca_slope
@@ -36,8 +36,8 @@ CROSS JOIN LATERAL
 -- Compute the aspect at each parcel centroid using a cross lateral join
 SELECT DISTINCT megaparcels."megaparcelid",
         aspect.aspectdeg
-INTO ztrax.aspect
-FROM ztrax.megaparcels AS megaparcels
+INTO corelogic.aspect
+FROM corelogic.megaparcels AS megaparcels
 CROSS JOIN LATERAL
     (SELECT FLOOR(ST_VALUE(rast, megaparcels.centroid))::INTEGER AS aspectdeg
         FROM srtm.ca_aspect
@@ -45,19 +45,19 @@ CROSS JOIN LATERAL
 
 -- Index Join Tables on MegaparcelID
 CREATE INDEX IF NOT EXISTS idx_mp_mpid_idx
-ON ztrax.megaparcels ("megaparcelid");
+ON corelogic.megaparcels ("megaparcelid");
 
 CREATE INDEX IF NOT EXISTS idx_distance_mpid_idx
-ON ztrax.distance ("megaparcelid");
+ON corelogic.distance ("megaparcelid");
 
 CREATE INDEX IF NOT EXISTS idx_elevation_mpid_idx
-ON ztrax.elevation ("megaparcelid");
+ON corelogic.elevation ("megaparcelid");
 
 CREATE INDEX IF NOT EXISTS idx_slope_mpid_idx
-ON ztrax.slope ("megaparcelid");
+ON corelogic.slope ("megaparcelid");
 
 CREATE INDEX IF NOT EXISTS idx_aspect_mpid_idx
-ON ztrax.aspect ("megaparcelid");
+ON corelogic.aspect ("megaparcelid");
 
 CREATE INDEX IF NOT EXISTS idx_geom_geoid_idx
 ON census.acs_ca_2019_tr_geom ("GEOID");
@@ -95,10 +95,10 @@ CREATE INDEX IF NOT EXISTS idx_fuel_geom_idx
 ON census.fuel_features USING GIST("geom");
 
 -- Coalesce Permit Records by Unique Megaparcel ID
-SELECT  megaparcelid,
+SELECT  corelogic_megaparcelid,
         ARRAY_AGG(id) AS permit_id,
         MAX(issued_date) AS issued_date,
-        bool_or(solar_pv_system) AS solar_pv_system, 
+        bool_or(solar_pv_system) AS solar_pv_system,
         bool_or(battery_storage_system) AS battery_storage_system,
         bool_or(ev_charger) AS ev_charger,
         bool_or(heat_pump) AS heat_pump,
@@ -107,7 +107,7 @@ SELECT  megaparcelid,
         MAX(upgraded_panel_size) AS upgraded_panel_size
 INTO permits.panel_upgrades_geocoded_deduplicated
 FROM permits.panel_upgrades_geocoded
-GROUP BY megaparcelid;
+GROUP BY corelogic_megaparcelid;
 
 -- Extract Relevant Parcel Attributes for Model Training Data
 SELECT  DISTINCT ON (mp."megaparcelid")
@@ -144,15 +144,15 @@ SELECT  DISTINCT ON (mp."megaparcelid")
         permits."main_panel_upgrade",
         permits."sub_panel_upgrade",
         permits."upgraded_panel_size"
-INTO    ztrax.model_data
-FROM    ztrax.megaparcels AS mp
-INNER JOIN ztrax.distance AS dist
+INTO    corelogic.model_data
+FROM    corelogic.megaparcels AS mp
+INNER JOIN corelogic.distance AS dist
     ON dist."megaparcelid" = mp."megaparcelid"
-INNER JOIN ztrax.elevation AS elev
+INNER JOIN corelogic.elevation AS elev
     ON elev."megaparcelid" = mp."megaparcelid"
-INNER JOIN ztrax.slope AS slope
+INNER JOIN corelogic.slope AS slope
     ON slope."megaparcelid" = mp."megaparcelid"
-INNER JOIN ztrax.aspect AS aspect
+INNER JOIN corelogic.aspect AS aspect
     ON aspect."megaparcelid" = mp."megaparcelid"
 INNER JOIN oehha.ca_ces4 AS ces4
     ON ST_INTERSECTS(mp."centroid", ces4."geom" )
@@ -167,14 +167,14 @@ INNER JOIN census.housing_features AS housing
 INNER JOIN census.fuel_features AS fuel
     ON ST_INTERSECTS(mp."centroid", fuel."geom")
 LEFT JOIN permits.panel_upgrades_geocoded_deduplicated AS permits
-    ON permits."megaparcelid" = mp."megaparcelid";
+    ON permits."corelogic_megaparcelid" = mp."megaparcelid";
 
 -- Determine Missing Counties
 SELECT county."NAMELSAD",
        county."geometry",
        COUNT(DISTINCT mp."megaparcelid") AS valid_megaparcels
-INTO ztrax.valid_counties
-FROM ztrax.megaparcels AS mp
+INTO corelogic.valid_counties
+FROM corelogic.megaparcels AS mp
 JOIN census.acs_ca_2019_county_geom AS county
     ON ST_INTERSECTS(mp."geom", county."geometry")
 WHERE mp.panel_size_as_built IS NOT NULL

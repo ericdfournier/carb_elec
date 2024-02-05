@@ -2,7 +2,10 @@
 **/.DS_Store
 **/dump/*
 **/la100/*
-**/model/data/*
-**/model/runs/*
-**/model/fig/*
+**/model/corelogic/data/*
+**/model/corelogic/runs/*
+**/model/corelogic/fig/*
+**/model/ztrax/data/*
+**/model/ztrax/runs/*
+**/model/ztrax/fig/*
 **/analyses/building_permits/output/*

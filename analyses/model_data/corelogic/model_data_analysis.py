@@ -12,8 +12,8 @@ import seaborn as sns
 
 #%% Set Fixed Parameters
 
-figure_dir = '/Users/edf/repos/carb_elec/analyses/model_data/fig/'
-output_dir = '/Users/edf/repos/carb_elec/analyses/model_data/output/'
+figure_dir = '/Users/edf/repos/carb_elec/analyses/model_data/corelogic/fig/'
+output_dir = '/Users/edf/repos/carb_elec/analyses/model_data/corelogic/output/'
 
 #%% Read Model Data Set from Pickle
 
@@ -40,10 +40,10 @@ query = ''' SELECT  A.*,
                     C.county_name,
                     C.county_air_basin_district_id,
                     C.tract_geoid_2019
-            FROM ztrax.model_data AS A
-            JOIN ztrax.model_data_sf_inference AS B
+            FROM corelogic.model_data AS A
+            JOIN corelogic.model_data_sf_inference AS B
                 ON A.megaparcelid = B.megaparcelid
-            JOIN ztrax.megaparcels_geocoded_geographies AS C
+            JOIN corelogic.megaparcels_geocoded_geographies AS C
                 ON A.megaparcelid = C.megaparcelid;'''
 
 sf = pd.read_sql(query, db_con)
@@ -63,10 +63,10 @@ query = ''' SELECT  A.*,
                     C.county_name,
                     C.county_air_basin_district_id,
                     C.tract_geoid_2019
-            FROM ztrax.model_data AS A
-            JOIN ztrax.model_data_mf_inference AS B
+            FROM corelogic.model_data AS A
+            JOIN corelogic.model_data_mf_inference AS B
                 ON A.megaparcelid = B.megaparcelid
-            JOIN ztrax.megaparcels_geocoded_geographies AS C
+            JOIN corelogic.megaparcels_geocoded_geographies AS C
                 ON A.megaparcelid = C.megaparcelid;'''
 
 mf = pd.read_sql(query, db_con)
@@ -888,8 +888,8 @@ def AreaNormalizedComparisonKDE(mp, sector, figure_dir):
 #%% Generate Area Normalized KDE and Stats
 
 # CAUTION - Long run time...
-AreaNormalizedComparisonKDE(sf, 'single_family', figure_dir)
-AreaNormalizedComparisonKDE(mf, 'multi_family', figure_dir)
+#AreaNormalizedComparisonKDE(sf, 'single_family', figure_dir)
+#AreaNormalizedComparisonKDE(mf, 'multi_family', figure_dir)
 
 #%% Distribution of Destination Panel Sizes for Permitted Upgrades
 
@@ -963,7 +963,7 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
 
     # Mask counties with insufficient counts
     mask = mp.groupby('air_district')['panel_size_existing'].agg('count')
-    mask.loc[mask < 1000] = np.nan
+    mask.loc[mask < 100] = np.nan
     mask = mask[mask.isna()].index.values
 
     # Generate Air District Upgrade Needs Map
@@ -1226,7 +1226,7 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
 
     # Mask counties with insufficient counts
     mask = mp.groupby( 'county_air_basin_district_id')['panel_size_existing'].agg('count')
-    mask.loc[mask < 1000] = np.nan
+    mask.loc[mask < 100] = np.nan
     mask = mask[mask.isna()].index.values
 
     # Generate Air District Upgrade Needs Map
@@ -1346,8 +1346,8 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
         hatch = '////',
         zorder= 0)
 
-    bins = [10, 20, 30, 40, 50, 60, 70, 80]
-    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80']
+    bins = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 90']
 
     dac_cdb_data.plot(ax = ax[1],
         column = 'percentage',
@@ -1438,8 +1438,8 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
         hatch = '////',
         zorder= 0)
 
-    bins = [10, 20, 30, 40, 50, 60, 70, 80]
-    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80']
+    bins = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '40 - 50', '50 - 60', '60 - 70', '70 - 80', '80 - 90']
 
     non_dac_cdb_data.plot(ax = ax[3],
         column = 'percentage',
@@ -1489,7 +1489,7 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
 
     # Mask counties with insufficient counts
     mask = mp.groupby('tract_geoid_2019')['panel_size_existing'].agg('count')
-    mask.loc[mask < 100] = np.nan
+    mask.loc[mask < 10] = np.nan
     mask = mask[mask.isna()].index.values
 
     # Generate Tract Upgrade Needs Map data
@@ -1629,7 +1629,7 @@ def PlotLikelyUpgradeRequirementsByCounty(mp, sector, figure_dir, counties):
 
     # Mask counties with insufficient counts
     mask = mp.groupby('county_name')['panel_size_existing'].agg('count')
-    mask.loc[mask < 1000] = np.nan
+    mask.loc[mask < 100] = np.nan
     mask = mask[mask.isna()].index.values
 
     # Generate County Upgrade Needs Map

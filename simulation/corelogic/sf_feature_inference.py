@@ -25,7 +25,7 @@ db = 'carb'
 db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
 db_con = sql.create_engine(db_con_string)
 
-# Extract Single Family Data from
+# Extract Single Family Data from Model Data Table
 query = ''' SELECT megaparcelid,
                    "YearBuilt",
                    "TotalBuildingAreaSqFt",
@@ -42,7 +42,7 @@ query = ''' SELECT megaparcelid,
                    main_panel_upgrade,
                    sub_panel_upgrade,
                    upgraded_panel_size
-            FROM ztrax.model_data
+            FROM corelogic.model_data
             WHERE usetype = 'single_family';'''
 
 mp = pd.read_sql(query, db_con)
@@ -150,7 +150,7 @@ ax.set_xlim((0, 130))
 ax.legend()
 
 # Save figure to file
-fig.savefig('/Users/edf/repos/carb_elec/model/fig/sf_ecdfs.png',
+fig.savefig('/Users/edf/repos/carb_elec/model/corelogic/fig/sf_ecdfs.png',
     bbox_inches = 'tight',
     dpi = 300)
 
@@ -359,5 +359,5 @@ mp.loc[:,output_cols].to_sql(
     name = 'model_data_sf_inference',
     con = db_con,
     if_exists = 'replace',
-    schema = 'ztrax',
+    schema = 'corelogic',
     index = True)

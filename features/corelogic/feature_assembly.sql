@@ -1,5 +1,6 @@
--- Generate Polygon Aggregated ZTRAX data as Megaparcels
-SELECT  parcels."geometry _ wkt" AS geom,
+-- NOTE: The block below needs to be run on the DB server...
+-- Generate Polygon Aggregated CoreLogic data as Megaparcels
+SELECT  parcels."geom" AS geom,
         MODE() WITHIN GROUP (ORDER BY parcels.centroid) AS "centroid",
         ARRAY_AGG(parcels."clip") AS "RowIDs",
         ARRAY_AGG(parcels."land use code _ piq") AS "PropertyLandUseStndCodes",
@@ -13,10 +14,13 @@ SELECT  parcels."geometry _ wkt" AS geom,
         SUM(parcels."assessed improvement value"::NUMERIC) AS "TotalImprovementAssessedValue",
         MODE() WITHIN GROUP(ORDER BY parcels."heating type code") AS "HeatingTypeorSystemStndCode",
         MODE() WITHIN GROUP(ORDER BY parcels."air conditioning code") AS "AirConditioningTypeorSystemStndCode"
-INTO corelogic.megaparcels
-FROM corelogic.parcels AS parcels
-GROUP BY parcels."geometry _ wkt";
+INTO projects.carb_megaparcels
+FROM corelogic.corelogic_20231228 AS parcels
+WHERE type_code IN ('CEN','FIP') AND
+    ST_GeometryType("geom") IN ('ST_Polygon', 'ST_MultiPolygon')
+GROUP BY parcels."geom";
 
+-- NOTE: Switching to local PostGRES server from here on out
 -- Add Permit ID Field
 ALTER TABLE corelogic.megaparcels
 ADD COLUMN megaparcelid SERIAL;
@@ -30,10 +34,10 @@ ALTER TABLE permits.panel_upgrades_geocoded
 ADD COLUMN corelogic_megaparcelid NUMERIC;
 
 -- Update Each Panel Upgrade Permit with the Associated Megaparcel ID
-UPDATE permits.panel_upgrades_geocoded
+UPDATE permits.panel_upgrades_geocoded AS A
 SET corelogic_megaparcelid = B.megaparcelid
 FROM corelogic.megaparcels AS B
-WHERE ST_INTERSECTS(centroid, B.geom);
+WHERE ST_INTERSECTS(A.centroid, B.geom);
 
 -- Add boolean field to megaparcel layer to indicate sampled territories
 ALTER TABLE corelogic.megaparcels
@@ -99,33 +103,28 @@ ALTER TABLE corelogic.megaparcels
 ADD COLUMN usetype TEXT DEFAULT NULL;
 
 -- Single Family is defined strictly here as megaparcels that consist of a
--- records with the property land use stnd codes as listed below.
--- There are a total of XXXXXXXXX of these in the dataset.
+-- records with the property land use stnd codes as listed below:
 UPDATE corelogic.megaparcels
 SET usetype = 'single_family'
-WHERE   "PropertyLandUseStndCodes" = ARRAY['100'] OR
-        "PropertyLandUseStndCodes" = ARRAY['109'] OR
-        "PropertyLandUseStndCodes" = ARRAY['135'] OR
-        "PropertyLandUseStndCodes" = ARRAY['137'] OR
-        "PropertyLandUseStndCodes" = ARRAY['138'] OR
-        "PropertyLandUseStndCodes" = ARRAY['148'] OR
-        "PropertyLandUseStndCodes" = ARRAY['160'] OR
-        "PropertyLandUseStndCodes" = ARRAY['163'];
+WHERE   "PropertyLandUseStndCodes" = ARRAY[100] OR
+        "PropertyLandUseStndCodes" = ARRAY[102] OR
+        "PropertyLandUseStndCodes" = ARRAY[109] OR
+        "PropertyLandUseStndCodes" = ARRAY[135] OR
+        "PropertyLandUseStndCodes" = ARRAY[137] OR
+        "PropertyLandUseStndCodes" = ARRAY[138] OR
+        "PropertyLandUseStndCodes" = ARRAY[148] OR
+        "PropertyLandUseStndCodes" = ARRAY[160] OR
+        "PropertyLandUseStndCodes" = ARRAY[163];
 
 -- Multi Family is defined openly here as megaparcels that at least contain
--- one of the following property landuse standard codes that do not correspond
--- to 'RR101' or 'RI101'. There are a total of XXXXXX of these in the dataset.
+-- one of the following property landuse standard codes:
 UPDATE corelogic.megaparcels
 SET usetype = 'multi_family'
-WHERE   "PropertyLandUseStndCodes" @> ARRAY['115'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['151'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['165'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['103'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['106'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['131'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['132'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['133'] OR
-        "PropertyLandUseStndCodes" @> ARRAY['167'];
+WHERE   "PropertyLandUseStndCodes" @> ARRAY[103] OR
+        "PropertyLandUseStndCodes" @> ARRAY[106] OR
+        "PropertyLandUseStndCodes" @> ARRAY[131] OR
+        "PropertyLandUseStndCodes" @> ARRAY[132] OR
+        "PropertyLandUseStndCodes" @> ARRAY[133];
 
 -- Create As Built Panel Size Field
 ALTER TABLE corelogic.megaparcels
