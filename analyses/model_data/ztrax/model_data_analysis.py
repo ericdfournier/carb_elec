@@ -888,8 +888,8 @@ def AreaNormalizedComparisonKDE(mp, sector, figure_dir):
 #%% Generate Area Normalized KDE and Stats
 
 # CAUTION - Long run time...
-AreaNormalizedComparisonKDE(sf, 'single_family', figure_dir)
-AreaNormalizedComparisonKDE(mf, 'multi_family', figure_dir)
+# AreaNormalizedComparisonKDE(sf, 'single_family', figure_dir)
+# AreaNormalizedComparisonKDE(mf, 'multi_family', figure_dir)
 
 #%% Distribution of Destination Panel Sizes for Permitted Upgrades
 
