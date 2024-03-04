@@ -52,6 +52,10 @@ mp = pd.read_sql(query, db_con)
 # Set megaparcelid as index
 mp.set_index('megaparcelid', drop = True, inplace = True)
 
+# Null out bogus vintage years
+invalid_ind = mp['YearBuilt'] > 2024
+mp.loc[invalid_ind,'YearBuilt'] = np.nan
+
 # Filter Properties with Panel Upgrade Permits
 permit_cols = [
     'solar_pv_system',

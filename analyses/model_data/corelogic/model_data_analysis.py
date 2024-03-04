@@ -8,6 +8,7 @@ import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter, StrMethodFormatter
+from matplotlib.colors import LogNorm, Normalize
 import seaborn as sns
 
 #%% Set Fixed Parameters
@@ -44,7 +45,8 @@ query = ''' SELECT  A.*,
             JOIN corelogic.model_data_sf_inference AS B
                 ON A.megaparcelid = B.megaparcelid
             JOIN corelogic.megaparcels_geocoded_geographies AS C
-                ON A.megaparcelid = C.megaparcelid;'''
+                ON A.megaparcelid = C.megaparcelid
+            WHERE A.YearBuilt <= 2024;'''
 
 sf = pd.read_sql(query, db_con)
 
@@ -73,6 +75,11 @@ mf = pd.read_sql(query, db_con)
 
 # Set megaparcelid as index
 mf.set_index('megaparcelid', drop = True, inplace = True)
+
+#%% Drop Parcels with Bogus Vintage Years
+
+sf = sf.loc[sf['YearBuilt'] <= 2024,:]
+mf = mf.loc[mf['YearBuilt'] <= 2024,:]
 
 #%% Extract Air District Geographic Boundaries
 
@@ -367,6 +374,8 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         bins = 40
         ylabel = 'Average As-Built Load Center Rating Per Unit\n[Amps]'
 
+    log_norm = LogNorm(vmin=0, vmax=1000000)
+
     sns.histplot(x = 'YearBuilt',
         y = 'panel_size_as_built',
         data = dac_sample,
@@ -376,8 +385,9 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'Priority Population',
         cbar = True,
-        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
-        vmin=0, vmax=50000)
+        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'}
+        )
+
     sns.histplot(x = 'YearBuilt',
         y = 'panel_size_as_built',
         data = non_dac_sample,
@@ -387,8 +397,8 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'Non-Priority Population',
         cbar = True,
-        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
-        vmin=0, vmax=50000)
+        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'}
+        )
 
     ax[0].set_yticks(yticks)
 
@@ -539,8 +549,9 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'Yes',
         cbar = True,
-        cbar_kws = {'label': 'Number of Properties', 'orientation':'horizontal'},
-        vmin=0, vmax=50000)
+        cbar_kws = {'label': 'Number of Properties', 'orientation':'horizontal'}
+        )
+
     sns.histplot(x = 'YearBuilt',
         y = 'panel_size_existing',
         data = non_dac_sample,
@@ -550,8 +561,8 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'No',
         cbar = True,
-        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
-        vmin=0, vmax=50000)
+        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'}
+        )
 
     ax[0].set_yticks(yticks)
 

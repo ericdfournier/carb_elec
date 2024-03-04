@@ -146,8 +146,8 @@ SET panel_size_as_built = CASE
     WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 320
     WHEN ("YearBuilt" > 1879 AND "YearBuilt" <= 1950) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 400
     -- 1950-1978
-    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 40
-    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 60
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 60 -- Update to 60 from 40
+    WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 100 -- Update to 100 from 60
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 100
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 125
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 4000 AND "TotalBuildingAreaSqFt" <= 5000) THEN 150
@@ -156,7 +156,7 @@ SET panel_size_as_built = CASE
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 10000 AND "TotalBuildingAreaSqFt" <= 20000) THEN 400
     WHEN ("YearBuilt" > 1950 AND "YearBuilt" <= 1978) AND ("TotalBuildingAreaSqFt" > 20000 ) THEN 600
     -- 1978-2010
-    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 60
+    WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" <= 1000) THEN 100 -- Update to 100 from 60
     WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 1000 AND "TotalBuildingAreaSqFt" <= 2000) THEN 100
     WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 2000 AND "TotalBuildingAreaSqFt" <= 3000) THEN 125
     WHEN ("YearBuilt" > 1978 AND "YearBuilt" <= 2010) AND ("TotalBuildingAreaSqFt" > 3000 AND "TotalBuildingAreaSqFt" <= 4000) THEN 150
