@@ -45,8 +45,7 @@ query = ''' SELECT  A.*,
             JOIN corelogic.model_data_sf_inference AS B
                 ON A.megaparcelid = B.megaparcelid
             JOIN corelogic.megaparcels_geocoded_geographies AS C
-                ON A.megaparcelid = C.megaparcelid
-            WHERE A.YearBuilt <= 2024;'''
+                ON A.megaparcelid = C.megaparcelid;'''
 
 sf = pd.read_sql(query, db_con)
 
@@ -368,13 +367,15 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         yticks = [30, 60, 100, 125, 150, 200, 225, 320, 400, 600, 800, 1000, 1200]
         bins = 80
         ylabel = 'As-Built Panel Rating \n[Amps]'
+        vmin = 0
+        vmax = 1000000
     elif sector == 'multi_family':
         ylim = [0, 220]
         yticks = [30, 40, 60, 90, 100, 125, 150, 200]
         bins = 40
         ylabel = 'Average As-Built Load Center Rating Per Unit\n[Amps]'
-
-    log_norm = LogNorm(vmin=0, vmax=1000000)
+        vmin = 0
+        vmax = 10000
 
     sns.histplot(x = 'YearBuilt',
         y = 'panel_size_as_built',
@@ -385,8 +386,9 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'Priority Population',
         cbar = True,
-        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'}
-        )
+        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
+        vmin = vmin,
+        vmax = vmax)
 
     sns.histplot(x = 'YearBuilt',
         y = 'panel_size_as_built',
@@ -397,8 +399,9 @@ def AsBuiltPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'Non-Priority Population',
         cbar = True,
-        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'}
-        )
+        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
+        vmin = vmin,
+        vmax = vmax)
 
     ax[0].set_yticks(yticks)
 
@@ -532,11 +535,15 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
         ylim = (0, 1220)
         ylabel = 'Existing Panel Rating \n[Amps]'
         bins = 80
+        vmin = 0
+        vmax = 1000000
     elif sector == 'multi_family':
         yticks = [30, 40, 60, 90, 100, 125, 150, 200]
         ylim = (0, 220)
         ylabel = 'Existing Panel Rating per Unit \n[Amps]'
         bins = 40
+        vmin = 0
+        vmax = 10000
 
     fig, ax = plt.subplots(1,2,figsize = (10,10), sharey = True, sharex = True)
 
@@ -549,8 +556,9 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'Yes',
         cbar = True,
-        cbar_kws = {'label': 'Number of Properties', 'orientation':'horizontal'}
-        )
+        cbar_kws = {'label': 'Number of Properties', 'orientation':'horizontal'},
+        vmin = vmin,
+        vmax = vmax)
 
     sns.histplot(x = 'YearBuilt',
         y = 'panel_size_existing',
@@ -561,8 +569,9 @@ def ExistingPanelRatingsHist(mp, sector, figure_dir):
         legend = True,
         label = 'No',
         cbar = True,
-        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'}
-        )
+        cbar_kws = {'label':'Number of Properties', 'orientation':'horizontal'},
+        vmin = vmin,
+        vmax = vmax)
 
     ax[0].set_yticks(yticks)
 
