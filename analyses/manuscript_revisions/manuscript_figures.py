@@ -14,8 +14,7 @@ from matplotlib.patches import Rectangle
 
 #%% Set Fixed Parameters
 
-figure_dir = '/Users/edf/repos/carb_elec/analyses/model_data/corelogic/fig/'
-output_dir = '/Users/edf/repos/carb_elec/analyses/model_data/corelogic/output/'
+figure_dir = '/Users/edf/repos/carb_elec/analyses/manuscript_revisions/fig/'
 
 #%% Read Model Data Set from Pickle
 
@@ -277,7 +276,10 @@ def PermitCountStatsBarChart(mp, sector):
 #%% Generate Permit Count Stats Bar Chart
 
 fig, ax = PermitCountStatsBarChart(sf, 'single_family')
+fig.savefig(figure_dir + 'single_family_permit_count_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
 fig, ax = PermitCountStatsBarChart(mf, 'multi_family')
+fig.savefig(figure_dir + 'multi_family_permit_count_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Generate Dac vs. NonDAC percentage bar charts
 
@@ -335,7 +337,10 @@ def DACPanelStatsBarChart(mp, sector):
 #%% Generate Data Panel Stats Bar Chart
 
 fig, ax = DACPanelStatsBarChart(sf, 'single_family')
+fig.savefig(figure_dir + 'single_family_dac_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
 fig, ax = DACPanelStatsBarChart(mf, 'multi_family')
+fig.savefig(figure_dir + 'multi_family_dac_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Generate Vintage Binned Panel Size Ranges
 
@@ -428,7 +433,10 @@ def VintagePanelStatsBarChart(mp, sector):
 #%% Generate Plot
 
 fig, ax = VintagePanelStatsBarChart(sf, 'single_family')
+fig.savefig(figure_dir + 'single_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
 fig, ax = VintagePanelStatsBarChart(mf, 'multi_family')
+fig.savefig(figure_dir + 'multi_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Generate SqFt Binned Panel Size Ranges
 
@@ -525,7 +533,10 @@ def SqftPanelStatsBarChart(mp, sector):
 #%% Generate Sqft Panel Bar Chart
 
 fig, ax = SqftPanelStatsBarChart(sf, 'single_family')
+fig.savefig(figure_dir + 'single_family_sqft_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
 fig, ax = SqftPanelStatsBarChart(mf, 'multi_family')
+fig.savefig(figure_dir + 'multi_family_sqft_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Generate Aggregations by Renter Household Pct
 
@@ -618,7 +629,10 @@ def RenterPanelStatsBarChart(mp, sector):
 #%% Generate Renter Household Percentage Plots
 
 RenterPanelStatsBarChart(sf, 'single_family')
+fig.savefig(figure_dir + 'single_family_renter_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
 RenterPanelStatsBarChart(mf, 'multi_family')
+fig.savefig(figure_dir + 'multifamily_renter_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Generate Aggregations by Renter Household Pct
 
@@ -703,7 +717,98 @@ def ClimateZonePanelStatsBarChart(mp, sector):
 #%% Generate Building Climate Zone Level Statistics
 
 fig, ax = ClimateZonePanelStatsBarChart(sf, 'single_family')
+fig.savefig(figure_dir + 'single_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
 fig, ax = ClimateZonePanelStatsBarChart(mf, 'multi_family')
+fig.savefig(figure_dir + 'multi_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
+#%% Generate Aggregations by Renter Household Pct
+
+def AirDistrictPanelStatsBarChart(mp, sector):
+
+    if sector == 'single_family':
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100','100','101 - 199','200','>200']
+    elif sector == 'multi_family':
+        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<90','90','91 - 149','150','>150']
+
+    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+
+    stats = mp[['air_district','panel_size_class', 'panel_size_existing']].groupby(['air_district','panel_size_class'],
+        observed = False).agg('count')
+
+    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.reset_index(inplace = True)
+    totals = stats.loc[:,['air_district','count']].groupby('air_district').agg('sum')
+
+    stats = pd.merge(stats, totals, left_on = 'air_district', right_on = 'air_district')
+    stats['pct'] = stats['count_x'] / stats['count_y']
+    out = stats.pivot(index='air_district', columns='panel_size_class', values='pct')
+    out = out.loc[:,cols]
+
+    fig, ax = plt.subplots(2,1,figsize = (14,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
+    out[cols].plot(
+        kind='bar',
+        stacked=True,
+        ax = ax[0],
+        edgecolor = 'k')
+
+    handles, labels = ax[0].get_legend_handles_labels()
+    ax[0].legend(handles[::-1], labels[::-1],loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')
+    ax[0].set_ylabel('Share of \n{} buildings'.format(sector.replace('_', '-')))
+    ax[0].set_yticks(np.arange(0,1.1,0.1))
+    ax[0].set_ylim(0,1)
+    ax[0].set_axisbelow(True)
+    ax[0].grid(True)
+
+    for c in ax[0].containers:
+
+        # Optional: if the segment is small or 0, customize the labels
+        labels = [str(int(np.round(v.get_height(),2)*100)) + '%' if v.get_height() > 0 else '' for v in c]
+
+        # remove the labels parameter if it's not needed for customized labels
+        ax[0].bar_label(c, fontsize = 6, labels=labels, label_type='center')
+
+    tot = totals.divide(totals.sum())
+
+    tot.plot(
+        kind = 'bar',
+        color = 'lightgray',
+        legend = False,
+        ax = ax[1],
+        edgecolor = 'k')
+
+    ax[1].set_ylabel('Share of \ncategory')
+    ax[1].tick_params(axis='x', labelrotation=90)
+    ax[1].set_xlabel('Air District')
+    ax[1].set_axisbelow(True)
+    ax[1].grid(True)
+
+    for c in ax[1].containers:
+
+        # Optional: if the segment is small or 0, customize the labels
+        labels = [str(int(np.round(v.get_height(),2)*100)) + '%' if v.get_height() > 0 else '' for v in c]
+
+        # remove the labels parameter if it's not needed for customized labels
+        ax[1].bar_label(c, fontsize = 6, labels=labels, label_type='center')
+
+    fig.tight_layout()
+
+    return fig, ax
+
+#%% Generate Air District Disaggregated Results
+
+fig, ax = AirDistrictPanelStatsBarChart(sf, 'single_family')
+fig.savefig(figure_dir + 'single_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+
+fig, ax = AirDistrictPanelStatsBarChart(mf, 'multi_family')
+fig.savefig(figure_dir + 'multi_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Generate CES-4.0 to Size and Vintage Correlations Plot
 
