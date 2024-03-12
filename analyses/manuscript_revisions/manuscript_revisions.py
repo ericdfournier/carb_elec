@@ -885,6 +885,48 @@ sf_stats.to_csv(tables_dir + 'single_family_county_air_basin_air_district_panel_
 mf_stats = CountyAirBasinAirDistrictPanelStats(mf, 'multi_family')
 mf_stats.to_csv(tables_dir + 'multi_family_county_air_basin_air_district_panel_stats.csv')
 
+#%% Generate Census Tract Level Stats
+
+def CensusTractPanelStats(mp, sector):
+
+    if sector == 'single_family':
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100','100','101 - 199','200','>200']
+    elif sector == 'multi_family':
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
+
+    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+
+    stats = mp[['tract_geoid_2019','panel_size_class', 'panel_size_existing']].groupby(['tract_geoid_2019','panel_size_class'],
+        observed = False).agg('count')
+
+    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.reset_index(inplace = True)
+    totals = stats.loc[:,['tract_geoid_2019','count']].groupby('tract_geoid_2019').agg('sum')
+
+    stats = pd.merge(stats, totals, left_on = 'tract_geoid_2019', right_on = 'tract_geoid_2019')
+    stats['pct'] = stats['count_x'] / stats['count_y']
+    out = stats.pivot(index='tract_geoid_2019', columns='panel_size_class', values='pct')
+    out = out.loc[:,cols]
+
+    print(out[cols])
+
+    return out[cols]
+
+#%% Output Census Tract Stats
+
+sf_stats = CensusTractPanelStats(sf, 'single_family')
+sf_stats.to_csv(tables_dir + 'single_family_census_tract_panel_stats.csv')
+
+mf_stats = CensusTractPanelStats(mf, 'multi_family')
+mf_stats.to_csv(tables_dir + 'multi_family_census_tract_panel_stats.csv')
+
 #%% Generate CES-4.0 to Size and Vintage Correlations Plot
 
 def CEStoVintageSqftCorrelationScatterPlot(mp):
