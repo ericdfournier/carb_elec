@@ -15,6 +15,7 @@ from matplotlib.patches import Rectangle
 #%% Set Fixed Parameters
 
 figure_dir = '/Users/edf/repos/carb_elec/analyses/manuscript_revisions/fig/'
+tables_dir = '/Users/edf/repos/carb_elec/analyses/manuscript_revisions/csv/'
 
 #%% Read Model Data Set from Pickle
 
@@ -102,9 +103,11 @@ def PrintPanelStatsTable(mp, sector):
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -123,19 +126,11 @@ def PrintPanelStatsTable(mp, sector):
         units['pct_units'] = units['TotalNoOfUnits'].divide(total_units).multiply(100.0)
         stats = pd.merge(stats, units, left_index = True, right_index = True)
 
-    print(stats)
+    print(stats.loc[cols])
 
     return stats
 
 #%% Print Panel Statistics Tables
-
-# LBNL Initial Results for Comparison
-# Panel Amps	Count	Frequency
-# <100	        5,068	9%
-# 100	        15,090	26%
-# 101-199	    12,185	21%
-# 200	        19,109	33%
-# 201+	        5,915	10%
 
 sf_stats = PrintPanelStatsTable(sf, 'single_family')
 mf_stats = PrintPanelStatsTable(mf, 'multi_family')
@@ -147,28 +142,31 @@ def PrintDACPanelStatsTable(mp, sector):
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
+
     stats = mp[['panel_size_class','dac','panel_size_existing']].groupby(['panel_size_class', 'dac'],
         observed = False).agg('count')
     stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
     totals = mp.loc[~mp['panel_size_existing'].isna(),'dac'].to_frame().groupby('dac').value_counts()
     stats['pct'] = stats['count'].divide(totals).multiply(100.0)
 
-    print(stats)
+    print(stats.loc[cols])
 
     return stats
 
 #%% Print DAC Panel Statistics Tables
 
-sf_stats = PrintDACPanelStatsTable(sf, 'single_family')
-mf_stats = PrintDACPanelStatsTable(mf, 'multi_family')
+sf_dac_stats = PrintDACPanelStatsTable(sf, 'single_family')
+mf_dac_stats = PrintDACPanelStatsTable(mf, 'multi_family')
 
 #%% Generate Permit Count Bar Chart
 
@@ -179,9 +177,9 @@ def PermitCountStatsBarChart(mp, sector):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<90','90','91 - 149','150','>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -242,7 +240,6 @@ def PermitCountStatsBarChart(mp, sector):
         stacked = True,
         ax = ax,
         edgecolor='k')
-    ax.vlines(x=[2.5], ymin=[0], ymax=[1], colors='k', ls='--', lw=2)
 
     ax.set_xticklabels([
         'Direct\nn=({})'.format(direct_all_ind.sum()),
@@ -271,15 +268,17 @@ def PermitCountStatsBarChart(mp, sector):
 
     fig.tight_layout()
 
-    return fig, ax
+    return out[cols], fig, ax
 
 #%% Generate Permit Count Stats Bar Chart
 
-fig, ax = PermitCountStatsBarChart(sf, 'single_family')
-fig.savefig(figure_dir + 'single_family_permit_count_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data, sf_fig, sf_ax = PermitCountStatsBarChart(sf, 'single_family')
+sf_fig.savefig(figure_dir + 'single_family_permit_count_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_permit_count_stats.csv')
 
-fig, ax = PermitCountStatsBarChart(mf, 'multi_family')
-fig.savefig(figure_dir + 'multi_family_permit_count_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data, mf_fig, mf_ax = PermitCountStatsBarChart(mf, 'multi_family')
+mf_fig.savefig(figure_dir + 'multi_family_permit_count_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_permit_count_stats.csv')
 
 #%% Generate Dac vs. NonDAC percentage bar charts
 
@@ -287,36 +286,58 @@ def DACPanelStatsBarChart(mp, sector):
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '200']
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<90','90','91 - 149','150','>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
+
+    all_stats = mp[['panel_size_class','panel_size_existing']].groupby(['panel_size_class'],
+        observed = False).agg('count')
+    all_stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    all_totals = all_stats.sum()['count']
+    all_stats['pct'] = all_stats['count'].divide(all_totals)
+    all_stats.reset_index(inplace = True)
+    all_stats['dac'] = 'Total'
+    a = all_stats.pivot(index = 'dac', columns='panel_size_class', values='pct')
+
     stats = mp[['panel_size_class','dac','panel_size_existing']].groupby(['panel_size_class', 'dac'],
         observed = False).agg('count')
     stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
     totals = mp.loc[~mp['panel_size_existing'].isna(),'dac'].to_frame().groupby('dac').value_counts()
     stats['pct'] = stats['count'].divide(totals)
     stats.reset_index(inplace = True)
-    out = stats.pivot(index='dac', columns='panel_size_class', values='pct')
+    b = stats.pivot(index='dac', columns='panel_size_class', values='pct')
 
-    fig, ax = plt.subplots(1,1,figsize = (4,4))
+    out = pd.concat([a, b], axis = 0)
+    out.rename(index={'No':'Non-DAC', 'Yes':'DAC'}, inplace=True)
+
+    fig, ax = plt.subplots(1,1,figsize = (6,5))
     out[cols].plot(
         kind='bar',
         stacked=True,
         ax = ax,
         edgecolor='k')
 
+    total_count = all_totals
+    dac_count = stats.loc[stats['dac'] == 'Yes']['count'].sum()
+    non_dac_count = stats.loc[stats['dac'] == 'No']['count'].sum()
+
+    ax.set_xticklabels([
+        'Total\nn=({})'.format(total_count),
+        'DAC\nn=({})'.format(dac_count),
+        'Non-DAC\nn=({})'.format(non_dac_count)], rotation = 0)
+
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')
-    ax.set_xlabel('DAC')
     ax.set_ylabel('Share of {} buildings'.format(sector.replace('_', '-')))
+    ax.set_xlabel(None)
     ax.set_yticks(np.arange(0,1.1,0.1))
     ax.set_ylim(0,1)
     ax.set_axisbelow(True)
@@ -332,15 +353,17 @@ def DACPanelStatsBarChart(mp, sector):
 
     fig.tight_layout()
 
-    return fig, ax
+    return out[cols], fig, ax
 
 #%% Generate Data Panel Stats Bar Chart
 
-fig, ax = DACPanelStatsBarChart(sf, 'single_family')
-fig.savefig(figure_dir + 'single_family_dac_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data, sf_fig, sf_ax = DACPanelStatsBarChart(sf, 'single_family')
+sf_fig.savefig(figure_dir + 'single_family_dac_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_dac_panel_stats.csv')
 
-fig, ax = DACPanelStatsBarChart(mf, 'multi_family')
-fig.savefig(figure_dir + 'multi_family_dac_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data, mf_fig, mf_ax = DACPanelStatsBarChart(mf, 'multi_family')
+mf_fig.savefig(figure_dir + 'multi_family_dac_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_dac_panel_stats.csv')
 
 #%% Generate Vintage Binned Panel Size Ranges
 
@@ -359,9 +382,9 @@ def VintagePanelStatsBarChart(mp, sector):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<90','90','91 - 149','150','>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -428,15 +451,17 @@ def VintagePanelStatsBarChart(mp, sector):
 
     fig.tight_layout()
 
-    return fig, ax
+    return out[cols], fig, ax
 
 #%% Generate Plot
 
-fig, ax = VintagePanelStatsBarChart(sf, 'single_family')
-fig.savefig(figure_dir + 'single_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data, sf_fig, sf_ax = VintagePanelStatsBarChart(sf, 'single_family')
+sf_fig.savefig(figure_dir + 'single_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_vintage_panel_stats.csv')
 
-fig, ax = VintagePanelStatsBarChart(mf, 'multi_family')
-fig.savefig(figure_dir + 'multi_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data, mf_fig, mf_ax = VintagePanelStatsBarChart(mf, 'multi_family')
+mf_fig.savefig(figure_dir + 'multi_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_vintage_panel_stats.csv')
 
 #%% Generate SqFt Binned Panel Size Ranges
 
@@ -449,7 +474,7 @@ def SqftPanelStatsBarChart(mp, sector):
         bins = [0, 2000, 3000, 4000, 6000, 8000, 10000, 20000, 30000, 40000, 10000000]
         labels = ['0-1999', '2000-2999', '3000-3999', '4000-5999', '6000-7999', '8000-9999', '10000-19999', '20000-29999', '30000-39999', '>40000']
 
-    mp['size_class'] = pd.cut(mp['TotalBuildingAreaSqFt'],
+    mp['sqft_class'] = pd.cut(mp['TotalBuildingAreaSqFt'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
@@ -459,25 +484,25 @@ def SqftPanelStatsBarChart(mp, sector):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<90','90','91 - 149','150','>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    stats = mp[['size_class','panel_size_class', 'panel_size_existing']].groupby(['size_class','panel_size_class'],
+    stats = mp[['sqft_class','panel_size_class', 'panel_size_existing']].groupby(['sqft_class','panel_size_class'],
         observed = False).agg('count')
 
     stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
     stats.reset_index(inplace = True)
-    totals = stats.loc[:,['size_class','count']].groupby('size_class').agg('sum')
+    totals = stats.loc[:,['sqft_class','count']].groupby('sqft_class').agg('sum')
 
-    stats = pd.merge(stats, totals, left_on = 'size_class', right_on = 'size_class')
+    stats = pd.merge(stats, totals, left_on = 'sqft_class', right_on = 'sqft_class')
     stats['pct'] = stats['count_x'] / stats['count_y']
-    out = stats.pivot(index='size_class', columns='panel_size_class', values='pct')
+    out = stats.pivot(index='sqft_class', columns='panel_size_class', values='pct')
     out = out.loc[:,cols]
 
     fig, ax = plt.subplots(2,1,figsize = (7,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
@@ -528,15 +553,17 @@ def SqftPanelStatsBarChart(mp, sector):
 
     fig.tight_layout()
 
-    return fig, ax
+    return out[cols], fig, ax
 
 #%% Generate Sqft Panel Bar Chart
 
-fig, ax = SqftPanelStatsBarChart(sf, 'single_family')
-fig.savefig(figure_dir + 'single_family_sqft_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data, sf_fig, sf_ax = SqftPanelStatsBarChart(sf, 'single_family')
+sf_fig.savefig(figure_dir + 'single_family_sqft_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_sqft_panel_stats.csv')
 
-fig, ax = SqftPanelStatsBarChart(mf, 'multi_family')
-fig.savefig(figure_dir + 'multi_family_sqft_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data, mf_fig, mf_ax = SqftPanelStatsBarChart(mf, 'multi_family')
+mf_fig.savefig(figure_dir + 'multi_family_sqft_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_sqft_panel_stats.csv')
 
 #%% Generate Aggregations by Renter Household Pct
 
@@ -545,7 +572,7 @@ def RenterPanelStatsBarChart(mp, sector):
     bins = [0, .10, .20, .30, .40, .50, .60, .70, .80, .90, 1.00]
     labels = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89', '90-100']
 
-    mp['size_class'] = pd.cut(mp['renterhouseholdspct'],
+    mp['renter_class'] = pd.cut(mp['renterhouseholdspct'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
@@ -555,25 +582,25 @@ def RenterPanelStatsBarChart(mp, sector):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<90','90','91 - 149','150','>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    stats = mp[['size_class','panel_size_class', 'panel_size_existing']].groupby(['size_class','panel_size_class'],
+    stats = mp[['renter_class','panel_size_class', 'panel_size_existing']].groupby(['renter_class','panel_size_class'],
         observed = False).agg('count')
 
     stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
     stats.reset_index(inplace = True)
-    totals = stats.loc[:,['size_class','count']].groupby('size_class').agg('sum')
+    totals = stats.loc[:,['renter_class','count']].groupby('renter_class').agg('sum')
 
-    stats = pd.merge(stats, totals, left_on = 'size_class', right_on = 'size_class')
+    stats = pd.merge(stats, totals, left_on = 'renter_class', right_on = 'renter_class')
     stats['pct'] = stats['count_x'] / stats['count_y']
-    out = stats.pivot(index='size_class', columns='panel_size_class', values='pct')
+    out = stats.pivot(index='renter_class', columns='panel_size_class', values='pct')
     out = out.loc[:,cols]
 
     fig, ax = plt.subplots(2,1,figsize = (7,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
@@ -624,15 +651,17 @@ def RenterPanelStatsBarChart(mp, sector):
 
     fig.tight_layout()
 
-    return fig, ax
+    return out[cols], fig, ax
 
 #%% Generate Renter Household Percentage Plots
 
-RenterPanelStatsBarChart(sf, 'single_family')
-fig.savefig(figure_dir + 'single_family_renter_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data, sf_fig, sf_ax = RenterPanelStatsBarChart(sf, 'single_family')
+sf_fig.savefig(figure_dir + 'single_family_renter_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_renter_panel_stats.csv')
 
-RenterPanelStatsBarChart(mf, 'multi_family')
-fig.savefig(figure_dir + 'multifamily_renter_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data, mf_fig, mf_ax = RenterPanelStatsBarChart(mf, 'multi_family')
+mf_fig.savefig(figure_dir + 'multifamily_renter_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_renter_panel_stats.csv')
 
 #%% Generate Aggregations by Renter Household Pct
 
@@ -643,9 +672,9 @@ def ClimateZonePanelStatsBarChart(mp, sector):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<90','90','91 - 149','150','>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -712,15 +741,17 @@ def ClimateZonePanelStatsBarChart(mp, sector):
 
     fig.tight_layout()
 
-    return fig, ax
+    return out[cols], fig, ax
 
 #%% Generate Building Climate Zone Level Statistics
 
-fig, ax = ClimateZonePanelStatsBarChart(sf, 'single_family')
-fig.savefig(figure_dir + 'single_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data, sf_fig, sf_ax = ClimateZonePanelStatsBarChart(sf, 'single_family')
+sf_fig.savefig(figure_dir + 'single_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_climate_zone_panel_stats.csv')
 
-fig, ax = ClimateZonePanelStatsBarChart(mf, 'multi_family')
-fig.savefig(figure_dir + 'multi_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data, mf_fig, mf_ax = ClimateZonePanelStatsBarChart(mf, 'multi_family')
+mf_fig.savefig(figure_dir + 'multi_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_climate_zone_panel_stats.csv')
 
 #%% Generate Aggregations by Renter Household Pct
 
@@ -731,9 +762,9 @@ def AirDistrictPanelStatsBarChart(mp, sector):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['<90', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<90','90','91 - 149','150','>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -800,15 +831,59 @@ def AirDistrictPanelStatsBarChart(mp, sector):
 
     fig.tight_layout()
 
-    return fig, ax
+    return out[cols], fig, ax
 
 #%% Generate Air District Disaggregated Results
 
-fig, ax = AirDistrictPanelStatsBarChart(sf, 'single_family')
-fig.savefig(figure_dir + 'single_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data, sf_fig, sf_ax = AirDistrictPanelStatsBarChart(sf, 'single_family')
+sf_fig.savefig(figure_dir + 'single_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_air_district_panel_stats.csv')
 
-fig, ax = AirDistrictPanelStatsBarChart(mf, 'multi_family')
-fig.savefig(figure_dir + 'multi_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data, mf_fig, mf_ax = AirDistrictPanelStatsBarChart(mf, 'multi_family')
+mf_fig.savefig(figure_dir + 'multi_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_air_district_panel_stats.csv')
+
+#%% Generate County-Air Basin-Air District Stats
+
+def CountyAirBasinAirDistrictPanelStats(mp, sector):
+
+    if sector == 'single_family':
+        bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100','100','101 - 199','200','>200']
+    elif sector == 'multi_family':
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
+
+    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+        bins = bins,
+        labels = labels,
+        ordered = False).to_frame()
+
+    stats = mp[['county_air_basin_district_id','panel_size_class', 'panel_size_existing']].groupby(['county_air_basin_district_id','panel_size_class'],
+        observed = False).agg('count')
+
+    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.reset_index(inplace = True)
+    totals = stats.loc[:,['county_air_basin_district_id','count']].groupby('county_air_basin_district_id').agg('sum')
+
+    stats = pd.merge(stats, totals, left_on = 'county_air_basin_district_id', right_on = 'county_air_basin_district_id')
+    stats['pct'] = stats['count_x'] / stats['count_y']
+    out = stats.pivot(index='county_air_basin_district_id', columns='panel_size_class', values='pct')
+    out = out.loc[:,cols]
+
+    print(out[cols])
+
+    return out[cols]
+
+#%% Output County Air Basin Air District Stats
+
+sf_stats = CountyAirBasinAirDistrictPanelStats(sf, 'single_family')
+sf_stats.to_csv(tables_dir + 'single_family_county_air_basin_air_district_panel_stats.csv')
+
+mf_stats = CountyAirBasinAirDistrictPanelStats(mf, 'multi_family')
+mf_stats.to_csv(tables_dir + 'multi_family_county_air_basin_air_district_panel_stats.csv')
 
 #%% Generate CES-4.0 to Size and Vintage Correlations Plot
 

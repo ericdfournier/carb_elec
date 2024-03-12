@@ -4,7 +4,7 @@ SELECT  parcels."geom" AS geom,
         MODE() WITHIN GROUP (ORDER BY parcels.centroid) AS "centroid",
         ARRAY_AGG(parcels."clip") AS "RowIDs",
         ARRAY_AGG(parcels."land use code _ piq") AS "PropertyLandUseStndCodes",
-        PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY parcels."year build _ piq") AS "YearBuilt",
+        PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY parcels."year built _ piq") AS "YearBuilt",
         SUM(parcels."number of buildings") AS "TotalNoOfBuildings",
         MODE() WITHIN GROUP(ORDER BY parcels."land square footage _ piq") AS "LotSizeSquareFeet",
         SUM(parcels."universal building square feet") AS "TotalBuildingAreaSqFt",
@@ -71,8 +71,6 @@ JOIN carb.priority_populations_ces4 AS D
     ON ST_INTERSECTS(A.centroid, D.geom)
 JOIN census.acs_ca_2019_tr_geom AS E
     ON ST_INTERSECTS(A.centroid, E.geometry)
-JOIN ztrax.megaparcels AS F
-    ON ST_INTERSECTS(A.centroid, F.geom)
 JOIN carb.ca_air_basins AS G
     ON ST_INTERSECTS(A.centroid, G.geom)
 JOIN carb.ca_air_districts AS H
