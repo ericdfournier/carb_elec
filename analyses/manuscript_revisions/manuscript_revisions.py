@@ -750,9 +750,12 @@ mf_data.to_csv(as_built_tables_dir + 'multi_family_renter_as_built_panel_stats.c
 
 #%% Generate Aggregations by Renter Household Pct
 
-#TODO: Continue as-built vs. existing refactor below...
+def ClimateZonePanelStatsBarChart(mp, sector, panel_class):
 
-def ClimateZonePanelStatsBarChart(mp, sector):
+    if panel_class == 'existing':
+        panel = 'panel_size_existing'
+    elif panel_class == 'as_built':
+        panel = 'panel_size_as_built'
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
@@ -763,15 +766,15 @@ def ClimateZonePanelStatsBarChart(mp, sector):
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
         cols = ['<60', '60', '90', '150', '>150']
 
-    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+    mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    stats = mp[['bzone','panel_size_class', 'panel_size_existing']].groupby(['bzone','panel_size_class'],
+    stats = mp[['bzone','panel_size_class', panel]].groupby(['bzone','panel_size_class'],
         observed = False).agg('count')
 
-    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.rename(columns = {panel:'count'}, inplace = True)
     stats.reset_index(inplace = True)
     totals = stats.loc[:,['bzone','count']].groupby('bzone').agg('sum')
 
@@ -832,17 +835,30 @@ def ClimateZonePanelStatsBarChart(mp, sector):
 
 #%% Generate Building Climate Zone Level Statistics
 
-sf_data, sf_fig, sf_ax = ClimateZonePanelStatsBarChart(sf, 'single_family')
-sf_fig.savefig(figure_dir + 'single_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
-sf_data.to_csv(tables_dir + 'single_family_climate_zone_panel_stats.csv')
+sf_data, sf_fig, sf_ax = ClimateZonePanelStatsBarChart(sf, 'single_family', 'existing')
+sf_fig.savefig(existing_figure_dir + 'single_family_climate_zone_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(existing_tables_dir + 'single_family_climate_zone_existing_panel_stats.csv')
 
-mf_data, mf_fig, mf_ax = ClimateZonePanelStatsBarChart(mf, 'multi_family')
-mf_fig.savefig(figure_dir + 'multi_family_climate_zone_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
-mf_data.to_csv(tables_dir + 'multi_family_climate_zone_panel_stats.csv')
+sf_data, sf_fig, sf_ax = ClimateZonePanelStatsBarChart(sf, 'single_family', 'as_built')
+sf_fig.savefig(as_built_figure_dir + 'single_family_climate_zone_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(as_built_tables_dir + 'single_family_climate_zone_as_built_panel_stats.csv')
+
+mf_data, mf_fig, mf_ax = ClimateZonePanelStatsBarChart(mf, 'multi_family', 'existing')
+mf_fig.savefig(existing_figure_dir + 'multi_family_climate_zone_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(existing_tables_dir + 'multi_family_climate_zone_existing_panel_stats.csv')
+
+mf_data, mf_fig, mf_ax = ClimateZonePanelStatsBarChart(mf, 'multi_family', 'as_built')
+mf_fig.savefig(as_built_figure_dir + 'multi_family_climate_zone_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(as_built_tables_dir + 'multi_family_climate_zone_as_built_panel_stats.csv')
 
 #%% Generate Aggregations by Renter Household Pct
 
-def AirDistrictPanelStatsBarChart(mp, sector):
+def AirDistrictPanelStatsBarChart(mp, sector, panel_class):
+
+    if panel_class == 'existing':
+        panel = 'panel_size_existing'
+    elif panel_class == 'as_built':
+        panel = 'panel_size_as_built'
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
@@ -853,15 +869,15 @@ def AirDistrictPanelStatsBarChart(mp, sector):
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
         cols = ['<60', '60', '90', '150', '>150']
 
-    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+    mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    stats = mp[['air_district','panel_size_class', 'panel_size_existing']].groupby(['air_district','panel_size_class'],
+    stats = mp[['air_district','panel_size_class', panel]].groupby(['air_district','panel_size_class'],
         observed = False).agg('count')
 
-    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.rename(columns = {panel:'count'}, inplace = True)
     stats.reset_index(inplace = True)
     totals = stats.loc[:,['air_district','count']].groupby('air_district').agg('sum')
 
@@ -922,17 +938,30 @@ def AirDistrictPanelStatsBarChart(mp, sector):
 
 #%% Generate Air District Disaggregated Results
 
-sf_data, sf_fig, sf_ax = AirDistrictPanelStatsBarChart(sf, 'single_family')
-sf_fig.savefig(figure_dir + 'single_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
-sf_data.to_csv(tables_dir + 'single_family_air_district_panel_stats.csv')
+sf_data, sf_fig, sf_ax = AirDistrictPanelStatsBarChart(sf, 'single_family', 'existing')
+sf_fig.savefig(existing_figure_dir + 'single_family_air_district_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(existing_tables_dir + 'single_family_air_district_existing_panel_stats.csv')
 
-mf_data, mf_fig, mf_ax = AirDistrictPanelStatsBarChart(mf, 'multi_family')
-mf_fig.savefig(figure_dir + 'multi_family_air_district_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
-mf_data.to_csv(tables_dir + 'multi_family_air_district_panel_stats.csv')
+sf_data, sf_fig, sf_ax = AirDistrictPanelStatsBarChart(sf, 'single_family', 'as_built')
+sf_fig.savefig(as_built_figure_dir + 'single_family_air_district_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(as_built_tables_dir + 'single_family_air_district_as_built_panel_stats.csv')
+
+mf_data, mf_fig, mf_ax = AirDistrictPanelStatsBarChart(mf, 'multi_family', 'existing')
+mf_fig.savefig(existing_figure_dir + 'multi_family_air_district_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(existing_tables_dir + 'multi_family_air_district_existing_panel_stats.csv')
+
+mf_data, mf_fig, mf_ax = AirDistrictPanelStatsBarChart(mf, 'multi_family', 'as_built')
+mf_fig.savefig(as_built_figure_dir + 'multi_family_air_district_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(as_built_tables_dir + 'multi_family_air_district_as_built_panel_stats.csv')
 
 #%% Generate County-Air Basin-Air District Stats
 
-def CountyAirBasinAirDistrictPanelStats(mp, sector):
+def CountyAirBasinAirDistrictPanelStats(mp, sector, panel_class):
+
+    if panel_class == 'existing':
+        panel = 'panel_size_existing'
+    elif panel_class == 'as_built':
+        panel = 'panel_size_as_built'
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
@@ -943,15 +972,15 @@ def CountyAirBasinAirDistrictPanelStats(mp, sector):
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
         cols = ['<60', '60', '90', '150', '>150']
 
-    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+    mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    stats = mp[['county_air_basin_district_id','panel_size_class', 'panel_size_existing']].groupby(['county_air_basin_district_id','panel_size_class'],
+    stats = mp[['county_air_basin_district_id','panel_size_class', panel]].groupby(['county_air_basin_district_id','panel_size_class'],
         observed = False).agg('count')
 
-    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.rename(columns = {panel:'count'}, inplace = True)
     stats.reset_index(inplace = True)
     totals = stats.loc[:,['county_air_basin_district_id','count']].groupby('county_air_basin_district_id').agg('sum')
 
@@ -966,15 +995,26 @@ def CountyAirBasinAirDistrictPanelStats(mp, sector):
 
 #%% Output County Air Basin Air District Stats
 
-sf_stats = CountyAirBasinAirDistrictPanelStats(sf, 'single_family')
-sf_stats.to_csv(tables_dir + 'single_family_county_air_basin_air_district_panel_stats.csv')
+sf_stats = CountyAirBasinAirDistrictPanelStats(sf, 'single_family', 'existing')
+sf_stats.to_csv(existing_tables_dir + 'single_family_county_air_basin_air_district_existing_panel_stats.csv')
 
-mf_stats = CountyAirBasinAirDistrictPanelStats(mf, 'multi_family')
-mf_stats.to_csv(tables_dir + 'multi_family_county_air_basin_air_district_panel_stats.csv')
+sf_stats = CountyAirBasinAirDistrictPanelStats(sf, 'single_family', 'as_built')
+sf_stats.to_csv(as_built_tables_dir + 'single_family_county_air_basin_air_district_as_built_panel_stats.csv')
+
+mf_stats = CountyAirBasinAirDistrictPanelStats(mf, 'multi_family', 'existing')
+mf_stats.to_csv(existing_tables_dir + 'multi_family_county_air_basin_air_district_existing_panel_stats.csv')
+
+mf_stats = CountyAirBasinAirDistrictPanelStats(mf, 'multi_family', 'as_built')
+mf_stats.to_csv(as_built_tables_dir + 'multi_family_county_air_basin_air_district_as_built_panel_stats.csv')
 
 #%% Generate Census Tract Level Stats
 
-def CensusTractPanelStats(mp, sector):
+def CensusTractPanelStats(mp, sector, panel_class):
+
+    if panel_class == 'existing':
+        panel = 'panel_size_existing'
+    elif panel_class == 'as_built':
+        panel = 'panel_size_as_built'
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
@@ -985,15 +1025,15 @@ def CensusTractPanelStats(mp, sector):
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
         cols = ['<60', '60', '90', '150', '>150']
 
-    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+    mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    stats = mp[['tract_geoid_2019','panel_size_class', 'panel_size_existing']].groupby(['tract_geoid_2019','panel_size_class'],
+    stats = mp[['tract_geoid_2019','panel_size_class', panel]].groupby(['tract_geoid_2019','panel_size_class'],
         observed = False).agg('count')
 
-    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.rename(columns = {panel:'count'}, inplace = True)
     stats.reset_index(inplace = True)
     totals = stats.loc[:,['tract_geoid_2019','count']].groupby('tract_geoid_2019').agg('sum')
 
@@ -1008,11 +1048,17 @@ def CensusTractPanelStats(mp, sector):
 
 #%% Output Census Tract Stats
 
-sf_stats = CensusTractPanelStats(sf, 'single_family')
-sf_stats.to_csv(tables_dir + 'single_family_census_tract_panel_stats.csv')
+sf_stats = CensusTractPanelStats(sf, 'single_family', 'existing')
+sf_stats.to_csv(existing_tables_dir + 'single_family_census_tract_existing_panel_stats.csv')
 
-mf_stats = CensusTractPanelStats(mf, 'multi_family')
-mf_stats.to_csv(tables_dir + 'multi_family_census_tract_panel_stats.csv')
+sf_stats = CensusTractPanelStats(sf, 'single_family', 'as_built')
+sf_stats.to_csv(as_built_tables_dir + 'single_family_census_tract_as_built_panel_stats.csv')
+
+mf_stats = CensusTractPanelStats(mf, 'multi_family', 'existing')
+mf_stats.to_csv(existing_tables_dir + 'multi_family_census_tract_existing_panel_stats.csv')
+
+mf_stats = CensusTractPanelStats(mf, 'multi_family', 'as_built')
+mf_stats.to_csv(as_built_tables_dir + 'multi_family_census_tract_as_built_panel_stats.csv')
 
 #%% Generate CES-4.0 to Size and Vintage Correlations Plot
 
