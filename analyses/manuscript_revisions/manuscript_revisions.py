@@ -367,7 +367,12 @@ mf_data.to_csv(tables_dir + 'multi_family_dac_panel_stats.csv')
 
 #%% Generate Vintage Binned Panel Size Ranges
 
-def VintagePanelStatsBarChart(mp, sector):
+def VintagePanelStatsBarChart(mp, sector, panel_class):
+
+    if panel_class == 'existing':
+        panel = 'panel_size_existing'
+    elif panel_class == 'as_built':
+        panel = 'panel_size_as_built'
 
     bins = [0, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 3000]
     labels = ['<1930', '1930s', '1940s', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '>2010']
@@ -386,15 +391,15 @@ def VintagePanelStatsBarChart(mp, sector):
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
         cols = ['<60', '60', '90', '150', '>150']
 
-    mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
+    mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
         labels = labels,
         ordered = False).to_frame()
 
-    stats = mp[['vintage_class','panel_size_class', 'panel_size_existing']].groupby(['vintage_class','panel_size_class'],
+    stats = mp[['vintage_class','panel_size_class', panel]].groupby(['vintage_class','panel_size_class'],
         observed = False).agg('count')
 
-    stats.rename(columns = {'panel_size_existing':'count'}, inplace = True)
+    stats.rename(columns = {panel:'count'}, inplace = True)
     stats.reset_index(inplace = True)
     totals = stats.loc[:,['vintage_class','count']].groupby('vintage_class').agg('sum')
 
@@ -453,15 +458,23 @@ def VintagePanelStatsBarChart(mp, sector):
 
     return out[cols], fig, ax
 
-#%% Generate Plot
+#%% Generate Plots
 
-sf_data, sf_fig, sf_ax = VintagePanelStatsBarChart(sf, 'single_family')
-sf_fig.savefig(figure_dir + 'single_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
-sf_data.to_csv(tables_dir + 'single_family_vintage_panel_stats.csv')
+sf_data, sf_fig, sf_ax = VintagePanelStatsBarChart(sf, 'single_family', 'existing')
+sf_fig.savefig(figure_dir + 'single_family_vintage_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_vintage_existing_panel_stats.csv')
 
-mf_data, mf_fig, mf_ax = VintagePanelStatsBarChart(mf, 'multi_family')
-mf_fig.savefig(figure_dir + 'multi_family_vintage_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
-mf_data.to_csv(tables_dir + 'multi_family_vintage_panel_stats.csv')
+sf_data, sf_fig, sf_ax = VintagePanelStatsBarChart(sf, 'single_family', 'as_built')
+sf_fig.savefig(figure_dir + 'single_family_vintage_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+sf_data.to_csv(tables_dir + 'single_family_vintage_as_built_panel_stats.csv')
+
+mf_data, mf_fig, mf_ax = VintagePanelStatsBarChart(mf, 'multi_family', 'existing')
+mf_fig.savefig(figure_dir + 'multi_family_vintage_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_vintage_existings_panel_stats.csv')
+
+mf_data, mf_fig, mf_ax = VintagePanelStatsBarChart(mf, 'multi_family', 'as_built')
+mf_fig.savefig(figure_dir + 'multi_family_vintage_existing_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_data.to_csv(tables_dir + 'multi_family_vintage_existings_as_built_panel_stats.csv')
 
 #%% Generate SqFt Binned Panel Size Ranges
 
