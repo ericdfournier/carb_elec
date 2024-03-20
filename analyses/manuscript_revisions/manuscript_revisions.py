@@ -146,7 +146,7 @@ sf_stats = PrintPanelStatsTable(sf, 'single_family', 'existing')
 sf_stats.to_csv(existing_tables_dir + 'single_family_overall_existing_panel_stats.csv')
 
 sf_stats = PrintPanelStatsTable(sf, 'single_family', 'as_built')
-mf_stats.to_csv(as_built_tables_dir + 'single_family_overall_as_built_panel_stats.csv')
+sf_stats.to_csv(as_built_tables_dir + 'single_family_overall_as_built_panel_stats.csv')
 
 mf_stats = PrintPanelStatsTable(mf, 'multi_family', 'existing')
 mf_stats.to_csv(existing_tables_dir + 'multi_family_overall_existing_panel_stats.csv')
@@ -193,7 +193,7 @@ sf_stats = PrintDACPanelStatsTable(sf, 'single_family', 'existing')
 sf_stats.to_csv(existing_tables_dir + 'single_family_overall_existing_dac_panel_stats.csv')
 
 sf_stats = PrintDACPanelStatsTable(sf, 'single_family', 'as_built')
-mf_stats.to_csv(as_built_tables_dir + 'single_family_overall_as_built_dac_panel_stats.csv')
+sf_stats.to_csv(as_built_tables_dir + 'single_family_overall_as_built_dac_panel_stats.csv')
 
 mf_stats = PrintDACPanelStatsTable(mf, 'multi_family', 'existing')
 mf_stats.to_csv(existing_tables_dir + 'multi_family_overall_existing_dac_panel_stats.csv')
@@ -223,11 +223,11 @@ def PermitCountStatsBarChart(mp, sector):
     direct = mp.loc[direct_all_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
     direct.rename(columns = {'panel_size_existing': 'Direct'}, inplace = True)
 
-    direct_dac_ind = ~(mp['upgraded_panel_size'].isna()) & (mp['dac'] == 'Yes')
+    direct_dac_ind = (~mp['upgraded_panel_size'].isna()) & (mp['dac'] == 'Yes')
     direct_dac = mp.loc[direct_dac_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
     direct_dac.rename(columns = {'panel_size_existing': 'Direct (DAC)'}, inplace = True)
 
-    direct_nondac_ind = ~(mp['upgraded_panel_size'].isna()) & (mp['dac'] == 'No')
+    direct_nondac_ind = (~mp['upgraded_panel_size'].isna()) & (mp['dac'] == 'No')
     direct_nondac = mp.loc[direct_nondac_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
     direct_nondac.rename(columns = {'panel_size_existing': 'Direct (non-DAC)'}, inplace = True)
 
@@ -235,7 +235,7 @@ def PermitCountStatsBarChart(mp, sector):
     indirect = mp.loc[indirect_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
     indirect.rename(columns = {'panel_size_existing':'Indirect'}, inplace = True)
 
-    inferred_ind = mp['permitted_panel_upgrade'] & ~(direct_all_ind) & ~(indirect_ind)
+    inferred_ind = (mp['permitted_panel_upgrade']) & (~direct_all_ind) & (~indirect_ind)
     inferred = mp.loc[inferred_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
     inferred.rename(columns = {'panel_size_existing':'Inferred'}, inplace = True)
 
@@ -369,8 +369,9 @@ def DACPanelStatsBarChart(mp, sector, panel_class):
 
     ax.set_xticklabels([
         'Total\nn=({})'.format(total_count),
-        'DAC\nn=({})'.format(dac_count),
-        'Non-DAC\nn=({})'.format(non_dac_count)], rotation = 0)
+        'Non-DAC\nn=({})'.format(non_dac_count),
+        'DAC\nn=({})'.format(dac_count)],
+        rotation = 0)
 
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')

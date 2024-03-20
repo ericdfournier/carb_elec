@@ -76,7 +76,7 @@ mp['issued_date'] = pd.to_datetime(
 
 # Bin Properties by CES Score
 bins = np.arange(0,105,5)
-classes = [str(x) for x in np.arange(0,20,1)]
+classes = [str(x) for x in np.arange(0,100,5)]
 mp['ces_bin'] = pd.cut(
     mp['ciscorep'],
     bins = bins,
@@ -149,9 +149,21 @@ with tqdm(total = len(classes)) as pbar:
 ax.grid(True)
 ax.set_xlabel('Home Age')
 ax.set_ylabel('Cumulative Probability Density')
-ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
+ax.set_title('ECDFs of Permitted Panel Upgrades\nby CES Percentile Score Range')
 ax.set_xlim((0, 130))
-ax.legend(bins, loc = 'center left', bbox_to_anchor=(1.0, 0.5))
+
+labels = []
+values = mp['ces_bin'].cat.categories.to_list()
+
+for i, x in enumerate(values):
+    if i < len(values)-1:
+        label = '[' + str(values[i]) + ', ' + str(values[i+1]) + ')'
+    else:
+        label = '[' + values[i] +  ', 100]'
+    labels.append(label)
+
+ax.legend(labels, loc = 'center left', bbox_to_anchor=(1.0, 0.5))
+ax.get_legend().set_title("CES Percentile\nScore Range")
 
 # Save figure to file
 fig.savefig('/Users/edf/repos/carb_elec/model/corelogic/fig/sf_ecdfs.png',

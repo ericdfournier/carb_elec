@@ -136,3 +136,5 @@ JOIN census.acs_ca_2019_county_geom AS cty
 ON ST_INTERSECTS(md.centroid, cty.geometry)
 WHERE cty."NAMELSAD" = 'San Luis Obispo County';
 
+-- Count the number of multi-family megaparcels
+SELECT COUNT(*) FROM corelogic.megaparcels WHERE usetype = 'multi_family';
