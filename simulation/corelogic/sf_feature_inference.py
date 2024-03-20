@@ -126,7 +126,7 @@ with tqdm(total = len(classes)) as pbar:
         construction_year = data.loc[:,'YearBuilt']
 
         # Compute the Current Age of the Properties
-        current_year = 2022
+        current_year = 2024
         current_age = current_year - construction_year
 
         # Compute the Age of the Properties in the Year in Which Permits were Issued (if any)
@@ -151,7 +151,7 @@ ax.set_xlabel('Home Age')
 ax.set_ylabel('Cumulative Probability Density')
 ax.set_title('ECDF of Permitted Panel Upgrades\nby CES Percentile Score Range')
 ax.set_xlim((0, 130))
-ax.legend()
+ax.legend(bins, loc = 'center left', bbox_to_anchor=(1.0, 0.5))
 
 # Save figure to file
 fig.savefig('/Users/edf/repos/carb_elec/model/corelogic/fig/sf_ecdfs.png',

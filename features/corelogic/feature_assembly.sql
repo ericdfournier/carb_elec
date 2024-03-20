@@ -118,11 +118,16 @@ WHERE   "PropertyLandUseStndCodes" = ARRAY[100] OR
 -- one of the following property landuse standard codes:
 UPDATE corelogic.megaparcels
 SET usetype = 'multi_family'
-WHERE   "PropertyLandUseStndCodes" @> ARRAY[103] OR
-        "PropertyLandUseStndCodes" @> ARRAY[106] OR
-        "PropertyLandUseStndCodes" @> ARRAY[131] OR
-        "PropertyLandUseStndCodes" @> ARRAY[132] OR
-        "PropertyLandUseStndCodes" @> ARRAY[133];
+WHERE   "PropertyLandUseStndCodes" = ARRAY[103] OR
+        "PropertyLandUseStndCodes" = ARRAY[106] OR
+        "PropertyLandUseStndCodes" = ARRAY[115] OR
+        "PropertyLandUseStndCodes" = ARRAY[131] OR
+        "PropertyLandUseStndCodes" = ARRAY[132] OR
+        "PropertyLandUseStndCodes" = ARRAY[133] OR 
+        "PropertyLandUseStndCodes" = ARRAY[151] OR
+        "PropertyLandUseStndCodes" = ARRAY[165] OR
+        "PropertyLandUseStndCodes" = ARRAY[450] OR
+        "PropertyLandUseStndCodes" = ARRAY[452];
 
 -- Create As Built Panel Size Field
 ALTER TABLE corelogic.megaparcels
