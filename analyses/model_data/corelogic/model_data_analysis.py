@@ -14,6 +14,7 @@ import seaborn as sns
 #%% Set Fixed Parameters
 
 figure_dir = '/Users/edf/repos/carb_elec/analyses/model_data/corelogic/fig/'
+tables_dir = '/Users/edf/repos/carb_elec/analyses/model_data/corelogic/csv/'
 output_dir = '/Users/edf/repos/carb_elec/analyses/model_data/corelogic/output/'
 
 #%% Read Model Data Set from Pickle
@@ -77,8 +78,8 @@ mf.set_index('megaparcelid', drop = True, inplace = True)
 
 #%% Drop Parcels with Bogus Vintage Years
 
-sf = sf.loc[sf['YearBuilt'] <= 2024,:]
-mf = mf.loc[mf['YearBuilt'] <= 2024,:]
+sf = sf.loc[sf['YearBuilt'] < 2024,:]
+mf = mf.loc[mf['YearBuilt'] < 2024,:]
 
 #%% Extract Air District Geographic Boundaries
 
@@ -136,7 +137,10 @@ def PrintHousingStatsTable(mp, sector):
 #%% Generate Housing Statistics Tables
 
 sf_housing_stats = PrintHousingStatsTable(sf, 'single_family')
+sf_housing_stats.to_csv(tables_dir + 'sf_housing_stats.csv')
+
 mf_housing_stats = PrintHousingStatsTable(mf, 'multi_family')
+mf_housing_stats.to_csv(tables_dir + 'mf_housing_stats.csv')
 
 #%% Generate DAC Housing Statistics Table
 
@@ -175,8 +179,11 @@ def PrintDACHousingStatsTable(mp, sector):
 
 #%% Print DAC Housing Statistics Tables
 
-sf_dac_stats = PrintDACHousingStatsTable(sf, 'single_family')
-mf_dac_stats = PrintDACHousingStatsTable(mf, 'multi_family')
+sf_dac_housing_stats = PrintDACHousingStatsTable(sf, 'single_family')
+sf_dac_housing_stats.to_csv(tables_dir + 'sf_dac_housing_stats.csv')
+
+mf_dac_housing_stats = PrintDACHousingStatsTable(mf, 'multi_family')
+mf_dac_housing_stats.to_csv(tables_dir + 'mf_dac_housing_stats.csv')
 
 #%% Generate Panel Statistics Table
 
@@ -184,10 +191,12 @@ def PrintPanelStatsTable(mp, sector):
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -206,9 +215,9 @@ def PrintPanelStatsTable(mp, sector):
         units['pct'] = units['TotalNoOfUnits'].divide(total_units).multiply(100.0)
         stats = pd.merge(stats, units, left_index = True, right_index = True)
 
-    print(stats)
+    print(stats.loc[cols,:])
 
-    return stats
+    return stats.loc[cols,:]
 
 #%% Print Panel Statistics Tables
 
@@ -220,8 +229,11 @@ def PrintPanelStatsTable(mp, sector):
 # 200	        19,109	33%
 # >200	        5,915	10%
 
-sf_stats = PrintPanelStatsTable(sf, 'single_family')
-mf_stats = PrintPanelStatsTable(mf, 'multi_family')
+sf_panel_stats = PrintPanelStatsTable(sf, 'single_family')
+sf_panel_stats.to_csv(tables_dir + 'sf_panel_stats.csv')
+
+mf_panel_stats = PrintPanelStatsTable(mf, 'multi_family')
+mf_panel_stats.to_csv(tables_dir + 'mf_panel_stats.csv')
 
 #%% Generate DAC Panel Statistics Table
 
@@ -229,10 +241,12 @@ def PrintDACPanelStatsTable(mp, sector):
 
     if sector == 'single_family':
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -244,13 +258,17 @@ def PrintDACPanelStatsTable(mp, sector):
     totals = mp.loc[~mp['panel_size_existing'].isna(),'dac'].to_frame().groupby('dac').value_counts()
     stats['pct'] = stats['count'].divide(totals).multiply(100.0)
 
-    print(stats)
+    print(stats.loc[cols,:])
 
-    return stats
+    return stats.loc[cols,:]
+
 #%% Print DAC Panel Statistics Tables
 
-sf_stats = PrintDACPanelStatsTable(sf, 'single_family')
-mf_stats = PrintDACPanelStatsTable(mf, 'multi_family')
+sf_dac_panel_stats = PrintDACPanelStatsTable(sf, 'single_family')
+sf_dac_panel_stats.to_csv(tables_dir + 'sf_dac_panel_stats.csv')
+
+mf_dac_panel_stats = PrintDACPanelStatsTable(mf, 'multi_family')
+mf_dac_panel_stats.to_csv(tables_dir + 'mf_dac_panel_stats.csv')
 
 #%% Plot Inferred Upgrades
 
@@ -456,7 +474,6 @@ def AsBuiltPanelRatingsBar(mp, sector, figure_dir):
         xlabel = 'Number of Units'
 
     # Plot Counts
-
     fig, ax = plt.subplots(1,1, figsize = (5,5))
 
     counts.plot.barh(ax = ax, color = ['tab:blue', 'tab:orange'])
@@ -997,14 +1014,13 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
     air_district_stats.drop(drop_ind, inplace = True)
 
     if sector == 'single_family':
-
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
-
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     air_district_stats['panel_size_class'] = pd.cut(air_district_stats['panel_size_existing'],
         bins = bins,
@@ -1018,7 +1034,7 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
 
     elif sector == 'multi_family':
 
-        bins = [0, 89, 149, 2000]
+        bins = [0, 59, 149, 2000]
         labels = ['Likely', 'Potentially', 'Unlikely']
 
     air_district_stats['upgrade_required'] = pd.cut(air_district_stats['panel_size_existing'],
@@ -1057,8 +1073,8 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
         hatch = '////',
         zorder= 0)
 
-    bins = [100, 1000, 10000, 100000, 1000000]
-    labels = ['0 - 100', '100 - 1,000', '1,000 - 10,000', '10,000 - 100,000','100,000 - 1,000,000']
+    bins = [100, 1000, 10000, 100000]
+    labels = ['0 - 100', '100 - 1,000', '1,000 - 10,000', '10,000 - 100,000']
 
     dac_air_district_data.plot(ax = ax[0],
         column = 'counts',
@@ -1103,8 +1119,12 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
         hatch = '////',
         zorder= 0)
 
-    bins = [10, 20, 30, 40]
-    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40']
+    if sector == 'single_family':
+        bins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        labels = ['0 - 1', '1 - 2', '2 - 3', '3 - 4', '4 - 5', '5 - 6', '6 - 7', '7 - 8', '8 - 9', '9 - 10', '>10']
+    elif sector == 'multi_family':
+        bins = [10, 20, 30, 40]
+        labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40', '>40']
 
     dac_air_district_data.plot(ax = ax[1],
         column = 'percentage',
@@ -1149,8 +1169,8 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
         hatch = '////',
         zorder= 0)
 
-    bins = [100, 1000, 10000, 100000, 1000000]
-    labels = ['0 - 100', '100 - 1,000', '1,000 - 10,000', '10,000 - 100,000','100,000 - 1,000,000']
+    bins = [100, 1000, 10000, 100000]
+    labels = ['0 - 100', '100 - 1,000', '1,000 - 10,000', '10,000 - 100,000']
 
     non_dac_air_district_data.plot(ax = ax[2],
         column = 'counts',
@@ -1195,8 +1215,12 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
         hatch = '////',
         zorder= 0)
 
-    bins = [10, 20, 30, 40]
-    labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40']
+    if sector == 'single_family':
+        bins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        labels = ['0 - 1', '1 - 2', '2 - 3', '3 - 4', '4 - 5', '5 - 6', '6 - 7', '7 - 8', '8 - 9', '9 - 10', '>10']
+    elif sector == 'multi_family':
+        bins = [10, 20, 30, 40]
+        labels = ['0 - 10', '10 - 20', '20 - 30', '30 - 40','>40']
 
     non_dac_air_district_data.plot(ax = ax[3],
         column = 'percentage',
@@ -1238,7 +1262,12 @@ def PlotLikelyUpgradeRequirementsByAirDistrict(mp, sector, figure_dir, air_distr
 #%% Generate Upgrade Requirements
 
 sf_air_district_upgrade_requirements = PlotLikelyUpgradeRequirementsByAirDistrict(sf, 'single_family', figure_dir, air_districts)
-mf_air_district_upgrade_requirements = PlotLikelyUpgradeRequirementsByAirDistrict(sf, 'multi_family', figure_dir, air_districts)
+
+# %%
+
+#%%
+
+mf_air_district_upgrade_requirements = PlotLikelyUpgradeRequirementsByAirDistrict(mf, 'multi_family', figure_dir, air_districts)
 
 #%% Plot Total Counts and Percentages by County District Basin Boundaries
 
@@ -1501,6 +1530,7 @@ def PlotLikelyUpgradeRequirementsByCDB(mp, sector, figure_dir, county_air_basin_
 #%% Generate County Air Basin District Level Overview Map
 
 sf_cdb_upgrade_requirements = PlotLikelyUpgradeRequirementsByCDB(sf, 'single_family', figure_dir, county_air_basin_districts)
+#%%
 mf_cdb_upgrade_requirements = PlotLikelyUpgradeRequirementsByCDB(mf, 'multi_family', figure_dir, county_air_basin_districts)
 
 #%% Plot Total Counts and Percentages by Census Tract
@@ -1509,7 +1539,7 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
 
     # Mask counties with insufficient counts
     mask = mp.groupby('tract_geoid_2019')['panel_size_existing'].agg('count')
-    mask.loc[mask < 10] = np.nan
+    #mask.loc[mask < 10] = np.nan
     mask = mask[mask.isna()].index.values
 
     # Generate Tract Upgrade Needs Map data
@@ -1523,14 +1553,13 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
     tr_stats.drop(drop_ind, inplace = True)
 
     if sector == 'single_family':
-
         bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-        labels = ['0 - 99', '100', '101 - 199', '101 - 199', '200', '>201', '>201']
-
+        labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-
-        bins = [0, 89, 90, 91, 149, 150, 151, 2000]
-        labels = ['0 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        cols = ['<60', '60', '90', '150', '>150']
 
     tr_stats['panel_size_class'] = pd.cut(tr_stats['panel_size_existing'],
         bins = bins,
@@ -1544,7 +1573,7 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
 
     elif sector == 'multi_family':
 
-        bins = [0, 89, 149, 2000]
+        bins = [0, 59, 149, 2000]
         labels = ['Likely', 'Potentially', 'Unlikely']
 
     tr_stats['upgrade_required'] = pd.cut(tr_stats['panel_size_existing'],
@@ -1567,7 +1596,7 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
 
     # Generate plot elements
 
-    fig, ax = plt.subplots(2,2, figsize = (30,30))
+    fig, ax = plt.subplots(1,2, figsize = (15,30))
     ax = ax.ravel()
     fs = 4
 
@@ -1581,8 +1610,8 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
         hatch = '////',
         zorder= 0)
 
-    bins = [250, 500, 750, 1000, 1250, 1500, 1750]
-    labels = ['0 - 250', '250 - 500', '500 - 750', '750 - 1,000', '1,000 - 1,250', '1,250 - 1,500', '1,500 - 1,750']
+    bins = [100, 200, 300, 400, 500, 600, 700]
+    labels = ['0 - 100', '100 - 200', '200 - 300', '300 - 400', '400 - 500', '500 - 600', '600 - 700', '>700']
 
     tr_data.plot(ax = ax[0],
         column = 'counts',
@@ -1591,12 +1620,13 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
         zorder = 1,
         cmap = 'RdYlGn_r',
         k = 10,
-        scheme = 'user_defined',
-        classification_kwds = {'bins': bins},
+        scheme="natural_breaks",
+        #scheme = 'user_defined',
+        #classification_kwds = {'bins': bins},
         legend = True,
         legend_kwds = {
             'title':'Counts',
-            'labels': labels,
+            #'labels': labels,
             'loc':'best'})
 
     ax[0].set_title('Total Count of {} Properties \nLikely Requiring Panel Upgrades'.format(sector.replace('_',' ').title()))
@@ -1623,12 +1653,13 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
         zorder = 1,
         cmap = 'RdYlGn_r',
         k = 10,
-        scheme = 'user_defined',
-        classification_kwds = {'bins': bins},
+        #scheme = 'user_defined',
+        scheme = 'natural_breaks',
+        #classification_kwds = {'bins': bins},
         legend = True,
         legend_kwds = {
             'title':'Percentage',
-            'labels':labels,
+            #'labels':labels,
             'loc':'best'})
 
     ax[1].set_title('Total Percentage of {} Properties \nLikely Requiring Panel Upgrade'.format(sector.replace('_',' ').title()))
@@ -1640,8 +1671,11 @@ def PlotLikelyUpgradeRequirementsByTract(mp, sector, figure_dir, tracts):
 
 #%% Plot Upgrade Requirements by Tract
 
+#TODO: Figure out how to rescale the bins
+
 sf_tr_upgrade_requirements = PlotLikelyUpgradeRequirementsByTract(sf, 'single_family', figure_dir, tracts)
-mf_tr_upgrade_requirements = PlotLikelyUpgradeRequirementsByTract(mf, 'multi_family', figure_dir, tracts)
+
+#mf_tr_upgrade_requirements = PlotLikelyUpgradeRequirementsByTract(mf, 'multi_family', figure_dir, tracts)
 
 #%% Generate Maps by County
 
