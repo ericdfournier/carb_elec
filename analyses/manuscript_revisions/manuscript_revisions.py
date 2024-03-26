@@ -1034,6 +1034,10 @@ def CensusTractPanelStats(mp, sector, panel_class):
     stats = mp[['tract_geoid_2019','panel_size_class', panel]].groupby(['tract_geoid_2019','panel_size_class'],
         observed = False).agg('count')
 
+    counts = stats.copy(deep = True)
+    counts.reset_index(inplace = True)
+    counts = counts.pivot(index = 'tract_geoid_2019', columns = 'panel_size_class', values = panel)
+
     stats.rename(columns = {panel:'count'}, inplace = True)
     stats.reset_index(inplace = True)
     totals = stats.loc[:,['tract_geoid_2019','count']].groupby('tract_geoid_2019').agg('sum')
@@ -1045,20 +1049,22 @@ def CensusTractPanelStats(mp, sector, panel_class):
 
     print(out[cols])
 
-    return out[cols]
+    return out[cols], counts[cols]
 
 #%% Output Census Tract Stats
 
-sf_stats = CensusTractPanelStats(sf, 'single_family', 'existing')
+sf_stats, sf_counts = CensusTractPanelStats(sf, 'single_family', 'existing')
 sf_stats.to_csv(existing_tables_dir + 'single_family_census_tract_existing_panel_stats.csv')
+sf_counts.to_csv(existing_tables_dir + 'single_family_census_tract_existing_panel_counts.csv')
 
-sf_stats = CensusTractPanelStats(sf, 'single_family', 'as_built')
+sf_stats, _ = CensusTractPanelStats(sf, 'single_family', 'as_built')
 sf_stats.to_csv(as_built_tables_dir + 'single_family_census_tract_as_built_panel_stats.csv')
 
-mf_stats = CensusTractPanelStats(mf, 'multi_family', 'existing')
+mf_stats, mf_counts = CensusTractPanelStats(mf, 'multi_family', 'existing')
 mf_stats.to_csv(existing_tables_dir + 'multi_family_census_tract_existing_panel_stats.csv')
+mf_counts.to_csv(existing_tables_dir + 'multi_family_census_tract_existing_panel_counts.csv')
 
-mf_stats = CensusTractPanelStats(mf, 'multi_family', 'as_built')
+mf_stats, _ = CensusTractPanelStats(mf, 'multi_family', 'as_built')
 mf_stats.to_csv(as_built_tables_dir + 'multi_family_census_tract_as_built_panel_stats.csv')
 
 #%% Generate CES-4.0 to Size and Vintage Correlations Plot
