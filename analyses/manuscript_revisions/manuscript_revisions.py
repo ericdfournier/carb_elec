@@ -115,9 +115,9 @@ def PrintPanelStatsTable(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -168,9 +168,9 @@ def PrintDACPanelStatsTable(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100', '100', '101 - 199', '200', '>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -210,9 +210,9 @@ def PermitCountStatsBarChart(mp, sector):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp['panel_size_existing'],
         bins = bins,
@@ -231,15 +231,15 @@ def PermitCountStatsBarChart(mp, sector):
     direct_nondac = mp.loc[direct_nondac_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
     direct_nondac.rename(columns = {'panel_size_existing': 'Direct (non-DAC)'}, inplace = True)
 
-    indirect_ind = (mp['main_panel_upgrade'] == 1) &  (mp['upgraded_panel_size'].isna())
-    indirect = mp.loc[indirect_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
-    indirect.rename(columns = {'panel_size_existing':'Indirect'}, inplace = True)
+    # indirect_ind = (mp['main_panel_upgrade'] == 1) &  (mp['upgraded_panel_size'].isna())
+    # indirect = mp.loc[indirect_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
+    # indirect.rename(columns = {'panel_size_existing':'Indirect'}, inplace = True)
 
-    inferred_ind = (mp['permitted_panel_upgrade']) & (~direct_all_ind) & (~indirect_ind)
-    inferred = mp.loc[inferred_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
-    inferred.rename(columns = {'panel_size_existing':'Inferred'}, inplace = True)
+    # inferred_ind = (mp['permitted_panel_upgrade']) & (~direct_all_ind) & (~indirect_ind)
+    # inferred = mp.loc[inferred_ind, ['panel_size_class','panel_size_existing']].groupby(['panel_size_class']).agg('count')
+    # inferred.rename(columns = {'panel_size_existing':'Inferred'}, inplace = True)
 
-    stats = pd.concat([direct, direct_dac, direct_nondac, indirect, inferred], axis = 1)
+    stats = pd.concat([direct, direct_dac, direct_nondac], axis = 1) #, indirect, inferred], axis = 1)
 
     out = stats.unstack(level = -1).reset_index()
     out.rename(columns = {
@@ -250,24 +250,24 @@ def PermitCountStatsBarChart(mp, sector):
     dir_all_ind = out['kind'] == 'Direct'
     dir_dac_ind = out['kind'] == 'Direct (DAC)'
     dir_nondac_ind = out['kind'] == 'Direct (non-DAC)'
-    ind_ind = out['kind'] == 'Indirect'
-    inf_ind = out['kind'] == 'Inferred'
+    #ind_ind = out['kind'] == 'Indirect'
+    #inf_ind = out['kind'] == 'Inferred'
 
     dir_all_totals = out.loc[dir_all_ind,'count'].sum()
     dir_dac_totals = out.loc[dir_dac_ind,'count'].sum()
     dir_nondac_totals = out.loc[dir_nondac_ind,'count'].sum()
-    ind_totals = out.loc[ind_ind,'count'].sum()
-    inf_totals = out.loc[inf_ind,'count'].sum()
+    #ind_totals = out.loc[ind_ind,'count'].sum()
+    #inf_totals = out.loc[inf_ind,'count'].sum()
 
     out.loc[dir_all_ind,'pct'] = out.loc[dir_all_ind,'count'] / dir_all_totals
     out.loc[dir_dac_ind,'pct'] = out.loc[dir_dac_ind,'count'] / dir_dac_totals
     out.loc[dir_nondac_ind,'pct'] = out.loc[dir_nondac_ind,'count'] / dir_nondac_totals
-    out.loc[ind_ind,'pct'] = out.loc[ind_ind,'count'] / ind_totals
-    out.loc[inf_ind,'pct'] = out.loc[inf_ind,'count'] / inf_totals
+    #out.loc[ind_ind,'pct'] = out.loc[ind_ind,'count'] / ind_totals
+    #out.loc[inf_ind,'pct'] = out.loc[inf_ind,'count'] / inf_totals
 
     out = out[['kind', 'panel_size_class', 'pct']].pivot(index = 'kind', columns = 'panel_size_class', values = 'pct')
 
-    fig, ax = plt.subplots(1,1,figsize = (7,4))
+    fig, ax = plt.subplots(1,1,figsize = (5,4))
     out[cols].plot(
         kind = 'bar',
         stacked = True,
@@ -275,12 +275,14 @@ def PermitCountStatsBarChart(mp, sector):
         edgecolor='k')
 
     ax.set_xticklabels([
-        'Direct\nn=({})'.format(direct_all_ind.sum()),
-        'Direct\n(DAC)\nn=({})'.format(direct_dac_ind.sum()),
-        'Direct\n(non-DAC)\nn=({})'.format(direct_nondac_ind.sum()),
-        'Indirect\nn=({})'.format(indirect_ind.sum()),
-        'Inferred\nn=({})'.format(inferred_ind.sum())
-        ])
+        'Total\nn=({})'.format(direct_all_ind.sum()),
+        '(DAC)\nn=({})'.format(direct_dac_ind.sum()),
+        '(non-DAC)\nn=({})'.format(direct_nondac_ind.sum())])
+
+        #'Indirect\nn=({})'.format(indirect_ind.sum()),
+        #'Inferred\nn=({})'.format(inferred_ind.sum())
+        #])
+
     ax.tick_params(axis='x', labelrotation=0)
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')
@@ -327,9 +329,9 @@ def DACPanelStatsBarChart(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -356,7 +358,7 @@ def DACPanelStatsBarChart(mp, sector, panel_class):
     out = pd.concat([a, b], axis = 0)
     out.rename(index={'No':'Non-DAC', 'Yes':'DAC'}, inplace=True)
 
-    fig, ax = plt.subplots(1,1,figsize = (6,5))
+    fig, ax = plt.subplots(1,1,figsize = (5.4,4))
     out[cols].plot(
         kind='bar',
         stacked=True,
@@ -434,9 +436,9 @@ def VintagePanelStatsBarChart(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -549,9 +551,9 @@ def SqftPanelStatsBarChart(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -660,9 +662,9 @@ def RenterPanelStatsBarChart(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -742,11 +744,11 @@ sf_fig.savefig(as_built_figure_dir + 'single_family_renter_as_built_panel_stats_
 sf_data.to_csv(as_built_tables_dir + 'single_family_renter_as_built_panel_stats.csv')
 
 mf_data, mf_fig, mf_ax = RenterPanelStatsBarChart(mf, 'multi_family', 'existing')
-mf_fig.savefig(existing_figure_dir + 'multifamily_renter_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_fig.savefig(existing_figure_dir + 'multi_family_renter_existing_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 mf_data.to_csv(existing_tables_dir + 'multi_family_renter_existing_panel_stats.csv')
 
 mf_data, mf_fig, mf_ax = RenterPanelStatsBarChart(mf, 'multi_family', 'as_built')
-mf_fig.savefig(as_built_figure_dir + 'multifamily_renter_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
+mf_fig.savefig(as_built_figure_dir + 'multi_family_renter_as_built_panel_stats_bar_chart.png', bbox_inches = 'tight', dpi = 300)
 mf_data.to_csv(as_built_tables_dir + 'multi_family_renter_as_built_panel_stats.csv')
 
 #%% Generate Aggregations by Renter Household Pct
@@ -763,9 +765,9 @@ def ClimateZonePanelStatsBarChart(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -866,9 +868,9 @@ def AirDistrictPanelStatsBarChart(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -969,9 +971,9 @@ def CountyAirBasinAirDistrictPanelStats(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
@@ -1022,9 +1024,9 @@ def CensusTractPanelStats(mp, sector, panel_class):
         labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
         cols = ['<100','100','101 - 199','200','>200']
     elif sector == 'multi_family':
-        bins = [0, 59, 60, 61, 89, 90, 91, 149, 150, 151, 2000]
+        bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
         labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-        cols = ['<60', '60', '90', '150', '>150']
+        cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
     mp['panel_size_class'] = pd.cut(mp[panel],
         bins = bins,
