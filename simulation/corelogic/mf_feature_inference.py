@@ -150,7 +150,7 @@ with tqdm(total = len(classes)) as pbar:
 ax.grid(True)
 ax.set_xlabel('Property Age')
 ax.set_ylabel('Cumulative Probability Density')
-ax.set_title('ECDFs of Permitted Panel Upgrades\nby CES Percentile Score Range')
+ax.set_title('Multi-Family\nECDFs of Permitted Panel Upgrades\nby CES Percentile Score Range')
 ax.set_xlim((0, 130))
 
 labels = []
