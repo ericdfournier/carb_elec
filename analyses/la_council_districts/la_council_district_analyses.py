@@ -109,6 +109,7 @@ cds = gpd.read_postgis(query, db_con, geom_col = 'geom')
 cd5 = cds.loc[cds['district'] == 5,:]
 cd6 = cds.loc[cds['district'] == 6,:]
 cd8 = cds.loc[cds['district'] == 8,:]
+cd10 = cds.loc[cds['district'] == 10,:]
 cd11 = cds.loc[cds['district'] == 11,:]
 
 #%% Generate Plot
@@ -230,6 +231,10 @@ cd6_sf, cd6_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd6, tracts)
 #%% CD8 Results
 
 cd8_sf, cd8_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd8, tracts)
+
+#%% CD10 Results
+
+cd10_sf, cd10_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd11, tracts)
 
 #%% CD11 Results
 

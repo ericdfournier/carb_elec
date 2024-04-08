@@ -81,6 +81,11 @@ mf = pd.read_sql(query, db_con)
 # Set megaparcelid as index
 mf.set_index('megaparcelid', drop = True, inplace = True)
 
+#%% Extract CES Score Layers
+
+query = '''SELECT * FROM oehha.ca_ces4;'''
+ces4 = gpd.read_postgis(query, db_con, geom_col = 'geom')
+
 #%% Extract Air District Geographic Boundaries
 
 query = ''' SELECT  * FROM carb.ca_air_districts;'''
@@ -100,6 +105,70 @@ county_air_basin_districts = gpd.read_postgis(query, db_con, geom_col = 'geom')
 
 query = '''SELECT * FROM census.acs_ca_2019_tr_geom;'''
 tracts = gpd.read_postgis(query, db_con, geom_col = 'geometry')
+
+#%% Generate Permit Count Frequencies and Normalized stats
+
+def PermitTypeBarCharts(mp, sector):
+
+    cols =  ['dac',
+            'solar_pv_system',
+            'main_panel_upgrade',
+            'battery_storage_system',
+            'ev_charger',
+            'heat_pump']
+
+    sampled = mp['sampled'] == True
+    totals = mp.loc[sampled,['dac','ciscorep']].groupby('dac').agg('count')
+
+    ind = mp.loc[:,cols[1:]].any(axis = 1)
+    sub = mp.loc[ind,cols]
+    test = sub.groupby('dac').agg('sum')
+
+    no = test.loc['No',:] / totals.loc['No'].values[0]
+    yes = test.loc['Yes',:] / totals.loc['Yes'].values[0]
+
+    proportions = pd.concat([no, yes], axis = 1) * 1000
+
+    fig, ax = plt.subplots(1,2,figsize = (10,4))
+
+    test.T.plot.bar(ax = ax[0])
+    proportions.plot.bar(ax = ax[1])
+
+    ax[0].legend(title = 'DAC')
+    ax[1].legend(title = 'DAC')
+
+    xlabels = ['Solar PV',
+               'Main Panel\nUpgrade',
+               'Battery\nStorage\nSystem',
+               'EV Charger',
+               'Heat Pump\nHVAC']
+
+    ax[0].set_xticklabels(xlabels, rotation = 0)
+    ax[1].set_xticklabels(xlabels, rotation = 0)
+
+    ax[0].get_yaxis().set_major_formatter(
+        matplotlib.ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+    ax[0].grid(True)
+    ax[1].grid(True)
+
+    ax[0].set_title('{}\nRaw Permit Counts'.format(sector))
+    ax[1].set_title('{}\nNormalized Permit Counts'.format(sector))
+
+    ax[0].set_ylabel('Total Permits')
+    ax[1].set_ylabel('Permits per Thousand Properties')
+
+    fig.tight_layout()
+
+    return fig, ax
+
+#%% Generate Permit Raw and Normalized Count Bar Charts
+
+sf_fig, ax = PermitTypeBarCharts(sf, 'Single-Family')
+sf_fig.savefig(permit_figure_dir + 'single_family_raw_and_normalized_permit_count_bar.png', bbox_inches = 'tight', dpi = 300)
+
+mf_fig, ax = PermitTypeBarCharts(mf, 'Multi-Family')
+mf_fig.savefig(permit_figure_dir + 'multi_family_raw_and_normalized_permit_count_bar.png', bbox_inches = 'tight', dpi = 300)
 
 #%% Generate Panel Statistics Table
 
