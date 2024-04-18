@@ -1,15 +1,8 @@
 #%% Package Imports
 
 import pandas as pd
-import geopandas as gpd
 import numpy as np
 import sqlalchemy as sql
-import matplotlib
-import matplotlib.animation as animation
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter, StrMethodFormatter
-import seaborn as sns
-from matplotlib.patches import Rectangle
 from tqdm import tqdm
 
 #%% Set Fixed Parameters
