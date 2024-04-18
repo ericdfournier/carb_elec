@@ -106,6 +106,10 @@ county_air_basin_districts = gpd.read_postgis(query, db_con, geom_col = 'geom')
 query = '''SELECT * FROM census.acs_ca_2019_tr_geom;'''
 tracts = gpd.read_postgis(query, db_con, geom_col = 'geometry')
 
+#%% Generate Tract Level Detailed Cross-Tabulation Tables 
+
+
+
 #%% Generate Permit Count Frequencies and Normalized stats
 
 def PermitTypeBarCharts(mp, sector):

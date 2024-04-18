@@ -104,138 +104,123 @@ db_con = sql.create_engine(db_con_string)
 query = '''SELECT * FROM ladwp.council_districts_2022;'''
 cds = gpd.read_postgis(query, db_con, geom_col = 'geom')
 
-#%% Extract CDs
+#%% Set Output Figure Directory
 
-cd5 = cds.loc[cds['district'] == 5,:]
-cd6 = cds.loc[cds['district'] == 6,:]
-cd8 = cds.loc[cds['district'] == 8,:]
-cd10 = cds.loc[cds['district'] == 10,:]
-cd11 = cds.loc[cds['district'] == 11,:]
+figure_dir = '/Users/edf/repos/carb_elec/analyses/la_council_districts/fig/'
 
 #%% Generate Plot
 
-def ROIPanelStatsBarChart(sf, mf, mask, tracts):
+def ROIPanelStatsBarChart(sf, mf, cds, tracts, figure_dirs):
 
-    centroids = tracts.geometry.centroid
-    mask_ind = centroids.intersects(mask.unary_union)
-    geoids = tracts.loc[mask_ind,'GEOID']
+    for i, cd in cds['district'].items():
 
-    sf_ind = sf['tract_geoid_2019'].isin(geoids)
-    sf_sub = sf.loc[sf_ind,:].copy(deep = True)
+        mask = cds.loc[cds['district'] == cd,:]
 
-    mf_ind = mf['tract_geoid_2019'].isin(geoids)
-    mf_sub = mf.loc[mf_ind,:].copy(deep = True)
+        centroids = tracts.geometry.centroid
+        mask_ind = centroids.intersects(mask.unary_union)
+        geoids = tracts.loc[mask_ind,'GEOID']
 
-    panel = 'panel_size_existing'
+        sf_ind = sf['tract_geoid_2019'].isin(geoids)
+        sf_sub = sf.loc[sf_ind,:].copy(deep = True)
 
-    sf_bins = [0, 99, 100, 101, 199, 200, 201, 2000]
-    sf_labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
-    sf_cols = ['<100','100','101 - 199','200','>200']
+        mf_ind = mf['tract_geoid_2019'].isin(geoids)
+        mf_sub = mf.loc[mf_ind,:].copy(deep = True)
 
-    mf_bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
-    mf_labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
-    mf_cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
+        panel = 'panel_size_existing'
 
-    sf_sub['panel_size_class'] = pd.cut(sf_sub.loc[:,panel],
-        bins = sf_bins,
-        labels = sf_labels,
-        ordered = False).to_frame()
+        sf_bins = [0, 99, 100, 101, 199, 200, 201, 2000]
+        sf_labels = ['<100', '100', '101 - 199', '101 - 199', '200', '>200', '>200']
+        sf_cols = ['<100','100','101 - 199','200','>200']
 
-    mf_sub['panel_size_class'] = pd.cut(mf_sub.loc[:,panel],
-        bins = mf_bins,
-        labels = mf_labels,
-        ordered = False).to_frame()
+        mf_bins = [0, 59, 60, 61, 89, 90, 101, 149, 150, 151, 2000]
+        mf_labels = ['<60', '60', '61 - 89', '61 - 89', '90', '91 - 149', '91 - 149', '150', '>150', '>150']
+        mf_cols = ['<60', '60', '61 - 89', '90','91 - 149','150','>150']
 
-    sf_stats = sf_sub[['panel_size_class',panel]].groupby(['panel_size_class'],
-        observed = False).agg('count')
-    sf_stats.rename(columns = {panel:'count'}, inplace = True)
-    sf_totals = sf_stats.sum()['count']
-    sf_stats['pct'] = sf_stats['count'].divide(sf_totals)
-    sf_stats.reset_index(inplace = True)
-    sf_stats['cat'] = 'Single-Family'
-    sf_out = sf_stats.pivot(index = 'cat', columns='panel_size_class', values='pct')
+        sf_sub['panel_size_class'] = pd.cut(sf_sub.loc[:,panel],
+            bins = sf_bins,
+            labels = sf_labels,
+            ordered = False).to_frame()
 
-    mf_stats = mf_sub[['panel_size_class',panel]].groupby(['panel_size_class'],
-        observed = False).agg('count')
-    mf_stats.rename(columns = {panel:'count'}, inplace = True)
-    mf_totals = mf_stats.sum()['count']
-    mf_stats['pct'] = mf_stats['count'].divide(mf_totals)
-    mf_stats.reset_index(inplace = True)
-    mf_stats['cat'] = 'Multi-Family'
-    mf_out = mf_stats.pivot(index = 'cat', columns='panel_size_class', values='pct')
+        mf_sub['panel_size_class'] = pd.cut(mf_sub.loc[:,panel],
+            bins = mf_bins,
+            labels = mf_labels,
+            ordered = False).to_frame()
 
-    fig, ax = plt.subplots(1,2,figsize = (6,4), sharey = True)
+        sf_stats = sf_sub[['panel_size_class',panel]].groupby(['panel_size_class'],
+            observed = False).agg('count')
+        sf_stats.rename(columns = {panel:'count'}, inplace = True)
+        sf_totals = sf_stats.sum()['count']
+        sf_stats['pct'] = sf_stats['count'].divide(sf_totals)
+        sf_stats.reset_index(inplace = True)
+        sf_stats['cat'] = 'Single-Family'
+        sf_out = sf_stats.pivot(index = 'cat', columns='panel_size_class', values='pct')
 
-    sf_out[sf_cols].plot(
-        kind='bar',
-        stacked=True,
-        ax = ax[0],
-        edgecolor='k')
+        mf_stats = mf_sub[['panel_size_class',panel]].groupby(['panel_size_class'],
+            observed = False).agg('count')
+        mf_stats.rename(columns = {panel:'count'}, inplace = True)
+        mf_totals = mf_stats.sum()['count']
+        mf_stats['pct'] = mf_stats['count'].divide(mf_totals)
+        mf_stats.reset_index(inplace = True)
+        mf_stats['cat'] = 'Multi-Family'
+        mf_out = mf_stats.pivot(index = 'cat', columns='panel_size_class', values='pct')
 
-    mf_out[mf_cols].plot(
-        kind='bar',
-        stacked=True,
-        ax = ax[1],
-        edgecolor='k')
+        fig, ax = plt.subplots(1,2,figsize = (6,4), sharey = True)
 
-    # Label SF Axis
-    handles, labels = ax[0].get_legend_handles_labels()
-    ax[0].legend(handles[::-1], labels[::-1], loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')
-    ax[0].set_ylabel('Share of buildings')
-    ax[0].set_xlabel(None)
-    ax[0].set_yticks(np.arange(0,1.1,0.1))
-    ax[0].set_ylim(0,1)
-    ax[0].set_axisbelow(True)
-    ax[0].grid(True)
-    ax[0].tick_params(axis='x', labelrotation=0)
+        sf_out[sf_cols].plot(
+            kind='bar',
+            stacked=True,
+            ax = ax[0],
+            edgecolor='k')
 
-    for c in ax[0].containers:
+        mf_out[mf_cols].plot(
+            kind='bar',
+            stacked=True,
+            ax = ax[1],
+            edgecolor='k')
 
-        # Optional: if the segment is small or 0, customize the labels
-        labels = [str(int(np.round(v.get_height(),2)*100)) + '%' if v.get_height() > 0 else '' for v in c]
+        # Label SF Axis
+        handles, labels = ax[0].get_legend_handles_labels()
+        ax[0].legend(handles[::-1], labels[::-1], loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')
+        ax[0].set_ylabel('Share of buildings')
+        ax[0].set_xlabel(None)
+        ax[0].set_yticks(np.arange(0,1.1,0.1))
+        ax[0].set_ylim(0,1)
+        ax[0].set_axisbelow(True)
+        ax[0].grid(True)
+        ax[0].tick_params(axis='x', labelrotation=0)
 
-        # remove the labels parameter if it's not needed for customized labels
-        ax[0].bar_label(c, labels=labels, label_type='center')
+        for c in ax[0].containers:
 
-    # Label MF Axis
-    handles, labels = ax[1].get_legend_handles_labels()
-    ax[1].legend(handles[::-1], labels[::-1], loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')
-    ax[1].set_ylabel('Share of buildings')
-    ax[1].set_xlabel(None)
-    ax[1].set_yticks(np.arange(0,1.1,0.1))
-    ax[1].set_ylim(0,1)
-    ax[1].set_axisbelow(True)
-    ax[1].grid(True)
-    ax[1].tick_params(axis='x', labelrotation=0)
+            # Optional: if the segment is small or 0, customize the labels
+            labels = [str(int(np.round(v.get_height(),2)*100)) + '%' if v.get_height() > 0 else '' for v in c]
 
-    for c in ax[1].containers:
+            # remove the labels parameter if it's not needed for customized labels
+            ax[0].bar_label(c, labels=labels, label_type='center')
 
-        # Optional: if the segment is small or 0, customize the labels
-        labels = [str(int(np.round(v.get_height(),2)*100)) + '%' if v.get_height() > 0 else '' for v in c]
+        # Label MF Axis
+        handles, labels = ax[1].get_legend_handles_labels()
+        ax[1].legend(handles[::-1], labels[::-1], loc='center left', bbox_to_anchor=(1, 0.5), title = 'Panel capacity (A)')
+        ax[1].set_ylabel('Share of buildings')
+        ax[1].set_xlabel(None)
+        ax[1].set_yticks(np.arange(0,1.1,0.1))
+        ax[1].set_ylim(0,1)
+        ax[1].set_axisbelow(True)
+        ax[1].grid(True)
+        ax[1].tick_params(axis='x', labelrotation=0)
 
-        # remove the labels parameter if it's not needed for customized labels
-        ax[1].bar_label(c, labels=labels, label_type='center')
+        for c in ax[1].containers:
 
-    fig.tight_layout()
+            # Optional: if the segment is small or 0, customize the labels
+            labels = [str(int(np.round(v.get_height(),2)*100)) + '%' if v.get_height() > 0 else '' for v in c]
 
-    return sf_out[sf_cols], mf_out[mf_cols], fig, ax
+            # remove the labels parameter if it's not needed for customized labels
+            ax[1].bar_label(c, labels=labels, label_type='center')
 
-#%% CD5 Results
+        fig.tight_layout()
+        fig.savefig(figure_dir + 'council_district_{}_panel_size_distribution_bar_chart.png'.format(cd), dpi = 300, bbox_inches = 'tight')
 
-cd5_sf, cd5_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd5, tracts)
+    return fig, ax
 
-#%% CD6 Results
+#%% CD Level Results
 
-cd6_sf, cd6_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd6, tracts)
-
-#%% CD8 Results
-
-cd8_sf, cd8_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd8, tracts)
-
-#%% CD10 Results
-
-cd10_sf, cd10_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd11, tracts)
-
-#%% CD11 Results
-
-cd11_sf, cd11_mf, fig, ax = ROIPanelStatsBarChart(sf, mf, cd11, tracts)
+fig, ax = ROIPanelStatsBarChart(sf, mf, cds, tracts, figure_dir)
