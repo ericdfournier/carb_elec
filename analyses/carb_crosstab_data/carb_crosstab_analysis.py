@@ -74,7 +74,8 @@ mp = pd.concat([sf, mf], axis = 0)
 
 #%% Generate Breaks and Labels for Aggregations
 
-luse_codes = {
+# Generate CARB landuse codes
+carb_luse_codes = {
     'Single-Family Detached': [100,109,148,160,163],
     'Single-Family Attached': [102],
     '2-4 Unit Residential': [115,151,165],
@@ -82,7 +83,22 @@ luse_codes = {
     'Mobile/Manufactured Homes': [135, 137, 138]
 }
 
-sqft_bins = [
+# Generate LEAD landuse codes
+lead_luse_codes = {
+    '1 ATTACHED': [100,109,148,160,163],
+    '1 DETACHED': [102],
+    '2 UNIT': [115],
+    '3-4 UNIT': [151, 165],
+    '5-9 UNIT': [132],
+    '10-19 UNIT': [131], # Need to filter on unit counts downstream for assignment
+    '20-49 UNIT': [131], # Need to filter on unit counts downstream for assignment
+    '50+ UNIT': [131], # Need to filter on unit counts downstream for assignment
+    'MOBILE_TRAILER': [135, 137, 138],
+    'BOAT_RV_VAN': []
+}
+
+# Generate CARB sqft breaks
+carb_sqft_bins = [
     0,
     250,
     500,
@@ -95,10 +111,11 @@ sqft_bins = [
     3000,
     4000,
     5000,
-    sf['TotalBuildingAreaSqFt'].max() + 1
+    mp['TotalBuildingAreaSqFt'].max() + 1
 ]
 
-sqft_labels = [
+# Generate CARB sqft labels
+carb_sqft_labels = [
     '0 - 249',
     '250 - 499',
     '500 - 749',
@@ -113,7 +130,29 @@ sqft_labels = [
     '>= 5,000'
 ]
 
-vintage_bins = [
+# Generate LEAD vintage breaks
+lead_vintage_bins = [
+    0,
+    1940,
+    1960,
+    1980,
+    2000,
+    2010,
+    mp['YearBuilt'].max() + 1
+]
+
+# Generate LEAD vintage labels
+lead_vintage_labels = [
+    'BEFORE 1940',
+    '1940-59',
+    '1960-79',
+    '1980-99',
+    '2000-09',
+    '2010+'
+]
+
+# Generate CARB vintage breaks
+carb_vintage_bins = [
     0,
     1950,
     1960,
@@ -123,10 +162,11 @@ vintage_bins = [
     2000,
     2010,
     2020,
-    sf['YearBuilt'].max() + 1
+    mp['YearBuilt'].max() + 1
 ]
 
-vintage_labels = [
+# Generate CARB vintage labels
+carb_vintage_labels = [
     'Pre- 1950',
     '1950 - 1959',
     '1960 - 1969',
@@ -138,56 +178,99 @@ vintage_labels = [
     'Post - 2020'
 ]
 
-#%% Flag Usetypes
+#%% Flag Usetypes based upon CARB definitions
 
 for i, r in tqdm(mp['PropertyLandUseStndCodes'].items(), total = mp.shape[0]):
-    for k, v in luse_codes.items():
+    for k, v in carb_luse_codes.items():
         if bool(set(r) & set(v)):
             match = k
             break
     mp.loc[i,'carb_luse_code'] = match
 
+#%% Flag Usetypes based upon LEAD definitions
+
+for i, r in tqdm(mp['PropertyLandUseStndCodes'].items(), total = mp.shape[0]):
+    for k, v in lead_luse_codes.items():
+        if bool(set(r) & set(v)):
+            if bool(set(v) & set([131])) & (mp.loc[i,'TotalNoOfUnits'] >= 10) & (mp.loc[i,'TotalNoOfUnits'] < 20):
+                match = '10-19 UNIT'
+            elif bool(set(v) & set([131])) & (mp.loc[i,'TotalNoOfUnits'] >= 20) & (mp.loc[i,'TotalNoOfUnits'] < 50):
+                match = '20-49 UNIT'
+            elif bool(set(v) & set([131])) & (mp.loc[i,'TotalNoOfUnits'] >= 50):
+                match = '50+ UNIT'
+            else:
+                match = k
+            break
+    mp.loc[i,'lead_luse_code'] = match
+
 #%% Bin Square Footages
 
 mp['carb_sqft_bin'] = pd.cut(
     mp['TotalBuildingAreaSqFt'],
-    bins = sqft_bins,
-    labels = sqft_labels
+    bins = carb_sqft_bins,
+    labels = carb_sqft_labels
 )
 
 #%% Bin Vintage Years
 
 mp['carb_vintage_bin'] = pd.cut(
     mp['YearBuilt'],
-    bins = vintage_bins,
-    labels = vintage_labels
+    bins = carb_vintage_bins,
+    labels = carb_vintage_labels
+)
+
+mp['lead_vintage_bin'] = pd.cut(
+    mp['YearBuilt'],
+    bins = lead_vintage_bins,
+    labels = lead_vintage_labels
 )
 
 #%% Generate Aggregated Counts
 
 ind = ~mp['panel_size_existing'].isna() & ~(mp['carb_luse_code'] == 'Mobile/Manufactured Homes')
-cols = [
+
+carb_cols = [
     'tract_geoid_2019',
     'carb_luse_code',
     'carb_vintage_bin',
     'carb_sqft_bin',
     'panel_size_existing'
 ]
+
+lead_cols = [
+    'tract_geoid_2019',
+    'lead_luse_code',
+    'lead_vintage_bin',
+    'panel_size_existing'
+]
+
 #%% Perform Aggregations and Filter Output for Empty Values
 
-out_series = mp.loc[ind, cols].groupby(cols[:3], observed = False).value_counts()
-out_df = out_series.to_frame().reset_index(inplace = False)
-out_df_filtered = out_df.loc[out_df['count'] != 0,:]
-final = out_df_filtered.reset_index(inplace = False, drop = True)
+carb_out_series = mp.loc[ind, carb_cols].groupby(carb_cols[:3], observed = False).value_counts()
+carb_out_df = carb_out_series.to_frame().reset_index(inplace = False)
+carb_out_df_filtered = carb_out_df.loc[carb_out_df['count'] != 0,:]
+carb_final = carb_out_df_filtered.reset_index(inplace = False, drop = True)
+
+lead_out_series = mp.loc[ind, lead_cols].groupby(lead_cols[:2], observed = False).value_counts()
+lead_out_df = lead_out_series.to_frame().reset_index(inplace = False)
+lead_out_df_filtered = lead_out_df.loc[lead_out_df['count'] != 0,:]
+lead_final = lead_out_df_filtered.reset_index(inplace = False, drop = True)
 
 #%% Sort Values before Writing to File
 
-final_sorted = final.sort_values(
-    by = cols,
+carb_final_sorted = carb_final.sort_values(
+    by = carb_cols,
+    ascending = True,
+    axis = 0,
+    inplace = False).reset_index(drop = True, inplace = False)
+
+lead_final_sorted = lead_final.sort_values(
+    by = lead_cols,
     ascending = True,
     axis = 0,
     inplace = False).reset_index(drop = True, inplace = False)
 
 #%% Write Sorted Output to File
 
-final_sorted.to_csv(table_dir + 'carb_panel_size_estimate_crosstabulation_output.csv', index = False)
+carb_final_sorted.to_csv(table_dir + 'carb_panel_size_estimate_crosstabulation_output.csv', index = False)
+lead_final_sorted.to_csv(table_dir + 'lead_panel_size_estimate_crosstabulation_output.csv', index = False)
