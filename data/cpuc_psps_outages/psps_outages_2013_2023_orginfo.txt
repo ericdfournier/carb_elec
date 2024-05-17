@@ -1,0 +1,27 @@
+INFO: Open of `postgresql://edf@127.0.0.1/carb'
+      using driver `PostgreSQL' successful.
+
+Layer name: cpuc.psps_outages_2013_2023
+Metadata:
+  DESCRIPTION=psps_outages_2013_2023
+Geometry: None
+Feature Count: 5471
+Layer SRS WKT:
+(unknown)
+FID Column = ogc_fid
+field_1: Integer (0.0)
+utility: String (0.0)
+outage_start: String (0.0)
+full_restoration: String (0.0)
+outage_duration: String (0.0)
+outage_days: String (0.0)
+outage_hours: String (0.0)
+circuit_name: String (0.0)
+hftd: String (0.0)
+total_customers_impacted: String (0.0)
+residential_customers: String (0.0)
+commercial.industrial_customers: String (0.0)
+medical_baseline_customers: String (0.0)
+other_customers: String (0.0)
+notes: String (0.0)
+year: String (0.0)
