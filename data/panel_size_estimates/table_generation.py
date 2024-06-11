@@ -22,8 +22,8 @@ db_con = sql.create_engine(db_con_string)
 query = '''WITH single_family AS (SELECT
                 A."megaparcelid" AS megaparcel_id,
                 A."geom" AS geom,
-                A."RowIDs" AS corelogic_clip,
-                A."usetype" AS usetype_category,
+                A."clips" AS corelogic_clip,
+                A."usetype" AS usetype,
                 A."ciscorep" AS ces4_percentile_score,
                 A."sampled" AS in_permit_sample_territory,
                 A."panel_size_as_built",
@@ -36,15 +36,15 @@ query = '''WITH single_family AS (SELECT
                 C."county_name",
                 C."county_air_basin_district_id",
                 C."tract_geoid_2019"
-        FROM corelogic.model_data AS A
-        JOIN corelogic.model_data_sf_inference AS B
+        FROM corelogic.model_data_20240126 AS A
+        JOIN corelogic.model_data_sf_inference_20240126 AS B
             ON A."megaparcelid" = B."megaparcelid"
-        JOIN corelogic.megaparcels_geocoded_geographies AS C
+        JOIN corelogic.corelogic_20240126_varchar_megaparcels_geocoded_geographies AS C
             ON A."megaparcelid" = C."megaparcelid"),
         multi_family AS (SELECT
                 A."megaparcelid" AS megaparcel_id,
                 A."geom" AS geom,
-                A."RowIDs" AS corelogic_clip,
+                A."clips" AS corelogic_clip,
                 A."usetype" AS usetype_category,
                 A."ciscorep" AS ces4_percentile_score,
                 A."sampled" AS in_permit_sample_territory,
@@ -58,10 +58,10 @@ query = '''WITH single_family AS (SELECT
                 C."county_name",
                 C."county_air_basin_district_id",
                 C."tract_geoid_2019"
-            FROM corelogic.model_data AS A
-            JOIN corelogic.model_data_mf_inference AS B
+            FROM corelogic.model_data_20240126 AS A
+            JOIN corelogic.model_data_mf_inference_20240126 AS B
                 ON A."megaparcelid" = B."megaparcelid"
-            JOIN corelogic.megaparcels_geocoded_geographies AS C
+            JOIN corelogic.corelogic_20240126_varchar_megaparcels_geocoded_geographies AS C
                 ON A."megaparcelid" = C."megaparcelid")
             (SELECT * FROM single_family)
                 UNION
@@ -73,21 +73,30 @@ mp = gpd.read_postgis(
     geom_col = "geom",
     crs = "EPSG:3310")
 
+#%% Drop Missing Values
+
+mp.dropna(subset = ['corelogic_clip', 'panel_size_existing', 'panel_size_as_built'], inplace = True)
+
 #%% Iterate Through List and Flatten Values
 
 out = mp.explode('corelogic_clip')
-out.drop(columns = ['megaparcel_id'], inplace = True)
 
-#%% Drop Duplicate Records and Those with Missing Panel Size Values
+#%% Drop Records with Missing Clips
 
-out.dropna(subset = ['corelogic_clip', 'panel_size_existing', 'panel_size_as_built'], inplace = True)
+out.dropna(subset = ['corelogic_clip'], inplace = True)
+
+#%% Drop Duplicate Records
+
 out.drop_duplicates(subset = ['corelogic_clip'], inplace = True)
+
+#%% Reset Index
+
 out.reset_index(drop = True, inplace = True)
 
-#%% Output Full GeoJSON File
+#%% Integrity Tests
 
-geojson_path = '/Users/edf/Desktop/cec_panel_size_estimate_results/panel_size_estimates_full_geospatial.geojson'
-out.to_file(geojson_path, driver = "GeoJSON")
+unique_clips = out['corelogic_clip'].nunique()
+unique_megaparcel_ids = out['megaparcel_id'].nunique()
 
 #%% Output Full GeoPackage File
 

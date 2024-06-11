@@ -121,47 +121,47 @@ ADD COLUMN panel_size_as_built NUMERIC DEFAULT NULL;
 UPDATE corelogic.corelogic_20240126_varchar_megaparcels
 SET panel_size_as_built = CASE
     -- Pre-1879
-    WHEN "year built" <= 1879 THEN 0
+    WHEN "year built _ piq" <= 1879 THEN 0
     -- 1879-1950
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" <= 1000) THEN 30
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 40
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 60
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 100
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 125
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 150
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 200
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 320
-    WHEN ("year built" > 1879 AND "year built" <= 1950) AND ("universal building square feet" > 20000 ) THEN 400
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" <= 1000) THEN 30
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 40
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 60
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 100
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 125
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 150
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 200
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 320
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) AND ("universal building square feet" > 20000 ) THEN 400
     -- 1950-1978
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" <= 1000) THEN 60 -- Update to 60 from 40
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 100 -- Update to 100 from 60
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 100
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 125
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 150
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 200
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 320
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 400
-    WHEN ("year built" > 1950 AND "year built" <= 1978) AND ("universal building square feet" > 20000 ) THEN 600
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" <= 1000) THEN 60 -- Update to 60 from 40
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 100 -- Update to 100 from 60
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 100
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 125
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 150
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 200
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 320
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 400
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) AND ("universal building square feet" > 20000 ) THEN 600
     -- 1978-2010
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" <= 1000) THEN 100 -- Update to 100 from 60
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 100
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 125
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 150
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 200
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 320
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 400
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 600
-    WHEN ("year built" > 1978 AND "year built" <= 2010) AND ("universal building square feet" > 20000 ) THEN 800
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" <= 1000) THEN 100 -- Update to 100 from 60
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 100
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 125
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 150
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 200
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 320
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 400
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 600
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) AND ("universal building square feet" > 20000 ) THEN 800
     -- Post-2010
-    WHEN ("year built" > 2010) AND ("universal building square feet" <= 1000) THEN 200
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 200
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 225
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 320
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 400
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 600
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 800
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 1000
-    WHEN ("year built" > 2010) AND ("universal building square feet" > 20000 ) THEN 1200
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" <= 1000) THEN 200
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 1000 AND "universal building square feet" <= 2000) THEN 200
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 2000 AND "universal building square feet" <= 3000) THEN 225
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 3000 AND "universal building square feet" <= 4000) THEN 320
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 4000 AND "universal building square feet" <= 5000) THEN 400
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 5000 AND "universal building square feet" <= 8000) THEN 600
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 8000 AND "universal building square feet" <= 10000) THEN 800
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 10000 AND "universal building square feet" <= 20000) THEN 1000
+    WHEN ("year built _ piq" > 2010) AND ("universal building square feet" > 20000 ) THEN 1200
 END
 WHERE usetype = 'single_family';
 
@@ -169,14 +169,14 @@ WHERE usetype = 'single_family';
 UPDATE corelogic.corelogic_20240126_varchar_megaparcels
 SET panel_size_as_built = CASE
     -- Pre-1879
-    WHEN "year built" <= 1879 THEN 0
+    WHEN "year built _ piq" <= 1879 THEN 0
     -- 1879-1950
-    WHEN ("year built" > 1879 AND "year built" <= 1950) THEN 40
+    WHEN ("year built _ piq" > 1879 AND "year built _ piq" <= 1950) THEN 40
     -- 1950-1978
-    WHEN ("year built" > 1950 AND "year built" <= 1978) THEN 60
+    WHEN ("year built _ piq" > 1950 AND "year built _ piq" <= 1978) THEN 60
     -- 1978-2010
-    WHEN ("year built" > 1978 AND "year built" <= 2010) THEN 90
+    WHEN ("year built _ piq" > 1978 AND "year built _ piq" <= 2010) THEN 90
     -- Post-2010
-    WHEN ("year built" > 2010) THEN 150
+    WHEN ("year built _ piq" > 2010) THEN 150
 END
 WHERE usetype = 'multi_family';
