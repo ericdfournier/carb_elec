@@ -96,7 +96,7 @@ outages AS (
 SELECT  DISTINCT circuits.circuit_name AS target_circuit_name,
         product.circuit_name  AS match_circuit_name,
         circuits.ceus_subsector AS ceus_subsector,
-        (circuits.circuit_name <-> product.circuit_name) AS match_similarity_score,
+        (REPLACE(REPLACE(REPLACE(REGEXP_REPLACE(circuits.circuit_name, '[+-]?\d+(?:\.\d+)?', ''), '*', ''), '-', ''), 'kV', '') <-> REPLACE(REPLACE(REPLACE(REGEXP_REPLACE(product.circuit_name, '[+-]?\d+(?:\.\d+)?', ''), '*', ''), '-', ''), 'kV', '')) AS match_similarity_score,
         product.cumulative_outage_hours,
         circuits.cumulative_facilities
 INTO commercial_scope.circuit_psps_join_v2
@@ -104,7 +104,7 @@ FROM circuits
 CROSS JOIN LATERAL 
     (SELECT * 
         FROM outages
-        ORDER BY circuits.circuit_name <-> outages.circuit_name ASC
+        ORDER BY REPLACE(REPLACE(REPLACE(REGEXP_REPLACE(circuits.circuit_name, '[+-]?\d+(?:\.\d+)?', ''), '*', ''), '-', ''), 'kV', '') <-> REPLACE(REPLACE(REPLACE(REGEXP_REPLACE(outages.circuit_name, '[+-]?\d+(?:\.\d+)?', ''), '*', ''), '-', ''), 'kV', '') ASC
         LIMIT 1) AS product;
 
 -- Filter records based upon match similarity
@@ -128,4 +128,12 @@ SELECT  ceus_subsector,
 FROM    commercial_scope.circuit_psps_join_v2
 GROUP BY ceus_subsector
 ORDER BY ceus_subsector ASC;
-        
+
+-- Report documentation queries
+
+SELECT COUNT( DISTINCT circuit_name)
+FROM cpuc.psps_outages_2013_2023_simplified;
+
+SELECT COUNT( DISTINCT match_circuit_name)
+FROM commercial_scope.circuit_psps_join_v2;
+

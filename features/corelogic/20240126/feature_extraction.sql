@@ -111,6 +111,8 @@ GROUP BY corelogic_megaparcelid;
 
 -- Extract Relevant Parcel Attributes for Model Training Data
 SELECT  DISTINCT ON (mp."megaparcelid")
+        mp."megaparcelid",
+        mp."clips",
         mp."centroid",
         mp."land use code _ piq",
         mp."year built _ piq",

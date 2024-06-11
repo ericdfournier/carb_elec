@@ -26,22 +26,22 @@ db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
 db_con = sql.create_engine(db_con_string)
 
 # Extract Multi-Family
-query = ''' SELECT megaparcelid,
-                   "YearBuilt" AS "year_built",
-                   "TotalBuildingAreaSqFt" AS "total_building_area_sqft",
-                   sampled,
-                   usetype,
-                   panel_size_as_built,
-                   ciscorep,
-                   issued_date,
-                   solar_pv_system,
-                   battery_storage_system,
-                   ev_charger,
-                   heat_pump,
-                   main_panel_upgrade,
-                   sub_panel_upgrade,
-                   upgraded_panel_size
-            FROM corelogic.model_data
+query = ''' SELECT "megaparcelid",
+                   "year built _ piq" AS year_built,
+                   "universal building square feet" AS total_building_area_sqft,
+                   "sampled",
+                   "usetype",
+                   "panel_size_as_built",
+                   "ciscorep",
+                   "issued_date",
+                   "solar_pv_system",
+                   "battery_storage_system",
+                   "ev_charger",
+                   "heat_pump",
+                   "main_panel_upgrade",
+                   "sub_panel_upgrade",
+                   "upgraded_panel_size"
+            FROM corelogic.model_data_20240126
             WHERE usetype = 'multi_family';'''
 
 mp = pd.read_sql(query, db_con)

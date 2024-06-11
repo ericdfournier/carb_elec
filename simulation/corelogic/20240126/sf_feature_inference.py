@@ -26,21 +26,21 @@ db_con_string = 'postgresql://' + user + '@' + host + ':' + port + '/' + db
 db_con = sql.create_engine(db_con_string)
 
 # Extract Single Family Data from Model Data Table
-query = ''' SELECT megaparcelid,
-                   "year built" AS year_built,
+query = ''' SELECT "megaparcelid",
+                   "year built _ piq" AS year_built,
                    "universal building square feet" AS total_building_area_sqft,
-                   sampled,
-                   usetype,
-                   panel_size_as_built,
-                   ciscorep,
-                   issued_date,
-                   solar_pv_system,
-                   battery_storage_system,
-                   ev_charger,
-                   heat_pump,
-                   main_panel_upgrade,
-                   sub_panel_upgrade,
-                   upgraded_panel_size
+                   "sampled",
+                   "usetype",
+                   "panel_size_as_built",
+                   "ciscorep",
+                   "issued_date",
+                   "solar_pv_system",
+                   "battery_storage_system",
+                   "ev_charger",
+                   "heat_pump",
+                   "main_panel_upgrade",
+                   "sub_panel_upgrade",
+                   "upgraded_panel_size"
             FROM corelogic.model_data_20240126
             WHERE usetype = 'single_family';'''
 
