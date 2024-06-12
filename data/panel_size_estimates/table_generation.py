@@ -97,6 +97,8 @@ out.reset_index(drop = True, inplace = True)
 
 unique_clips = out['corelogic_clip'].nunique()
 unique_megaparcel_ids = out['megaparcel_id'].nunique()
+unique_clips_per_megaparcel = out.groupby('megaparcel_id')['corelogic_clip'].agg('count')
+max_unique_clips_per_megaparcel = unique_clips_per_megaparcel.max()
 
 #%% Output Full GeoPackage File
 
