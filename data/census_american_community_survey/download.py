@@ -1,6 +1,6 @@
 #%% Package Imports
 
-import censusdata
+import CensusData
 import geopandas as gpd
 import pandas as pd
 import us
@@ -33,7 +33,7 @@ def SearchData(product, year, search, keyword):
 #%% Specify Search Parameters
 
 product = 'acs5'
-year = 2019
+year = 2022
 search = 'label'
 
 #%% Find Attributes
@@ -126,25 +126,25 @@ fuel_data = DownloadData(product, year, fuel_codes, census_api_key)
 
 #%% Read Tract Geometry Data
 
-tract_url = "https://www2.census.gov/geo/tiger/TIGER2019/TRACT/tl_2019_06_tract.zip"
+tract_url = "https://www2.census.gov/geo/tiger/TIGER2019/TRACT/tl_2022_06_tract.zip"
 tract_geom_data = gpd.read_file(tract_url)
 tract_geom_data = tract_geom_data.to_crs(3310)
 
 #%% Read Place Geometry Data
 
-place_url = "https://www2.census.gov/geo/tiger/TIGER2019/PLACE/tl_2019_06_place.zip"
+place_url = "https://www2.census.gov/geo/tiger/TIGER2019/PLACE/tl_2022_06_place.zip"
 place_geom_data = gpd.read_file(place_url)
 place_geom_data = place_geom_data.to_crs(3310)
 
 #%% Read PUMA Geometry Data
 
-puma_url = "https://www2.census.gov/geo/tiger/TIGER2019/PUMA/tl_2019_06_puma10.zip"
+puma_url = "https://www2.census.gov/geo/tiger/TIGER2019/PUMA/tl_2022_06_puma10.zip"
 puma_geom_data = gpd.read_file(puma_url)
 puma_geom_data = puma_geom_data.to_crs(3310)
 
 #%% Read County Geometry Data
 
-county_url = "https://www2.census.gov/geo/tiger/TIGER2019/COUNTY/tl_2019_us_county.zip"
+county_url = "https://www2.census.gov/geo/tiger/TIGER2019/COUNTY/tl_2022_us_county.zip"
 county_geom_data = gpd.read_file(county_url)
 ca_ind = county_geom_data['STATEFP'] == '06'
 county_geom_data = county_geom_data.loc[ca_ind,:].copy()
@@ -152,7 +152,7 @@ county_geom_data = county_geom_data.to_crs(3310)
 
 #%% Read State Geometry Data
 
-state_url = "https://www2.census.gov/geo/tiger/TIGER2019/STATE/tl_2019_us_state.zip"
+state_url = "https://www2.census.gov/geo/tiger/TIGER2019/STATE/tl_2022_us_state.zip"
 state_geom_data = gpd.read_file(state_url)
 ca_ind = state_geom_data['STATEFP'] == '06'
 state_geom_data = state_geom_data.loc[ca_ind,:].copy()
@@ -185,61 +185,61 @@ engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(
 
 #%% Output Tables to Postgres
 
-population_data.to_sql('acs_ca_2019_tr_population',
+population_data.to_sql('acs_ca_2022_tr_population',
     if_exists = 'replace',
     index = True,
     schema = 'census',
     con = engine)
 
-income_data.to_sql('acs_ca_2019_tr_income',
+income_data.to_sql('acs_ca_2022_tr_income',
     if_exists = 'replace',
     index = True,
     schema = 'census',
     con = engine)
 
-housing_data.to_sql('acs_ca_2019_tr_housing',
+housing_data.to_sql('acs_ca_2022_tr_housing',
     if_exists = 'replace',
     index = True,
     schema = 'census',
     con = engine)
 
-fuel_data.to_sql('acs_ca_2019_tr_fuel',
+fuel_data.to_sql('acs_ca_2022_tr_fuel',
     if_exists = 'replace',
     index = True,
     schema = 'census',
     con = engine)
 
-meta_data.to_sql('acs_ca_2019_tr_metadata',
+meta_data.to_sql('acs_ca_2022_tr_metadata',
     if_exists = 'replace',
     index = False,
     schema = 'census',
     con = engine)
 
-tract_geom_data.to_postgis('acs_ca_2019_tr_geom',
+tract_geom_data.to_postgis('acs_ca_2022_tr_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',
     con = engine)
 
-place_geom_data.to_postgis('acs_ca_2019_place_geom',
+place_geom_data.to_postgis('acs_ca_2022_place_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',
     con = engine)
 
-puma_geom_data.to_postgis('acs_ca_2019_puma_geom',
+puma_geom_data.to_postgis('acs_ca_2022_puma_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',
     con = engine)
 
-county_geom_data.to_postgis('acs_ca_2019_county_geom',
+county_geom_data.to_postgis('acs_ca_2022_county_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',
     con = engine)
 
-state_geom_data.to_postgis('acs_ca_2019_state_geom',
+state_geom_data.to_postgis('acs_ca_2022_state_geom',
     if_exists = 'replace',
     index = False,
     schema = 'census',
