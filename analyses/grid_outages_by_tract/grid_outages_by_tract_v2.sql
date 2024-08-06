@@ -1,31 +1,65 @@
 -- Directly Compute Facility to Circuit Associations by Commercial Sub-Sector
 
-SELECT AddGeometryColumn('corelogic','corelogic_20240126_varchar_megaparcels','centroid', 3310,'POINT', 2, false);
+SELECT AddGeometryColumn('corelogic','corelogic_20240126_megaparcel','centroid', 3310,'POINT', 2, false);
 
-UPDATE corelogic.corelogic_20240126_varchar_megaparcels
+UPDATE corelogic.corelogic_20240126_megaparcel
 SET centroid = ST_CENTROID(geom);
 
 -- Index centroids
-CREATE INDEX corelogic_20240126_varchar_megaparcels_centroid_idx
-ON corelogic.corelogic_20240126_varchar_megaparcels USING GIST("centroid");
+CREATE INDEX corelogic_20240126_megaparcel_centroid_idx
+ON corelogic.corelogic_20240126_megaparcel USING GIST("centroid");
 
 -- Create Megaparcelid
-ALTER TABLE corelogic.corelogic_20240126_varchar_megaparcels
+ALTER TABLE corelogic.corelogic_20240126_megaparcel
 ADD COLUMN megaparcelid SERIAL;
 
 -- Index megaparcelids
-CREATE INDEX corelogic_20240126_varchar_megaparcels_megaparcelid_idx
-ON corelogic.corelogic_20240126_varchar_megaparcels("megaparcelid");
+CREATE INDEX corelogic_20240126_megaparcel_megaparcelid_idx
+ON corelogic.corelogic_20240126_megaparcel("megaparcelid");
 
 -- Compute parcel to circuit associations
 WITH 
-megaparcels AS (
-    SELECT  mp."megaparcelid",
+unified_naics AS 
+    (WITH 
+        pge_non_res_customer_naics AS (
+        SELECT  premiseid,
+                premnaics,
+                centroid,
+                'pge' AS utility
+        FROM cpuc2022_nonres.pge_cis
+        WHERE   premnaics IS NOT NULL AND 
+                ST_ISEMPTY(centroid) = FALSE),
+        scg_non_res_customer_naics AS (
+        SELECT  premiseid,
+                premnaics,
+                centroid,
+                'scg' AS utility
+        FROM cpuc2022_nonres.scg_cis
+        WHERE premnaics IS NOT NULL AND
+                ST_ISEMPTY(centroid) = FALSE),
+        sdge_non_res_customer_naics AS (
+        SELECT  premiseid,
+                premnaics,
+                centroid,
+                'sdge' AS utility
+        FROM cpuc2022_nonres.sdge_cis
+        WHERE   premnaics IS NOT NULL AND
+                ST_ISEMPTY(centroid) = FALSE)
+    SELECT DISTINCT * 
+    FROM pge_non_res_customer_naics
+        UNION
+    SELECT DISTINCT *
+    FROM scg_non_res_customer_naics
+        UNION
+    SELECT DISTINCT * 
+    FROM sdge_non_res_customer_naics),
+ceus AS (
+    SELECT  unified_naics."premiseid",
             cw."ceus_subsector",
-            mp."centroid"
-    FROM corelogic.corelogic_20240126_varchar_megaparcels AS mp
-    JOIN crosswalk.corelogic_landuse_code_to_ceus_sector_dictionary AS cw
-        ON mp."land use code _ piq" = cw."corelogic_universal_landuse_code"::TEXT
+            unified_naics."centroid"
+    FROM unified_naics
+    JOIN crosswalk.utility_account_naics_to_ceus_20240523 AS cw
+        ON unified_naics."premnaics" = cw."premnaics"
     WHERE cw."ceus_subsector" NOT IN (
         'Forestry', 
         'Residential',
@@ -37,18 +71,20 @@ megaparcels AS (
         'TCU') AND 
     cw."ceus_subsector" IS NOT NULL
 )
-SELECT  DISTINCT megaparcels."megaparcelid",
-        megaparcels."ceus_subsector",
+SELECT  DISTINCT ceus."premiseid",
+        ceus."ceus_subsector",
         circuits."circuit_name",
-        ("geom" <-> megaparcels."centroid") AS circuit_distance,
-        megaparcels."centroid"
+        ("geom" <-> ceus."centroid") AS circuit_distance,
+        ceus."centroid"
 INTO    commercial_scope.subsector_megaparcels_to_circuits
 FROM    megaparcels
 CROSS JOIN LATERAL 
     (SELECT  "circuit_name", "geom"
         FROM commercial_scope.ious_all_circuits
-        ORDER BY "geom" <-> megaparcels."centroid"
+        ORDER BY "geom" <-> ceus."centroid"
         LIMIT 1) AS circuits;
+    
+-- TODO: TEST THE CODE BLOCKS ABOVE!!!
     
 -- NULL out negative outage hours
 UPDATE cpuc.psps_outages_2013_2023_simplified
