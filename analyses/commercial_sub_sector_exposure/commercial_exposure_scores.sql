@@ -3,50 +3,17 @@
 -- Modify below to take as input the non-res customer centroids directly from the consumption dataset.
 -- USE VIEW ON PREMISE ID THAT SPENCER WILL CREATE
  
-WITH 
-unified_naics AS 
-    (WITH 
-    pge_non_res_customer_naics AS (
-        SELECT  premiseid,
-                premnaics,
-                centroid,
-                'pge' AS utility
-        FROM cpuc2022_nonres.pge_cis
-        WHERE   premnaics IS NOT NULL AND 
-                ST_ISEMPTY(centroid) = FALSE),
-    scg_non_res_customer_naics AS (
-        SELECT  premiseid,
-                premnaics,
-                centroid,
-                'scg' AS utility
-        FROM cpuc2022_nonres.scg_cis
-        WHERE premnaics IS NOT NULL AND
-                ST_ISEMPTY(centroid) = FALSE),
-    sdge_non_res_customer_naics AS (
-        SELECT  premiseid,
-                premnaics,
-                centroid,
-                'sdge' AS utility
-        FROM cpuc2022_nonres.sdge_cis
-        WHERE   premnaics IS NOT NULL AND
-                ST_ISEMPTY(centroid) = FALSE)
-    SELECT DISTINCT * 
-    FROM pge_non_res_customer_naics
-        UNION
-    SELECT DISTINCT *
-    FROM scg_non_res_customer_naics
-        UNION
-    SELECT DISTINCT * 
-    FROM sdge_non_res_customer_naics)
+-- Presume's that "unified_naics" table has already been generated
+
 SELECT  naics."ceus_subsector" AS "ceus_subsector",
     ST_UNION(ST_BUFFER(mp."geom", 200)) AS geom,
     COUNT(unified_naics."premiseid") AS premiseid_count
 INTO temp.landuse_buffer
-FROM unified_naics
+FROM project.unified_naics
 JOIN corelogic.corelogic_20240126_megaparcel AS mp
     ON ST_INTERSECTS(unified_naics."centroid", mp."geom")
-JOIN crosswalk.utility_account_naics_to_ceus_20240523 AS naics
-    ON unified_naics."premnaics"::text = naics."premnaics"
+JOIN crosswalk.naics_to_ceus AS naics
+    ON unified_naics."naics_code" = naics."naics_code"
 WHERE naics."ceus_subsector" NOT IN (
 	'Forestry',
 	'Residential',
@@ -106,13 +73,20 @@ CREATE INDEX residential_parcels_centroid_idx
     ON temp.residential_parcels
     USING GIST(centroid);
 
-SELECT  lb."ceus_subsector",
-        res_parcels."dac",
-        ST_UNION(res_parcels.centroid) AS "geom",
-        COUNT(DISTINCT res_parcels.*) AS "nearby_residential_property_count",
-        SUM(res_parcels."number of units" * res_parcels."avg_household_size_of_occupied" * res_parcels."percent_occupied") AS "nearby_residential_population_estimate"
-INTO project.carb_ceus_sector_residential_exposure_dac_status
-FROM temp.landuse_buffer AS lb
-CROSS JOIN LATERAL
-    (SELECT * FROM temp.residential_parcels AS rp WHERE ST_INTERSECTS(lb."geom", rp."centroid")) AS res_parcels
-GROUP BY lb."ceus_subsector", res_parcels."dac";
+-- Need to just do a straightforward intersection and not a cross lateral join
+
+WITH unique_parcels AS (
+    SELECT  DISTINCT res_parcels.*,
+            lb."ceus_subsector"
+    FROM temp.landuse_buffer AS lb
+    JOIN TEMP.residential_parcels AS res_parcels
+        ON ST_INTERSECTS(lb."geom", res_parcels."centroid"))
+SELECT 
+    unique_parcels."ceus_subsector",
+    unique_parcels."dac",
+    ST_UNION(unique_parcels.centroid) AS "geom",
+    COUNT(unique_parcels.*) AS "nearby_residential_property_count",
+    SUM(unique_parcels."number of units" * unique_parcels."avg_household_size_of_occupied" * (unique_parcels."percent_occupied"/100.0)) AS "nearby_residential_population_estimate"
+INTO project.carb_ceus_sector_residential_exposure_dac_status_v2
+FROM unique_parcels
+GROUP BY unique_parcels."ceus_subsector", unique_parcels."dac";
