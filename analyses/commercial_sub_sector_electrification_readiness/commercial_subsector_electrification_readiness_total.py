@@ -62,9 +62,16 @@ facility_stats['vintage_norm'] = (1 - scaler.fit_transform(facility_stats['media
 scaler = MinMaxScaler()
 facility_stats['sqft_norm'] = scaler.fit_transform(facility_stats['median_sqft'].to_frame())
 
+#%% Import Sector Stats Data
+
+file = '/data/inputs/commercial_sector_stats.csv'
+
+sector_stats = pd.read_csv(
+    root + file)
+
 # Normalize Usage
 scaler = MinMaxScaler()
-facility_stats['usage_norm'] = scaler.fit_transform(facility_stats['average_therms_per_premise'].to_frame())
+facility_stats['usage_norm'] = scaler.fit_transform(sector_stats['total_therms'].to_frame())
 
 #%% Generate Scores
 
@@ -106,4 +113,4 @@ total['ranking'] = total['raw_score'].rank()
 
 cols = ['ceus_subsector', 'dac', 'raw_score']
 output_export = output.loc[:,cols].set_index(['ceus_subsector','dac']).unstack()
-output_export.to_csv(root + '/data/postprocessing/commercial_readiness_per_facility_results.csv')
+output_export.to_csv(root + '/data/postprocessing/commercial_readiness_total_results.csv')

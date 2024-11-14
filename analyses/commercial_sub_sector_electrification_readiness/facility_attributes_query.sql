@@ -36,3 +36,23 @@ WHERE facility_stats.ceus_subsector IN (
                                         'Retail',
                                         'School',
                                         'Unrefrigerated Warehouse');
+                                        
+-- Compute Total Usage Per Sub-Sector                                    
+SELECT  ceus_subsector,
+        "is_dac" AS dac,
+        SUM(premiseid_tally) AS total_premises,
+        SUM(therms_total) AS total_therms
+FROM    cpuc2022_nonres_aggregations.gas_bill_data_by_tract
+WHERE "year" = 2021 AND
+    "ceus_subsector" IN ('College',
+                        'Food Store',
+                        'Health Care',
+                        'Lodging',
+                        'Miscellaneous',
+                        'Office',
+                        'Refrigerated Warehouse',
+                        'Restaurant',
+                        'Retail',
+                        'School',
+                        'Unrefrigerated Warehouse')
+GROUP BY "ceus_subsector", "is_dac";
