@@ -17,12 +17,20 @@ unified_naics AS
         UNION
     SELECT DISTINCT * 
     FROM cpuc2022_nonres_geocode.sdge_gas_keyacctid_to_point)
-SELECT unified_naics.*,
+SELECT  unified_naics.keyacctid,
+        unified_naics.premiseid,
+        unified_naics.fuel,
+        unified_naics.naics_code,
+        unified_naics.ceus_sector,
+        cw.ceus_subsector,
+        unified_naics.centroid,
         CASE WHEN ces."ciscorep" >= 75.0 THEN TRUE ELSE FALSE END AS dac
 INTO project.unified_naics
 FROM unified_naics
 JOIN geo.calenviroscreen40_gdb AS ces
-    ON ST_INTERSECTS(unified_naics."centroid", ces."geom");
+    ON ST_INTERSECTS(unified_naics."centroid", ces."geom")
+JOIN crosswalk.naics_to_ceus AS cw
+    ON unified_naics.naics_code = cw.naics_code;
 
 -- Index centroid field on unified naics table
 CREATE INDEX idx_unified_naics_centroid 
@@ -156,10 +164,32 @@ WHERE match_similarity_score > 0.5;
 -- Compute annual average outage hours per CEUS sector facility type - disaggregated by DAC status - over 10 year data collection period.
 SELECT  ceus_subsector,
         dac,
-        ROUND(AVG(cumulative_outage_hours) / 10,2) AS annual_average_psps_outage_hours
+        ROUND(AVG(cumulative_outage_hours) / 10,3) AS annual_average_psps_outage_hours
 FROM    project.circuit_psps_join_v2_filtered
 GROUP BY ceus_subsector, dac
 ORDER BY ceus_subsector, dac ASC;
+
+-- Compute total outage hours per CEUS sector facility type - disaggregated by DAC status - over 10 year data collection period.
+SELECT  ceus_subsector,
+        dac,
+        SUM(cumulative_outage_hours) AS annual_total_psps_outage_hours
+FROM    project.circuit_psps_join_v2_filtered
+GROUP BY ceus_subsector, dac
+ORDER BY ceus_subsector, dac ASC;
+
+-- Compute annual average outage hours per CEUS sector facility type - NOT disaggregated by DAC status - over 10 year data collection period.
+SELECT  ceus_subsector,
+        ROUND(AVG(cumulative_outage_hours) / 10,2) AS annual_average_psps_outage_hours
+FROM    project.circuit_psps_join_v2_filtered
+GROUP BY ceus_subsector
+ORDER BY ceus_subsector ASC;
+
+-- Compute total annual outage hours per CEUS sector facility type - NOT disaggregated by DAC status - over 10 year data collection period.
+SELECT  ceus_subsector,
+        SUM(cumulative_outage_hours) AS annual_total_psps_outage_hours
+FROM    project.circuit_psps_join_v2_filtered
+GROUP BY ceus_subsector
+ORDER BY ceus_subsector ASC;
 
 -- Report documentation queries
 

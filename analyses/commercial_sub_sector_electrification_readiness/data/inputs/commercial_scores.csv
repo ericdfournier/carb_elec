@@ -1,0 +1,12 @@
+ceus_subsector,space_heating,space_cooling,water_heating,cooking,miscellaneous,processing
+Office,10,10,9,10,7,5
+Restaurant,10,10,9,9,6,5
+Retail,10,10,9,9,7,5
+Food Store,8,8,9,9,7,4
+Refrigerated Warehouse,10,8,9,10,6,5
+Unrefrigerated Warehouse,10,10,9,10,7,5
+School,10,10,9,9,7,5
+College,8,8,8,9,6,5
+Health,8,8,8,9,5,4
+Lodging,10,10,9,9,5,5
+Miscellaneous,8,8,8,8,5,4

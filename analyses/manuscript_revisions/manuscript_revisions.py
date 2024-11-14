@@ -11,7 +11,6 @@ from matplotlib.ticker import FormatStrFormatter, StrMethodFormatter
 import seaborn as sns
 from matplotlib.patches import Rectangle
 
-
 #%% Set Fixed Parameters
 
 permit_figure_dir = '/Users/edf/repos/carb_elec/analyses/manuscript_revisions/fig/permit/'

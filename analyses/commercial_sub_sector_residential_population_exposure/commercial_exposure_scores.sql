@@ -16,6 +16,7 @@ JOIN crosswalk.naics_to_ceus AS naics
     ON unified_naics."naics_code" = naics."naics_code"
 WHERE naics."ceus_subsector" NOT IN (
 	'Forestry',
+	'Construction',
 	'Residential',
 	'National Security',
 	'Mining & Extraction',
@@ -90,3 +91,55 @@ SELECT
 INTO project.carb_ceus_sector_residential_exposure_dac_status_v2
 FROM unique_parcels
 GROUP BY unique_parcels."ceus_subsector", unique_parcels."dac";
+
+
+-- Divide nearby residential population estimate by the total number of facilities within each sub-sector to estimate average exposure population per facility
+WITH res_stats AS (
+    SELECT  ceus_subsector,
+            dac,
+            nearby_residential_population_estimate
+    FROM project.carb_ceus_sector_residential_exposure_dac_status_v2),
+naics_stats AS (
+    SELECT  ceus_subsector,
+            dac,
+            COUNT(DISTINCT premiseid) AS distinct_premises
+    FROM project.unified_naics
+    GROUP BY ceus_subsector, dac)
+SELECT  res_stats.ceus_subsector,
+        res_stats.dac,
+        (res_stats.nearby_residential_population_estimate / naics_stats.distinct_premises) AS average_exposed_residential_population_per_facility
+FROM res_stats
+JOIN naics_stats
+    ON res_stats.ceus_subsector = naics_stats.ceus_subsector AND res_stats.dac = naics_stats.dac
+ORDER BY res_stats.ceus_subsector, res_stats.dac ASC;
+
+-- Compute total residential population exposure per ceus subsector
+WITH res_stats AS (
+    SELECT  ceus_subsector,
+            dac,
+            nearby_residential_population_estimate
+    FROM project.carb_ceus_sector_residential_exposure_dac_status_v2)
+SELECT  res_stats.ceus_subsector,
+        res_stats.dac,
+        SUM(res_stats.nearby_residential_population_estimate) AS total_exposed_residential_population_per_facility
+FROM res_stats
+GROUP BY res_stats.ceus_subsector, res_stats.dac
+ORDER BY res_stats.ceus_subsector, res_stats.dac ASC;
+
+-- Count DISTINCT NAICS
+
+SELECT  ceus_subsector,
+        dac,
+        COUNT(DISTINCT premiseid) AS distinct_premises
+FROM project.unified_naics
+WHERE ceus_subsector NOT IN (
+    'Forestry',
+    'Construction',
+    'Residential',
+    'National Security',
+    'Mining & Extraction',
+    'Industrial',
+    'Ag & Pumping',
+    'Fishing',
+    'TCU')
+GROUP BY ceus_subsector, dac
