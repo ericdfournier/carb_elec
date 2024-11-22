@@ -55,7 +55,19 @@ mf_out = gpd.GeoDataFrame(mf_merge, crs = 'EPSG:3310', geometry = mf_merge['geom
 
 #%% Write to Shapefile for Export to ArcGIS
 
-shp_dir = '/Users/edf/repos/carb_elec/analyses/agol_tract_map_data/shp/'
+shp_dir = '/Users/edf/repos/carb_elec/analyses/agol_map_data/shp/'
 
 sf_merge.to_file(shp_dir + 'sf_tract_level_panel_size_estimates.shp')
 mf_merge.to_file(shp_dir + 'mf_tract_level_panel_size_estimates.shp')
+
+#%% Write to CSV File for Export
+
+csv_dir = '/Users/edf/repos/carb_elec/analyses/agol_map_data/csv/'
+
+sf_cols = ['GEOID_INT', 'NAMELSAD', 'COUNTYFP', 'tract_geoid_2019',
+       '<100', '100', '101 - 199', '200', '>200']
+mf_cols = ['GEOID_INT', 'NAMELSAD', 'COUNTYFP', 'tract_geoid_2019',
+       '<60', '60', '61 - 89', '90', '91 - 149', '150', '>150']
+
+sf_merge.loc[:,sf_cols].to_csv(csv_dir + 'sf_tract_level_panel_size_estimates.csv')
+mf_merge.loc[:,mf_cols].to_csv(csv_dir + 'mf_tract_level_panel_size_estimates.csv')
