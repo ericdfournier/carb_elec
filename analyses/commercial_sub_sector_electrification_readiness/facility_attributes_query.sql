@@ -1,4 +1,4 @@
-WITH 
+WITH
 facility_stats AS (
     SELECT  A.ceus_subsector AS ceus_subsector,
             A.dac,
@@ -36,8 +36,8 @@ WHERE facility_stats.ceus_subsector IN (
                                         'Retail',
                                         'School',
                                         'Unrefrigerated Warehouse');
-                                        
--- Compute Total Usage Per Sub-Sector                                    
+
+-- Compute Total Usage Per Sub-Sector
 SELECT  ceus_subsector,
         "is_dac" AS dac,
         SUM(premiseid_tally) AS total_premises,

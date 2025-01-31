@@ -29,8 +29,10 @@ enduse_coeff = pd.read_csv(
 cols = ['space_heating', 'space_cooling', 'water_heating', 'cooking', 'miscellaneous', 'processing']
 coeff_std = (1 / enduse_coeff.loc[:,cols].std(axis = 1))
 
-scaler = MinMaxScaler()
-enduse_coeff['coeff_std'] = scaler.fit_transform(coeff_std.to_frame())
+# scaler = MinMaxScaler()
+# enduse_coeff['coeff_std'] = scaler.fit_transform(coeff_std.to_frame())
+
+enduse_coeff['coeff_std'] = coeff_std
 
 #%% Import End-Use TRL Based Scores
 
@@ -56,11 +58,11 @@ facility_stats = pd.read_csv(
 
 # Normalize Vintage
 scaler = MinMaxScaler()
-facility_stats['vintage_norm'] = (1 - scaler.fit_transform(facility_stats['median_vintage'].to_frame()))
+facility_stats['normalized_vintage_score'] = (1 - scaler.fit_transform(facility_stats['median_vintage'].to_frame()))
 
 # Normalize Sqft
 scaler = MinMaxScaler()
-facility_stats['sqft_norm'] = scaler.fit_transform(facility_stats['median_sqft'].to_frame())
+facility_stats['normalized_sqft_score'] = scaler.fit_transform(facility_stats['median_sqft'].to_frame())
 
 #%% Import Sector Stats Data
 
@@ -71,13 +73,16 @@ sector_stats = pd.read_csv(
 
 # Normalize Usage
 scaler = MinMaxScaler()
-facility_stats['usage_norm'] = scaler.fit_transform(sector_stats['total_therms'].to_frame())
+facility_stats['normalized_usage_score'] = scaler.fit_transform(sector_stats['total_therms'].to_frame())
 
 #%% Generate Scores
 
 output = pd.DataFrame(
     data = facility_stats[['ceus_subsector', 'dac']])
-output[['raw_score', 'normalized_score', 'ranking']] = np.nan
+output[['raw_trl_score',
+    'normalized_trl_score',
+    'raw_enduse_diversity_score',
+    'normalized_enduse_diversity_score']] = np.nan
 
 #%% Compute Raw + Normalized Scores and Rankings
 
@@ -95,22 +100,42 @@ for i, row in facility_stats.iterrows():
 
     enduse_std = enduse_coeff.loc[coeff_ind, 'coeff_std'].values[0]
 
-    output.loc[i,'raw_score'] = row['vintage_norm'] + row['sqft_norm'] + row['usage_norm'] + enduse_std + (np.sum(coeff * score))
+    #output.loc[i,'raw_score'] = row['vintage_norm'] + row['sqft_norm'] + row['usage_norm'] + enduse_std + (np.sum(coeff * score))
+    output.loc[i,'raw_trl_score'] = (np.sum(coeff * score))
+
+    sector_ind = output.loc[:,'ceus_subsector'] == row['ceus_subsector']
+    output.loc[sector_ind,'raw_enduse_diversity_score'] = enduse_std
 
 # Rank Outputs
+
 scaler = MinMaxScaler()
-output['normalized_score'] = np.ceil(scaler.fit_transform(output['raw_score'].to_frame()) * 100)
-output['ranking'] = output['normalized_score'].rank()
+output['normalized_trl_score'] = np.ceil(scaler.fit_transform(output['raw_trl_score'].to_frame()) * 100)
+output['normalized_enduse_diversity_score'] = np.ceil(scaler.fit_transform(output['raw_enduse_diversity_score'].to_frame()) * 100)
+#output['ranking'] = output['normalized_score'].rank()
 
-output = output.sort_values(by = 'ceus_subsector')
+output = output.sort_values(by = ['ceus_subsector','dac'])
 
-#%% Compute Average Raw Scores
+#%% Merge Output and Facility Stats
 
-total = output.loc[:,['ceus_subsector', 'raw_score']].groupby('ceus_subsector').agg('mean')
-total['ranking'] = total['raw_score'].rank()
+final = pd.merge(left = output,
+    right = facility_stats,
+    left_on = ['ceus_subsector','dac'],
+    right_on = ['ceus_subsector','dac'])
+
+column_names = {'median_vintage':'raw_median_vintage',
+'median_sqft':'raw_median_sqft',
+'average_therms_per_premise':'raw_average_therms_per_premise'}
+
+final.rename(columns = column_names, inplace = True)
+
+columns_sort = ['ceus_subsector', 'dac',
+        'raw_trl_score', 'normalized_trl_score',
+        'raw_enduse_diversity_score', 'normalized_enduse_diversity_score',
+        'raw_median_vintage', 'normalized_vintage_score',
+        'raw_median_sqft', 'normalized_sqft_score',
+        'raw_average_therms_per_premise', 'normalized_usage_score']
 
 #%% Output to File for Report Formatting
 
-cols = ['ceus_subsector', 'dac', 'raw_score']
-output_export = output.loc[:,cols].set_index(['ceus_subsector','dac']).unstack()
+output_export = final.loc[:,columns_sort].set_index(['ceus_subsector','dac']).unstack()
 output_export.to_csv(root + '/data/postprocessing/commercial_readiness_total_results.csv')

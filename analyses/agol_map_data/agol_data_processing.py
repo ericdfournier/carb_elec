@@ -29,6 +29,11 @@ query = ''' SELECT * FROM census.acs_ca_2019_tr_geom;'''
 tr_geom = gpd.read_postgis(query, db_con, geom_col = 'geometry')
 tr_geom['GEOID_INT'] = pd.to_numeric(tr_geom['GEOID'])
 
+#%% Import Proportion Electric Heating Change from File
+
+query = ''' SELECT * FROM census.acs_ca_2017_2022_proportion_electric_heating_change;'''
+prop_elec_heating_change = pd.read_sql(query, db_con)
+
 #%% Import Census Tract Level Aggregations from File
 
 existing_tables_dir = '/Users/edf/repos/carb_elec/analyses/manuscript_revisions/csv/existing/'
@@ -52,6 +57,16 @@ mf_merge = pd.merge(
     right_on = 'tract_geoid_2019')
 
 mf_out = gpd.GeoDataFrame(mf_merge, crs = 'EPSG:3310', geometry = mf_merge['geometry'])
+
+#%% Merge Proportion of Electric Heating to SF/MF Dataframes
+
+sf_merge_final = pd.merge(
+    left = sf_merge,
+    right = prop_elec_heating_change,
+    left_on = 'GEOID_INT',
+    right_on = 'GEOID',
+    how = 'left'
+)
 
 #%% Write to Shapefile for Export to ArcGIS
 
