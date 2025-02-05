@@ -110,8 +110,9 @@ for i, row in facility_stats.iterrows():
 
 scaler = MinMaxScaler()
 output['normalized_trl_score'] = np.ceil(scaler.fit_transform(output['raw_trl_score'].to_frame()) * 100)
+
+scaler = MinMaxScaler()
 output['normalized_enduse_diversity_score'] = np.ceil(scaler.fit_transform(output['raw_enduse_diversity_score'].to_frame()) * 100)
-#output['ranking'] = output['normalized_score'].rank()
 
 output = output.sort_values(by = ['ceus_subsector','dac'])
 
@@ -129,11 +130,11 @@ column_names = {'median_vintage':'raw_median_vintage',
 final.rename(columns = column_names, inplace = True)
 
 columns_sort = ['ceus_subsector', 'dac',
-        'raw_trl_score', 'normalized_trl_score',
-        'raw_enduse_diversity_score', 'normalized_enduse_diversity_score',
-        'raw_median_vintage', 'normalized_vintage_score',
-        'raw_median_sqft', 'normalized_sqft_score',
-        'raw_average_therms_per_premise', 'normalized_usage_score']
+        'raw_trl_score',
+        'raw_enduse_diversity_score',
+        'raw_median_vintage',
+        'raw_median_sqft',
+        'raw_average_therms_per_premise']
 
 #%% Output to File for Report Formatting
 
