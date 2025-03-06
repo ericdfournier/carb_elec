@@ -27,12 +27,10 @@ enduse_coeff = pd.read_csv(
 #%% Compute end-use coefficient standard deviations
 
 cols = ['space_heating', 'space_cooling', 'water_heating', 'cooking', 'miscellaneous', 'processing']
-coeff_std = (1 / enduse_coeff.loc[:,cols].std(axis = 1))
+enduse_coeff.loc[:,'coeff_var']  = (1 / enduse_coeff.loc[:,cols].var(axis = 1))
 
 # scaler = MinMaxScaler()
-# enduse_coeff['coeff_std'] = scaler.fit_transform(coeff_std.to_frame())
-
-enduse_coeff['coeff_std'] = coeff_std
+# enduse_coeff['coeff_var'] = scaler.fit_transform(coeff_var.to_frame())
 
 #%% Import End-Use TRL Based Scores
 
@@ -98,13 +96,13 @@ for i, row in facility_stats.iterrows():
     score_ind = trl_scores['ceus_subsector'] == row['ceus_subsector']
     score = trl_scores.loc[score_ind,score_cols].values
 
-    enduse_std = enduse_coeff.loc[coeff_ind, 'coeff_std'].values[0]
+    enduse_var = enduse_coeff.loc[coeff_ind, 'coeff_var'].values[0]
 
-    #output.loc[i,'raw_score'] = row['vintage_norm'] + row['sqft_norm'] + row['usage_norm'] + enduse_std + (np.sum(coeff * score))
+    #output.loc[i,'raw_score'] = row['vintage_norm'] + row['sqft_norm'] + row['usage_norm'] + enduse_var + (np.sum(coeff * score))
     output.loc[i,'raw_trl_score'] = (np.sum(coeff * score))
 
     sector_ind = output.loc[:,'ceus_subsector'] == row['ceus_subsector']
-    output.loc[sector_ind,'raw_enduse_diversity_score'] = enduse_std
+    output.loc[sector_ind,'raw_enduse_diversity_score'] = enduse_var
 
 # Rank Outputs
 
