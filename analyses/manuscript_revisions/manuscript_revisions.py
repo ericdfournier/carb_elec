@@ -337,6 +337,7 @@ def PermitCountStatsBarChart(mp, sector):
 
     fig, ax = plt.subplots(1,1,figsize = (5,4))
     out[cols].plot(
+        colormap = 'Grays',
         kind = 'bar',
         stacked = True,
         ax = ax,
@@ -428,6 +429,7 @@ def DACPanelStatsBarChart(mp, sector, panel_class):
 
     fig, ax = plt.subplots(1,1,figsize = (5.4,4))
     out[cols].plot(
+        colormap = 'Grays',
         kind='bar',
         stacked=True,
         ax = ax,
@@ -528,6 +530,7 @@ def VintagePanelStatsBarChart(mp, sector, panel_class):
     fig, ax = plt.subplots(2,1,figsize = (7,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
     out[cols].plot(
         kind='bar',
+        colormap = 'Grays',
         stacked=True,
         ax = ax[0],
         edgecolor = 'k')
@@ -643,6 +646,7 @@ def SqftPanelStatsBarChart(mp, sector, panel_class):
     fig, ax = plt.subplots(2,1,figsize = (7,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
     out[cols].plot(
         kind='bar',
+        colormap = 'Grays',
         stacked=True,
         ax = ax[0],
         edgecolor = 'k')
@@ -753,6 +757,7 @@ def RenterPanelStatsBarChart(mp, sector, panel_class):
 
     fig, ax = plt.subplots(2,1,figsize = (7,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
     out[cols].plot(
+        colormap = 'Grays',
         kind='bar',
         stacked=True,
         ax = ax[0],
@@ -856,6 +861,7 @@ def ClimateZonePanelStatsBarChart(mp, sector, panel_class):
 
     fig, ax = plt.subplots(2,1,figsize = (10,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
     out[cols].plot(
+        colormap = 'Grays',
         kind='bar',
         stacked=True,
         ax = ax[0],
@@ -959,6 +965,7 @@ def AirDistrictPanelStatsBarChart(mp, sector, panel_class):
 
     fig, ax = plt.subplots(2,1,figsize = (14,5), sharex = True, gridspec_kw={'height_ratios': [3, 1]})
     out[cols].plot(
+        colormap = 'Grays',
         kind='bar',
         stacked=True,
         ax = ax[0],

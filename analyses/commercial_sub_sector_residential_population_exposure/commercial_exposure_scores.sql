@@ -2,7 +2,7 @@
 
 -- Modify below to take as input the non-res customer centroids directly from the consumption dataset.
 -- USE VIEW ON PREMISE ID THAT SPENCER WILL CREATE
- 
+
 -- Presume's that "unified_naics" table has already been generated
 
 SELECT  naics."ceus_subsector" AS "ceus_subsector",
@@ -34,7 +34,7 @@ CREATE INDEX landuse_buffer_geom_id
 SELECT ST_CENTROID(mp.geom) AS centroid,
    mp."number of units",
    census."geoid",
-   census."percent_occupied", 
+   census."percent_occupied",
    census."avg_household_size_of_occupied",
    CASE WHEN ces."ciscorep" >= 75.0 THEN TRUE ELSE FALSE END AS dac
 INTO temp.residential_parcels
@@ -67,7 +67,7 @@ WHERE mp."land use code _ piq" IN ('100',
                                     '133',
                                     '167') AND
      census."lsad" = 'CT';
-                                
+
 -- NOTE: Might need to exclude condos from the above as there are major issues with the unit counts that still need to be addressed
 
 CREATE INDEX residential_parcels_centroid_idx
@@ -82,7 +82,7 @@ WITH unique_parcels AS (
     FROM temp.landuse_buffer AS lb
     JOIN TEMP.residential_parcels AS res_parcels
         ON ST_INTERSECTS(lb."geom", res_parcels."centroid"))
-SELECT 
+SELECT
     unique_parcels."ceus_subsector",
     unique_parcels."dac",
     ST_UNION(unique_parcels.centroid) AS "geom",
@@ -127,7 +127,6 @@ GROUP BY res_stats.ceus_subsector, res_stats.dac
 ORDER BY res_stats.ceus_subsector, res_stats.dac ASC;
 
 -- Count DISTINCT NAICS
-
 SELECT  ceus_subsector,
         dac,
         COUNT(DISTINCT premiseid) AS distinct_premises
